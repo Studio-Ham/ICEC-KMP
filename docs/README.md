@@ -42,7 +42,7 @@ Repository 문서와 코드가 충돌하는 상태는 우선순위로 덮지 않
 ### Records and contracts
 
 - [기술 명세](specs/README.md)
-- [ADR](adr/README.md)
+- [ADR](adr/README.md) · [ADR-0001: FaceAnalysis 별도 Route](adr/0001-face-analysis-route.md)
 - [제품·UX·디자인 참조](references/product-design.md)
 - [ICEC LLM Wiki 참조 절차](references/llm-wiki.md)
 - [Legacy 문서](legacy/DESIGN.md)
