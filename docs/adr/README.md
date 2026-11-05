@@ -15,3 +15,7 @@ ADR은 Architecture v1 이후 아키텍처 경계, 핵심 기술, 테스트·CI 
 - 결정과 함께 영향을 받는 Architecture, Spec, 코드와 테스트를 같은 변경 단위에서 갱신합니다.
 
 새 ADR은 [템플릿](template.md)을 복사해 작성합니다.
+
+## 현재 ADR
+
+- [ADR-0001: FaceAnalysis 별도 Navigation Route 도입](0001-face-analysis-route.md) — Accepted (2026-11-06)
