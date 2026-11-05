@@ -53,6 +53,7 @@ wiki() { PYTHONPATH="$ICEC_WIKI_ROOT" python3 -m tools.wiki --root "$ICEC_WIKI_R
 | 제품·UX 정책 변경이 필요함 | 사용자 승인 후 Notion 원본을 먼저 갱신합니다. 그 다음 Repository 문서와 Wiki 사본을 맞춥니다. |
 | 시각 디자인 변경이 필요함 | Figma에서 먼저 확정한 뒤 Compose 구현 계약을 갱신합니다. |
 | 기술 기준 변경이 필요함 | 이 저장소의 PR로 변경합니다. Architecture v1을 바꾸면 [ADR](../adr/README.md)을 작성합니다. |
-| Wiki 내용이 이 저장소의 기술 문서와 다름 | 이 저장소의 문서를 따릅니다. Wiki 쪽 수정을 제안합니다. |
+| Wiki 내용이 이 저장소의 기술 문서와 다름 | 해당 **기술 기준**은 이 저장소의 문서를 따릅니다. Wiki 쪽 수정을 제안합니다. |
+| Notion의 Confirmed UX 결정이 이 저장소의 Navigation·Architecture 문서와 다름 | 어느 쪽도 임의로 무시하지 않습니다. Notion UX 원본의 현재 결정과 기술 경계를 대조하고 기술 문서·ADR을 갱신해 정합성을 복구합니다([ADR-0001](../adr/0001-face-analysis-route.md) 참조). |
 
 Wiki의 제안 작성 형식과 반영 절차는 Wiki 저장소의 `docs/wiki/usage.md`(승인 대기 변경)를 따릅니다.
