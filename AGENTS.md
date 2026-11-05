@@ -19,6 +19,8 @@ Kotlin Multiplatform, Compose Multiplatform과 Android/iOS 플랫폼 연동에 �
 
 - 작업 전 [개발 SSOT 인덱스](docs/README.md)와 관련 Architecture, Spec, ADR을 확인합니다.
 - 제품 요구사항과 UX 정책은 Notion, 시각 디자인은 Figma, 기술 기준과 구현은 이 저장소를 따릅니다.
+- 작업 시작 시 [ICEC LLM Wiki 참조 절차](docs/references/llm-wiki.md)에 따라 관련 제품·UX 지식과 `UX-###` 결정을 검색하고, 표시된 Notion·Figma 원본에서 확인합니다. Wiki는 검색용 사본이며 SSOT가 아닙니다.
+- Notion, Figma와 Wiki의 정책을 자동으로 수정하지 않습니다. 지식 변경이 필요하면 [참조 절차의 검토 경로](docs/references/llm-wiki.md#지식-변경이-필요한-경우)를 따릅니다.
 - 코드와 Repository 기술 문서가 충돌하면 둘 중 하나를 임의로 우선하지 않고 같은 변경에서 정합성을 복구합니다.
 - 기술 결정이 Architecture v1을 변경하면 ADR을 작성하고 현재 기준 문서를 함께 갱신합니다.
 - 대화 기록보다 현재 checkout된 저장소 문서를 우선합니다.
