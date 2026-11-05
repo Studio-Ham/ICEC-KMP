@@ -34,6 +34,7 @@ platform/
 - `core/ui`: 여러 feature에서 실제로 공유하는 UI 기반 요소.
 - `core/model`: 플랫폼 독립 공통 모델.
 - `feature/*`: 기능별 화면, `Action`, `UiState`, `Effect`, ViewModel과 UI 로직.
+- `feature/editor`: 초기에는 `FaceAnalysis`(얼굴 검출·복구)와 `Editor`(얼굴 선택·모자이크·저장)의 **서로 다른 Navigation Route**를 함께 소유합니다. 별도 Gradle 모듈을 추가하지 않으며 Route별 상태와 책임을 혼동하지 않습니다([ADR-0001](../adr/0001-face-analysis-route.md)).
 - `platform/*`: Android/iOS SDK, 이미지 타입, 권한과 저장 API 같은 네이티브 기능 경계.
 
 ## 의존성 규칙

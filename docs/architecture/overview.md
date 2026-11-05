@@ -15,7 +15,7 @@
 ## 플랫폼과 UI
 
 - Kotlin Multiplatform으로 Android와 iOS를 지원합니다.
-- Home, Gallery, Editor, Result의 제품 UI는 Compose Multiplatform으로 최대한 공통 구현합니다.
+- Home, Gallery, FaceAnalysis, Editor, Result의 제품 UI는 Compose Multiplatform으로 최대한 공통 구현합니다.
 - iOS 최소 지원 버전은 ML Kit iOS 지원 하한에 맞춰 15.5 이상으로 둡니다.
 - 플랫폼 경험을 살릴 가치가 있는 제한된 컨트롤에만 Native interop을 허용합니다.
 - iOS 26 이상에서 일부 내비게이션 컨트롤에 Liquid Glass를 적용하고 iOS 15.5~25에서는 같은 기능의 일반 스타일로 폴백합니다.
@@ -34,3 +34,5 @@
 Architecture v1은 승인되었습니다. Repository 개발 SSOT를 기반으로 정식 Project Bootstrap을 준비합니다. 별도의 iOS ML Kit 선행 검증 단계는 두지 않으며, 해당 연동은 실제 기능 구현 과정에서 검증합니다.
 
 Architecture v1의 경계나 핵심 기술 선택을 변경할 때는 [ADR](../adr/README.md)을 먼저 작성하고 관련 현재 기준 문서를 함께 갱신합니다.
+
+- 2026-11-06: 별도 `FaceAnalysis` Route 도입 및 기존 `feature/editor` 모듈 내 역할 분리는 [ADR-0001](../adr/0001-face-analysis-route.md)에 기록했습니다. 원본 UX 결정 [UX-037](https://app.notion.com/p/3ec4d984a218816eb3b7f4d9a9906b26)을 반영한 후속 설계이며, 앱 구현 완료를 뜻하지 않습니다.

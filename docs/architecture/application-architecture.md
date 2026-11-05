@@ -36,8 +36,12 @@ sealed interface EditorEffect {
 
 - 공통 네비게이션은 Navigation 3를 사용합니다.
 - 타입 안전한 Route/Key와 back stack을 `commonMain`에서 관리합니다.
-- MVP 흐름은 `Home → Gallery → Editor → Result`입니다.
-- 분석은 별도 Route가 아니라 Editor의 상태로 표현합니다.
+- MVP 정상 흐름은 `Home → Gallery → FaceAnalysis → Editor → Result`입니다.
+- 사진 선택 후 `FaceAnalysis`를 별도 Route로 열어 얼굴 검출을 수행합니다. 검출된 얼굴이 있으면 `Editor`로 이동합니다.
+- 얼굴이 없거나 분석에 실패·시간 초과한 경우에는 각각 `NoFaceDetected`, `AnalysisFailed`, `AnalysisTimeout` 화면으로 이동합니다. 오류·시간 초과 화면은 같은 사진 재분석 또는 이전 Gallery 탐색 위치 복귀를 지원합니다.
+- 분석 중 뒤로가기는 Gallery의 이전 탐색 위치로 복귀합니다. 분석 동작은 Editor의 편집 상태와 구분합니다.
+- 기존 `feature/editor` 모듈에서 FaceAnalysis와 Editor Route를 함께 관리하되 화면·상태 책임을 분리합니다. 별도 feature 모듈 분리는 실제 필요가 확인되면 ADR로 결정합니다.
+- 이 흐름은 Notion의 [UX-037](https://app.notion.com/p/3ec4d984a218816eb3b7f4d9a9906b26), [UX-038](https://app.notion.com/p/3ec4d984a218819081cfeee89e6114c0)에 맞춘 [ADR-0001](../adr/0001-face-analysis-route.md)을 따릅니다.
 - 화면 이동은 `UiState`에 저장하지 않고 일회성 `Effect` 또는 네비게이션 이벤트로 전달합니다.
 - 화면은 서로 직접 참조하지 않고 애플리케이션의 네비게이션 조립을 통해 연결합니다.
 
