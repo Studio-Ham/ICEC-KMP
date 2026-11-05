@@ -2,7 +2,7 @@
 
 > 상태: Reference
 > SSOT: 각 연결된 원본
-> 최종 검토일: 2026-09-10
+> 최종 검토일: 2026-11-05
 
 ## Notion
 
@@ -14,8 +14,13 @@
 
 ## Figma
 
-- [ICEC MVP](https://www.figma.com/design/K8uqTjJDkBnC1lNxfuICv0/ICEC?node-id=40-428): 현재 MVP 화면과 Prototype의 시각 기준.
-- [ICEC Design System](https://www.figma.com/design/Jn0xf2CaB8ZMPWWo3K0Ina/ICEC-Design-System): Design System 후보 파일. 공식 SSOT 승격 여부와 Variables, Styles, Components 구성은 Design Planning에서 확정합니다.
+2026-11-05 사용자 결정에 따라 다음 세 파일이 시각 디자인의 원본입니다. 화면은 Stitch에서 Figma로 이전 중이며 MVP 상세 정리와 화면별 수정이 남아 있습니다.
+
+- [ICEC-MVP](https://www.figma.com/design/K8uqTjJDkBnC1lNxfuICv0/ICEC-MVP?node-id=118-4): 화면·상태별 상세 디자인.
+- [ICEC-Design-System](https://www.figma.com/design/Jn0xf2CaB8ZMPWWo3K0Ina/ICEC-Design-System?node-id=3-3): 공통 컴포넌트와 디자인 토큰.
+- [ICEC-Assets](https://www.figma.com/design/etY1iHAlX8Ie0geV0WdIv6/ICEC-Assets?node-id=8-1807): 디자인 에셋.
+
+Figma로 옮겨진 사실만으로 화면을 승인본이나 구현 준비 완료로 보지 않습니다. 구현 전에 관련 화면·상태의 노드와 승인 여부를 확인합니다. Variables, Styles, Components의 세부 구성은 디자인 작업에서 정비합니다.
 
 ## 연결 원칙
 
