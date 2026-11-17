@@ -20,4 +20,4 @@ Spec은 승인된 제품·UX 요구사항을 구현 가능한 계약으로 표�
 ## 현재 Spec
 
 - [Gallery](gallery.md) — Accepted (2026-11-17)
-- [FaceAnalysis](face-analysis.md) — Draft (2026-11-17)
+- [FaceAnalysis](face-analysis.md) — Accepted (2026-11-17)

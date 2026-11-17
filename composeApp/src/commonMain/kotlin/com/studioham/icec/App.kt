@@ -60,6 +60,7 @@ fun App(
                         viewModel { FaceAnalysisViewModel(route.photoId, graph.faceDetector, graph.photoLibrary) },
                         // Replace FaceAnalysis so leaving the Editor returns to the Gallery (UX-037).
                         onFacesDetected = { faces -> backStack[backStack.lastIndex] = Route.Editor(route.photoId, faces) },
+                        onPickAnother = { backStack.removeLastOrNull() },
                     )
                 }
                 entry<Route.Editor> { EditorPlaceholder(it.faces.size, onBack = { backStack.removeLastOrNull() }) }
