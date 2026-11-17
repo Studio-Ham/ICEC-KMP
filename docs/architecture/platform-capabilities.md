@@ -2,7 +2,6 @@
 
 > 상태: Accepted
 > SSOT: Git Repository
-> 원본: [Notion 기술 설계 및 개발 기획서](https://app.notion.com/p/3d44d984a2188123b909ce5fb78a82ac)
 > 최종 검토일: 2026-11-17
 
 ## 얼굴 검출
@@ -21,7 +20,7 @@
 - Android와 iOS 구현은 동일한 `MosaicRenderer` 계약을 구현하며 네이티브 이미지 타입을 외부에 노출하지 않습니다.
 - 고해상도 이미지에서는 다운샘플링, 버퍼 재사용과 렌더링 범위 최소화를 검증합니다.
 
-MVP는 사용자에게 강도 조절 기능을 제공하지 않습니다. 렌더링 파라미터와 최종 저장 해상도는 [Notion PRD](https://app.notion.com/p/3d34d984a2188170bf31c07223f05a15)의 고정 강도·원본 해상도 요구사항을 따릅니다.
+MVP는 사용자에게 강도 조절 기능을 제공하지 않습니다. 렌더링 파라미터와 최종 저장 해상도는 [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md)의 고정 강도·원본 해상도 요구사항을 따릅니다.
 
 ```kotlin
 data class MosaicRequest(
@@ -42,7 +41,7 @@ interface MosaicRenderer {
 - Gallery 접근, 권한 상태와 저장 API는 `platform/media`가 담당합니다.
 - feature는 플랫폼 사진 식별자와 공통 모델만 사용합니다.
 - 원본 사진을 변경하지 않고 플랫폼 사진 보관함에 새 결과를 저장합니다.
-- 권한, 제한 접근, 원본 로드 실패와 저장 실패의 UX는 Notion UX 결정을 따르고 구체적인 오류 매핑은 관련 Spec에서 확정합니다.
+- 권한, 제한 접근, 원본 로드 실패와 저장 실패의 UX는 Wiki UX 결정을 따르고 구체적인 오류 매핑은 관련 Spec에서 확정합니다.
 
 ## 성능 계약
 

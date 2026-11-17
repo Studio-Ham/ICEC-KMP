@@ -2,7 +2,6 @@
 
 > 상태: Accepted
 > SSOT: Git Repository
-> 원본: [Notion 기술 설계 및 개발 기획서](https://app.notion.com/p/3d44d984a2188123b909ce5fb78a82ac)
 > 최종 검토일: 2026-11-17
 
 ## 테스트 계층
@@ -18,8 +17,8 @@
 ## UX 검증 기준
 
 - 분석 화면과 복구 경로는 [ADR-0001](../adr/0001-face-analysis-route.md)을 따릅니다. 정상 검출, 미검출, 오류와 시간 초과를 구분합니다. 같은 사진 재시도와 Gallery 복귀를 검증합니다.
-- 저장·뒤로가기·Result 이동은 [Notion Editor UX](https://app.notion.com/p/3d54d984a21881e1b69bc40bd457ad57)와 [Result UX](https://app.notion.com/p/3d54d984a21881168efed467260ff04e)를 따릅니다. 저장 중 입력 차단, 실제 저장 성공 후 Result 진입과 저장 실패 시 편집 상태 유지를 검증합니다.
-- 프로세스 생존 중 상태 유지와 종료 후 초기화는 [UX-034](https://app.notion.com/p/3d54d984a2188115a23fe313809f43ef)와 [UX-040](https://app.notion.com/p/3ec4d984a2188178b347e880fd20ca2a)을 따릅니다. Background 복귀와 Cold Start를 구분합니다. 중복 분석·저장이 발생하지 않는지 검증합니다. 종료된 세션을 복원하지 않는지 검증합니다.
+- 저장·뒤로가기·Result 이동은 [Wiki Editor UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/editor.md)와 [Result UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/result.md)를 따릅니다. 저장 중 입력 차단, 실제 저장 성공 후 Result 진입과 저장 실패 시 편집 상태 유지를 검증합니다.
+- 프로세스 생존 중 상태 유지와 종료 후 초기화는 [UX-034](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-034)와 [UX-040](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-040)을 따릅니다. Background 복귀와 Cold Start를 구분합니다. 중복 분석·저장이 발생하지 않는지 검증합니다. 종료된 세션을 복원하지 않는지 검증합니다.
 
 이 목록은 구현 후 검증할 범위입니다. 플랫폼 실행 제약, 취소와 결과 무효화 방식은 관련 Spec에서 구체화합니다.
 

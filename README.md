@@ -6,7 +6,7 @@ ICEC(Mosaic Editor Creator)는 기기 사진에서 얼굴을 자동 검출하고
 
 이 저장소는 ICEC의 **개발 SSOT(Single Source of Truth)** 입니다. 승인된 아키텍처, 실행 가능한 기술 명세, 개발 규칙과 ADR은 [개발 SSOT 인덱스](docs/README.md)에서 관리합니다.
 
-- 제품 요구사항과 UX 정책: Notion
+- 제품 요구사항과 UX 정책: [ICEC LLM Wiki](https://github.com/Studio-Ham/ICEC-LLM-WiKi)
 - 화면, 컴포넌트와 디자인 토큰: Figma
 - 아키텍처, 기술 명세와 구현: Git Repository
 
