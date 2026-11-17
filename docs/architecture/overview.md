@@ -2,7 +2,6 @@
 
 > 상태: Accepted
 > SSOT: Git Repository
-> 원본: [Notion 기술 설계 및 개발 기획서](https://app.notion.com/p/3d44d984a2188123b909ce5fb78a82ac)
 > 승인일: 2026-09-08
 > 이관 검토일: 2026-09-10
 
@@ -22,7 +21,7 @@
 
 ## 핵심 원칙
 
-- 제품 요구사항은 Notion PRD가 소유합니다.
+- 제품 요구사항은 ICEC LLM Wiki의 PRD가 소유합니다.
 - 플랫폼 구현은 인터페이스와 명확한 모듈 경계 뒤에 둡니다.
 - ViewModel과 feature가 `Bitmap`, `UIImage`, `CGImage` 같은 네이티브 타입에 직접 의존하지 않게 합니다.
 - 기술 결정과 트레이드오프는 ADR로 기록합니다.
@@ -35,4 +34,4 @@ Architecture v1은 승인되었습니다. Repository 개발 SSOT를 기반으로
 
 Architecture v1의 경계나 핵심 기술 선택을 변경할 때는 [ADR](../adr/README.md)을 먼저 작성하고 관련 현재 기준 문서를 함께 갱신합니다.
 
-- 2026-11-06: 별도 `FaceAnalysis` Route 도입 및 기존 `feature/editor` 모듈 내 역할 분리는 [ADR-0001](../adr/0001-face-analysis-route.md)에 기록했습니다. 원본 UX 결정 [UX-037](https://app.notion.com/p/3ec4d984a218816eb3b7f4d9a9906b26)을 반영한 후속 설계이며, 앱 구현 완료를 뜻하지 않습니다.
+- 2026-11-06: 별도 `FaceAnalysis` Route 도입 및 기존 `feature/editor` 모듈 내 역할 분리는 [ADR-0001](../adr/0001-face-analysis-route.md)에 기록했습니다. 원본 UX 결정 [UX-037](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-037)을 반영한 후속 설계이며, 앱 구현 완료를 뜻하지 않습니다.

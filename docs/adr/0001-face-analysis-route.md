@@ -3,11 +3,11 @@
 > 상태: Accepted
 > 결정일: 2026-11-06
 > 대체 대상: Architecture v1의 Editor 내부 얼굴 분석 Navigation 방식
-> 기준 원본: [Notion UX-037](https://app.notion.com/p/3ec4d984a218816eb3b7f4d9a9906b26), [UX-038](https://app.notion.com/p/3ec4d984a218819081cfeee89e6114c0)
+> 기준 원본: [UX-037](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-037), [UX-038](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-038)
 
 ## Context
 
-[애플리케이션 아키텍처](../architecture/application-architecture.md)의 2026-09-10 기준 Navigation 규칙은 얼굴 분석을 Editor 내부 상태로 취급했습니다. 하지만 Notion UX-037 (2026-10-01, Confirmed)은 이전 UX-001을 대체하며 `Gallery → FaceAnalysis → Editor → Result` 흐름과 독립된 FaceAnalysis 화면을 확정했습니다. UX-038은 실패와 시간 초과를 별도 안내 화면으로 확정했습니다. 실제 구현 전 기술 설계와 승인된 UX를 일치시켜야 합니다.
+[애플리케이션 아키텍처](../architecture/application-architecture.md)의 2026-09-10 기준 Navigation 규칙은 얼굴 분석을 Editor 내부 상태로 취급했습니다. 하지만 UX-037 (2026-10-01, Confirmed)은 이전 UX-001을 대체하며 `Gallery → FaceAnalysis → Editor → Result` 흐름과 독립된 FaceAnalysis 화면을 확정했습니다. UX-038은 실패와 시간 초과를 별도 안내 화면으로 확정했습니다. 실제 구현 전 기술 설계와 승인된 UX를 일치시켜야 합니다.
 
 ## Options
 
@@ -21,9 +21,9 @@
 
 - 별도 `FaceAnalysis` Route에서 얼굴 검출을 수행하고, 성공 시 `Editor`로 전환합니다.
 - 얼굴 미검출은 `NoFaceDetected`, 실패는 `AnalysisFailed`, 시간 초과는 `AnalysisTimeout`으로 전환합니다. 오류·시간 초과 화면에서는 같은 사진 재분석 또는 Gallery 복귀를 지원합니다.
-- Gallery의 선택·스크롤 위치와 Back 동작은 Notion UX-037 및 UX-038을 따릅니다.
+- Gallery의 선택·스크롤 위치와 Back 동작은 UX-037 및 UX-038을 따릅니다.
 - `feature/editor` 모듈은 초기에는 관련 Route들을 함께 소유하지만 화면별 상태·이벤트는 분리합니다. 향후 독립 모듈 필요성이 확인되면 별도 ADR로 판단합니다.
-- 제품·UX 원본은 계속 Notion이며, 이 ADR은 승인된 UX의 **기술적 구현 경계**를 기록합니다.
+- 이 ADR은 승인된 UX의 **기술적 구현 경계**를 기록합니다. 제품·UX 원본은 2026-11-17부터 ICEC LLM Wiki입니다. 같은 날 UX 결정 링크를 Notion에서 Wiki로 바꿨습니다. 결정 내용은 바뀌지 않았습니다.
 
 ## Consequences
 
@@ -33,7 +33,7 @@
 
 ## Verification
 
-- Notion UX-037의 Confirmed 상태와 별도 FaceAnalysis 정상 흐름을 대조합니다.
-- Notion UX-038의 분석 오류·시간 초과 복구 흐름을 대조합니다.
+- UX-037의 Confirmed 상태와 별도 FaceAnalysis 정상 흐름을 대조합니다.
+- UX-038의 분석 오류·시간 초과 복구 흐름을 대조합니다.
 - Architecture 문서 및 모듈 경계에서 과거 `Editor(Analyzing)`를 현재 정상 흐름으로 규정하지 않는지 확인합니다.
 - Bootstrap 이후 Navigation 및 State/Effect 흐름에 대한 공통 단위 테스트와 Android/iOS UI 검증을 추가합니다.

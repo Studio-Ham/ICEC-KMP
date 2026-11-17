@@ -2,18 +2,17 @@
 
 > 상태: Accepted
 > SSOT: Git Repository
-> 원본: [Notion 기술 설계 및 개발 기획서](https://app.notion.com/p/3d44d984a2188123b909ce5fb78a82ac)
-> 최종 검토일: 2026-09-10
+> 최종 검토일: 2026-11-17
 
 ## 작업 추적
 
 기본 흐름은 다음과 같습니다.
 
 ```text
-Notion 요구사항 → GitHub Issue → Orca Worktree → Git Branch → Pull Request → CI/Review → Issue Close
+Wiki 요구사항 → GitHub Issue → Orca Worktree → Git Branch → Pull Request → CI/Review → Issue Close
 ```
 
-- Notion은 제품 Roadmap과 UX 요구사항을 관리합니다.
+- [ICEC LLM Wiki](../references/llm-wiki.md)는 제품 Roadmap과 UX 요구사항을 관리합니다.
 - 승인되어 개발로 전환된 작업은 GitHub Issue를 장기 백로그와 Acceptance Criteria의 기준으로 사용합니다.
 - Orca는 현재 실행 중인 작업의 격리된 작업 공간, 담당과 Checkpoint를 관리합니다.
 - 하나의 Issue, Worktree, Branch와 PR을 가능한 한 1:1로 연결합니다.
@@ -27,7 +26,7 @@ Notion 요구사항 → GitHub Issue → Orca Worktree → Git Branch → Pull R
 - Release 브랜치는 `develop`, hotfix 브랜치는 `main`에서 생성합니다.
 
 | 작업 | 브랜치 예시 |
-|---|---|
+| --- | --- |
 | 기능 | `feat/24-editor` |
 | 수정 | `fix/31-gallery-permission` |
 | 리팩터링 | `refactor/18-navigation` |
@@ -63,9 +62,9 @@ Notion 요구사항 → GitHub Issue → Orca Worktree → Git Branch → Pull R
 
 - 코드 변경으로 기술 명세가 바뀌면 관련 Repository 문서를 같은 변경 단위에서 갱신합니다.
 - Architecture v1의 경계나 핵심 기술 선택이 바뀌면 ADR을 추가합니다.
-- 제품·UX 변경은 Notion 원본을 먼저 갱신합니다.
+- 제품·UX 변경은 사용자 승인 후 Wiki 정책을 먼저 갱신합니다.
 - 시각 변경은 Figma의 화면, Component, Token과 Variant를 먼저 확정합니다.
-- 단계가 바뀌면 [Notion 프로젝트 진행 현황](https://app.notion.com/p/3d64d984a21881beaa6de45bd2ba196f)을 실제 결과와 맞춥니다.
+- 단계가 바뀌면 [Wiki 진행 현황](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/planning/context.md)을 실제 결과와 맞춥니다. 절차는 [진행 현황 동기화 규칙](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/wiki/progress-sync.md)을 따릅니다.
 
 ## Agent 운영
 

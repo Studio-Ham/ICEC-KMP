@@ -2,7 +2,7 @@
 
 > 상태: Draft
 > SSOT: Git Repository
-> 관련 요구사항: [Notion 또는 Figma 링크]
+> 관련 요구사항: [Wiki 정책·UX 결정 또는 Figma 링크]
 > 관련 결정: UX-000
 > 최종 검토일: YYYY-MM-DD
 
