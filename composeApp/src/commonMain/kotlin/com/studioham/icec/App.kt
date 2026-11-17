@@ -5,9 +5,14 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.studioham.icec.faceanalysis.FaceAnalysisPlaceholder
+import com.studioham.icec.editor.EditorPlaceholder
+import com.studioham.icec.face.FaceBounds
+import com.studioham.icec.feature.editor.FaceAnalysisScreen
+import com.studioham.icec.feature.editor.FaceAnalysisViewModel
 import com.studioham.icec.feature.gallery.GalleryScreen
 import com.studioham.icec.home.HomeScreen
 
@@ -18,6 +23,11 @@ sealed interface Route {
 
     data class FaceAnalysis(
         val photoId: String,
+    ) : Route
+
+    data class Editor(
+        val photoId: String,
+        val faces: List<FaceBounds>,
     ) : Route
 }
 
@@ -33,25 +43,26 @@ fun App(
         backStack = backStack,
         modifier = modifier,
         onBack = { backStack.removeLastOrNull() },
+        // Each entry owns its ViewModels, so every FaceAnalysis analyzes its own photo and is cleared on pop.
+        entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator(), rememberViewModelStoreNavEntryDecorator()),
         entryProvider =
             entryProvider {
                 entry<Route.Home> { HomeScreen(onLoadPhotoClick = { backStack.add(Route.Gallery) }) }
                 entry<Route.Gallery> {
-                    // ponytail: ViewModel is scoped to the host, not the entry; add the nav3 ViewModel decorator when a second
-                    // ViewModel screen needs its own scope.
                     GalleryScreen(
                         viewModel { graph.galleryViewModel },
                         onBack = { backStack.removeLastOrNull() },
                         onPhotoSelected = { backStack.add(Route.FaceAnalysis(it.id)) },
                     )
                 }
-                entry<Route.FaceAnalysis> {
-                    FaceAnalysisPlaceholder(
-                        it.photoId,
-                        graph.faceDetector,
-                        onBack = { backStack.removeLastOrNull() },
+                entry<Route.FaceAnalysis> { route ->
+                    FaceAnalysisScreen(
+                        viewModel { FaceAnalysisViewModel(route.photoId, graph.faceDetector, graph.photoLibrary) },
+                        // Replace FaceAnalysis so leaving the Editor returns to the Gallery (UX-037).
+                        onFacesDetected = { faces -> backStack[backStack.lastIndex] = Route.Editor(route.photoId, faces) },
                     )
                 }
+                entry<Route.Editor> { EditorPlaceholder(it.faces.size, onBack = { backStack.removeLastOrNull() }) }
             },
     )
 }

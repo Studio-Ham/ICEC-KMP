@@ -32,12 +32,22 @@ Gallery에서 고른 사진의 얼굴을 기기 안에서 찾습니다. 결과�
 - 검출은 메인 스레드 밖에서 실행합니다.
 - 시간 초과는 10초입니다(2026-11-17 사용자 결정). ③에서 구현합니다.
 
+### FaceAnalysis 화면
+
+- `feature/editor`가 `FaceAnalysisViewModel`과 `FaceAnalysisScreen`을 제공합니다([ADR-0001](../adr/0001-face-analysis-route.md)).
+- ViewModel은 Navigation 3 entry마다 하나입니다. 생성될 때 한 번만 분석하고, entry가 back stack에서 빠지면 분석을 취소합니다.
+- 상태는 `Analyzing`, `Detected(faces)`, `NoFace`, `Failed`입니다.
+- Analyzing은 선택 사진의 썸네일(512px)을 블러 처리하고 검정 60%로 덮습니다. 그 위에 회전하는 로딩 표시와 `얼굴을 찾는 중...` 안내를 둡니다(UX-002, Figma `316:2600`). 편집 입력은 없습니다.
+- `Detected`이면 `composeApp`이 back stack의 FaceAnalysis를 `Route.Editor(photoId, faces)`로 바꿉니다. Editor에서 뒤로 가면 Gallery로 돌아갑니다. Editor 구현 전까지는 임시 화면을 보여 줍니다.
+- 분석 중 시스템 뒤로가기는 확인 없이 Gallery의 이전 위치로 돌아갑니다. Figma 디자인에는 상단 뒤로가기가 없습니다.
+- Background에서 분석이 끝나면 결과를 상태로 보관합니다. 화면 이동은 화면이 다시 보일 때 실행합니다(UX-040). Background 실행 유지는 ③에서 검증합니다.
+
 ## 실패와 복구
 
 | 상황 | 결과 |
 | --- | --- |
-| 얼굴 0개 | 빈 목록. ③에서 NoFaceDetected |
-| 사진 삭제·읽기 실패·검출기 오류 | 예외. ③에서 AnalysisFailed |
+| 얼굴 0개 | `NoFace`. ③ 전까지 같은 화면에 임시 안내 문구. ③에서 NoFaceDetected |
+| 사진 삭제·읽기 실패·검출기 오류 | `Failed`. ③ 전까지 같은 화면에 임시 안내 문구. ③에서 AnalysisFailed |
 | 10초 초과 | ③에서 AnalysisTimeout |
 
 ## 플랫폼 차이
@@ -46,6 +56,7 @@ Gallery에서 고른 사진의 얼굴을 기기 안에서 찾습니다. 결과�
 | --- | --- | --- |
 | 검출기 | ML Kit `face-detection` 16.1.7(모델 포함) | ML Kit 9.0.0, 커뮤니티 SwiftPM 패키지 9.0.3([ADR-0003](../adr/0003-ios-mlkit-swiftpm-import.md)) |
 | 이미지 읽기 | API 28+: `ImageDecoder`가 회전을 반영해 축소. API 24~27: `BitmapFactory` `inSampleSize`, EXIF 회전 미반영 | `PHImageManager`(iCloud 다운로드 허용), `imageOrientation`을 ML Kit에 전달 |
+| 배경 블러 | Android 12+에서만 블러 적용. 이전 버전은 어둡게만 처리 | 블러 적용 |
 | 모델 파일 | 라이브러리에 포함 | `GoogleMVFaceDetectorResources.bundle`을 앱 번들에 복사. 없으면 오류 없이 0개 |
 | 사용 통계 | ML Kit이 Google 서버로 전송 | 같음 |
 
@@ -60,6 +71,13 @@ Gallery에서 고른 사진의 얼굴을 기기 안에서 찾습니다. 결과�
 - [x] `IosFaceDetectorTest`가 iOS 시뮬레이터에서 실제 ML Kit으로 검출한다
 - [x] 임시 FaceAnalysis 화면이 앱에서 검출 결과 수를 보여 준다(②에서 교체)
 
-### ②·③
+### ② Analyzing과 Editor 이동
+
+- [x] 사진 선택 → Analyzing(블러 배경, 로딩 표시, 안내) → 얼굴이 있으면 Editor 임시 화면
+- [x] Editor 임시 화면에서 뒤로 가면 Gallery로 돌아간다
+- [x] 분석 중 뒤로가기는 Gallery의 이전 위치로 돌아간다
+- [x] `FaceAnalysisViewModelTest`: 검출 결과별 상태(`Detected`, `NoFace`, `Failed`)
+
+### ③
 
 해당 단계의 Issue에서 이 문서를 갱신합니다.

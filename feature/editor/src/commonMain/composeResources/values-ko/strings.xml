@@ -1,0 +1,5 @@
+<resources>
+    <string name="face_analysis_finding">얼굴을 찾는 중...</string>
+    <string name="face_analysis_no_face">얼굴을 찾을 수 없습니다</string>
+    <string name="face_analysis_failed">얼굴 분석 중 문제가 발생했습니다</string>
+</resources>

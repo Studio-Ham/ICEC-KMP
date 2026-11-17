@@ -1,0 +1,5 @@
+<resources>
+    <string name="face_analysis_finding">Finding faces…</string>
+    <string name="face_analysis_no_face">No faces found</string>
+    <string name="face_analysis_failed">Something went wrong while analyzing faces</string>
+</resources>

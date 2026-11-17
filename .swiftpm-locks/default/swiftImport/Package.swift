@@ -14,6 +14,7 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "subpackages/_composeApp"),
+    .package(path: "subpackages/_feature_editor"),
     .package(path: "subpackages/_platform_face-detection"),
     .package(path: "subpackages/_platform_face_detection")
   ],
@@ -22,6 +23,7 @@ let package = Package(
       name: "KotlinMultiplatformLinkedPackage",
       dependencies: [
         .product(name: "_composeApp", package: "_composeApp"),
+        .product(name: "_feature_editor", package: "_feature_editor"),
         .product(name: "_platform_face-detection", package: "_platform_face-detection"),
         .product(name: "_platform_face_detection", package: "_platform_face_detection")
       ]
