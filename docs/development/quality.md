@@ -25,7 +25,7 @@
 ## CI
 
 - GitHub Actions에서 PR 품질 게이트와 `main` 또는 수동 benchmark workflow를 분리합니다.
-- 현재 PR 품질 게이트는 [`ci.yml`](../../.github/workflows/ci.yml)입니다. Android 작업은 `spotlessCheck`·`assembleDebug`·`test`, iOS 작업은 프레임워크 링크와 `iosApp` 시뮬레이터 빌드를 실행합니다. 커버리지와 시각 회귀는 해당 테스트가 생긴 뒤 추가합니다.
+- 현재 PR 품질 게이트는 [`ci.yml`](../../.github/workflows/ci.yml)입니다. Android 작업은 `spotlessCheck`·`assembleDebug`·`test`·`allTests`, iOS 작업은 iOS 시뮬레이터 테스트·프레임워크 링크·`iosApp` 시뮬레이터 빌드를 실행합니다. 커버리지와 시각 회귀는 해당 테스트가 생긴 뒤 추가합니다.
 - PR 단계에서는 Android/iOS 빌드, 공통·플랫폼 테스트, 정적 분석, 커버리지와 승인되지 않은 시각 회귀를 blocking gate로 사용합니다.
 - 시각 회귀가 발생하면 diff 이미지를 artifact로 보존합니다.
 - 무거운 iOS 통합 테스트와 실기기 검증은 CI 환경을 확인한 뒤 blocking 범위를 확정합니다.
@@ -56,13 +56,15 @@
 
 ## 로컬 검증
 
-Gradle Wrapper가 구성된 이후 코드 변경에는 다음 명령을 사용합니다. JDK 17을 사용합니다. Android SDK 경로는 `local.properties`의 `sdk.dir` 또는 `ANDROID_HOME`으로 지정합니다.
+Gradle Wrapper가 구성된 이후 코드 변경에는 다음 명령을 사용합니다. Gradle은 JDK 21 이상에서 실행합니다. Metro Gradle 플러그인이 JDK 21을 요구합니다. Android SDK 경로는 `local.properties`의 `sdk.dir` 또는 `ANDROID_HOME`으로 지정합니다.
 
 ```shell
 ./gradlew spotlessApply spotlessCheck
 ./gradlew assembleDebug
-./gradlew test
+./gradlew test allTests
 ```
+
+`allTests`는 KMP 모듈의 공통 테스트를 Android host와 iOS 시뮬레이터에서 실행합니다. macOS가 아닌 환경에서는 iOS 테스트를 건너뜁니다.
 
 iOS 코드나 공통 UI를 바꾸면 iOS 빌드도 확인합니다.
 

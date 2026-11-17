@@ -1,0 +1,7 @@
+<resources>
+    <string name="gallery_title">사진 선택</string>
+    <string name="gallery_back">뒤로 가기</string>
+    <string name="gallery_permission_title">사진 접근 권한이 필요합니다</string>
+    <string name="gallery_permission_body">얼굴 자동 모자이크 작업을 위해\n기기의 사진 보관함 접근 권한을 허용해 주세요.\n사진과 얼굴 분석 데이터는 기기 안에서만 처리됩니다.</string>
+    <string name="gallery_permission_allow">권한 허용하러 가기</string>
+</resources>

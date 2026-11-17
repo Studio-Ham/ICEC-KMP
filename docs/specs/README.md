@@ -15,4 +15,8 @@ Spec은 승인된 제품·UX 요구사항을 구현 가능한 계약으로 표�
 - 코드 변경으로 계약이 달라지면 같은 변경 단위에서 Spec을 갱신합니다.
 - 미확정 항목은 Spec에 확정값처럼 쓰지 않고 [기술 백로그](../development/technical-backlog.md)에 둡니다.
 
-첫 Spec은 Project Bootstrap 이후 구현할 기능과 함께 [템플릿](template.md)으로 작성합니다.
+새 Spec은 [템플릿](template.md)으로 작성합니다.
+
+## 현재 Spec
+
+- [Gallery](gallery.md) — Draft (2026-11-17)

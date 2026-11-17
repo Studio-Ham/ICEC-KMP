@@ -50,7 +50,8 @@ Gradle Wrapper가 구성된 이후 코드를 수정하거나 작성하면 다음
 
 1. **Linter 검사 및 자동 수정**: `./gradlew spotlessApply spotlessCheck`
 2. **빌드 검증**: `./gradlew assembleDebug`
-3. **테스트 검증**: `./gradlew test` (테스트 코드가 존재할 경우)
+3. **테스트 검증**: `./gradlew test allTests` (테스트 코드가 존재할 경우)
+4. Gradle은 JDK 21 이상에서 실행합니다.
 
 문서만 변경하거나 아직 Wrapper가 없다면 `git diff --check`와 링크·문서 구조 검증을 수행하고 Gradle 검증이 적용되지 않는 이유를 결과에 남깁니다.
 

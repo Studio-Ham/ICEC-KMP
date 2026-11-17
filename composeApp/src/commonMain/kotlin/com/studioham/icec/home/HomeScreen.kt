@@ -25,26 +25,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.studioham.icec.designsystem.IcecColors
+import com.studioham.icec.designsystem.Pretendard
+import com.studioham.icec.designsystem.SpaceMono
 import com.studioham.icec.resources.Res
 import com.studioham.icec.resources.app_name
 import com.studioham.icec.resources.home_load_photo
 import com.studioham.icec.resources.home_tagline
 import com.studioham.icec.resources.ic_photo
 import com.studioham.icec.resources.logo
-import com.studioham.icec.resources.pretendard_bold
-import com.studioham.icec.resources.space_mono_bold
-import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-
-// ponytail: Figma values inline until core/designsystem owns the tokens.
-private val NeonLime = Color(0xFFE6FA00)
-private val MutedSlate = Color(0xFFA8A8A8)
 
 /** Figma `[승인] 화면 1: 메인 홈` (315:1272). */
 @Composable
@@ -60,8 +56,9 @@ fun HomeScreen(
                 stringResource(Res.string.home_tagline),
                 style =
                     TextStyle(
-                        color = MutedSlate,
-                        fontFamily = FontFamily(Font(Res.font.space_mono_bold)),
+                        color = IcecColors.MutedSlate,
+                        fontFamily = SpaceMono(),
+                        fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
                         letterSpacing = 1.4.sp,
@@ -76,7 +73,7 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .height(56.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(NeonLime)
+                .background(IcecColors.NeonLime)
                 .clickable(role = Role.Button, onClick = onLoadPhotoClick),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
@@ -87,7 +84,8 @@ fun HomeScreen(
                 style =
                     TextStyle(
                         color = Color.Black,
-                        fontFamily = FontFamily(Font(Res.font.pretendard_bold)),
+                        fontFamily = Pretendard(),
+                        fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         lineHeight = 22.sp,
                         letterSpacing = (-0.16).sp,

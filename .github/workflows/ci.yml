@@ -17,9 +17,9 @@ jobs:
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
       - uses: gradle/actions/setup-gradle@v6
-      - run: ./gradlew spotlessCheck assembleDebug test
+      - run: ./gradlew spotlessCheck assembleDebug test allTests
 
   ios:
     runs-on: macos-latest
@@ -28,9 +28,9 @@ jobs:
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
       - uses: gradle/actions/setup-gradle@v6
-      - run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64
+      - run: ./gradlew iosSimulatorArm64Test :composeApp:linkDebugFrameworkIosSimulatorArm64
       - run: >-
           xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp
           -destination 'generic/platform=iOS Simulator'
