@@ -1,3 +1,6 @@
 TEAM_ID=
 BUNDLE_ID=com.studioham.icec
 APP_NAME=ICEC
+
+// ML Kit registers Objective-C categories that static linking drops without -ObjC (ADR-0003).
+OTHER_LDFLAGS = $(inherited) -ObjC

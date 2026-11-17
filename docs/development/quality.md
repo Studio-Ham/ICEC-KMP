@@ -66,7 +66,7 @@ Gradle Wrapper가 구성된 이후 코드 변경에는 다음 명령을 사용�
 
 `allTests`는 KMP 모듈의 공통 테스트를 Android host와 iOS 시뮬레이터에서 실행합니다. macOS가 아닌 환경에서는 iOS 테스트를 건너뜁니다.
 
-iOS 코드나 공통 UI를 바꾸면 iOS 빌드도 확인합니다.
+iOS 코드나 공통 UI를 바꾸면 iOS 빌드도 확인합니다. iOS ML Kit 패키지는 Gradle과 Xcode가 SwiftPM으로 받습니다. CocoaPods는 필요 없습니다([ADR-0003](../adr/0003-ios-mlkit-swiftpm-import.md)).
 
 ```shell
 ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64

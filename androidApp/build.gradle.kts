@@ -8,6 +8,7 @@ plugins {
 dependencies {
     implementation(projects.composeApp)
     implementation(projects.platform.media)
+    implementation(projects.platform.faceDetection)
     implementation(libs.androidx.activity.compose)
 }
 
