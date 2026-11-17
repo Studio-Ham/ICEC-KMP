@@ -3,7 +3,7 @@
 > 상태: Draft
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki FaceAnalysis · Editor UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/editor.md) · [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md) · Figma `[승인] 화면 4` (`316:3606`, `316:4197`, `316:4294`, `335:2`)
-> 관련 결정: [UX-039](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-039), [UX-041](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-041), [ADR-0001](../adr/0001-face-analysis-route.md)
+> 관련 결정: [UX-039](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-039), [UX-041](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-041), [UX-042](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-042), [ADR-0001](../adr/0001-face-analysis-route.md)
 > 최종 검토일: 2026-11-18
 
 ## 목적
@@ -35,7 +35,7 @@
 
 - 사진 위 얼굴 가이드나 하단 목록 항목을 누르면 선택이 바뀝니다. 가이드가 겹치면 더 작은 얼굴을 고릅니다.
 - 미선택 얼굴은 파란 1dp 가이드, 선택한 얼굴은 라임 2dp 가이드, 체크 표시와 모자이크 미리보기를 보여 줍니다.
-- 모자이크 블록 한 칸은 얼굴 폭의 1/8입니다(2026-11-18 사용자 결정). 세로 칸 수는 얼굴 높이에 맞춥니다. 미리보기와 저장은 같은 규칙을 씁니다.
+- 모자이크 블록 한 칸은 얼굴 폭의 1/8입니다(UX-042). 세로 칸 수는 얼굴 높이에 맞춥니다. 미리보기와 저장은 같은 규칙을 씁니다.
 - 선택이 0개이면 `전체 선택`, 1개 이상이면 `전체 해제`를 보여 줍니다. 일부만 선택해도 `전체 해제`입니다.
 - 하단 목록은 각 얼굴을 원본 사진에서 정사각형으로 잘라 보여 줍니다. 얼굴 크기의 1.4배를 잘라 여백을 둡니다(UX-041).
 - 상단 카운터는 검출 수와 선택 수를 보여 줍니다.

@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.IntSize
 import com.studioham.icec.face.FaceBounds
 import kotlin.math.roundToInt
 
-/** Blocks across a face. Fixed mosaic strength: each block is 1/8 of the face width (user decision, 2026-11-18). */
+/** Blocks across a face. Fixed mosaic strength: each block is 1/8 of the face width (UX-042). */
 internal const val MOSAIC_COLUMNS = 8
 
 /** [face] in pixels of a [width] x [height] image, at least 1px. */
