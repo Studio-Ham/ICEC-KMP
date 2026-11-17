@@ -15,13 +15,16 @@ import com.studioham.icec.feature.editor.EditorViewModel
 import com.studioham.icec.feature.editor.FaceAnalysisScreen
 import com.studioham.icec.feature.editor.FaceAnalysisViewModel
 import com.studioham.icec.feature.gallery.GalleryScreen
+import com.studioham.icec.feature.result.ResultScreen
 import com.studioham.icec.home.HomeScreen
-import com.studioham.icec.result.ResultPlaceholder
 
 sealed interface Route {
     data object Home : Route
 
-    data object Gallery : Route
+    /** A new [session] gives a fresh Gallery at the newest photos (Result `다른 사진 편집하기`). */
+    data class Gallery(
+        val session: Int = 0,
+    ) : Route
 
     data class FaceAnalysis(
         val photoId: String,
@@ -53,7 +56,7 @@ fun App(
         entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator(), rememberViewModelStoreNavEntryDecorator()),
         entryProvider =
             entryProvider {
-                entry<Route.Home> { HomeScreen(onLoadPhotoClick = { backStack.add(Route.Gallery) }) }
+                entry<Route.Home> { HomeScreen(onLoadPhotoClick = { backStack.add(Route.Gallery()) }) }
                 entry<Route.Gallery> {
                     GalleryScreen(
                         viewModel { graph.galleryViewModel },
@@ -79,8 +82,22 @@ fun App(
                     )
                 }
                 entry<Route.Result> {
-                    ResultPlaceholder(it.savedPhotoId, graph.photoLibrary, onEditAgain = { backStack.removeLastOrNull() })
+                    ResultScreen(
+                        it.savedPhotoId,
+                        graph.photoLibrary,
+                        // Result sits on top of the Editor, so popping restores the editing session.
+                        onEditAgain = { backStack.removeLastOrNull() },
+                        onOtherPhoto = { backStack.startOver(gallery = true) },
+                        onHome = { backStack.startOver(gallery = false) },
+                    )
                 }
             },
     )
+}
+
+/** Ends the editing session: keeps only Home, then opens a fresh Gallery when [gallery] is true (Wiki Result UX). */
+private fun MutableList<Route>.startOver(gallery: Boolean) {
+    val session = filterIsInstance<Route.Gallery>().maxOfOrNull { it.session } ?: 0
+    retainAll { it == Route.Home }
+    if (gallery) add(Route.Gallery(session + 1))
 }

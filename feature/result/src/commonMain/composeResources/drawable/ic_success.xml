@@ -1,0 +1,15 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64.5dp"
+    android:height="67.8dp"
+    android:viewportWidth="64.5"
+    android:viewportHeight="67.8">
+    <path android:pathData="M5 35.8C5 50.7017 17.0983 62.8 32 62.8C46.9017 62.8 59 50.7017 59 35.8C59 20.8983 46.9017 8.8 32 8.8C17.0983 8.8 5 20.8983 5 35.8V35.8" android:strokeColor="#E6FA00" android:strokeWidth="2.5" android:strokeAlpha="0.9" />
+    <path android:pathData="M20 36.8L28 44.8L44 26.8" android:strokeColor="#E6FA00" android:strokeWidth="3.8" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M30.2 1.8C30.2 2.79345 31.0066 3.6 32 3.6C32.9934 3.6 33.8 2.79345 33.8 1.8C33.8 0.806553 32.9934 0 32 0C31.0066 0 30.2 0.806553 30.2 1.8V1.8" android:fillColor="#E6FA00" />
+    <path android:pathData="M56.4 17.8C56.4 18.6831 57.1169 19.4 58 19.4C58.8831 19.4 59.6 18.6831 59.6 17.8C59.6 16.9169 58.8831 16.2 58 16.2C57.1169 16.2 56.4 16.9169 56.4 17.8V17.8" android:fillColor="#E6FA00" />
+    <path android:pathData="M61.5 45.8C61.5 46.6279 62.1721 47.3 63 47.3C63.8279 47.3 64.5 46.6279 64.5 45.8C64.5 44.9721 63.8279 44.3 63 44.3C62.1721 44.3 61.5 44.9721 61.5 45.8V45.8" android:fillColor="#E6FA00" />
+    <path android:pathData="M42.2 65.8C42.2 66.7934 43.0066 67.6 44 67.6C44.9934 67.6 45.8 66.7934 45.8 65.8C45.8 64.8066 44.9934 64 44 64C43.0066 64 42.2 64.8066 42.2 65.8V65.8" android:fillColor="#E6FA00" />
+    <path android:pathData="M16.5 64.8C16.5 65.6279 17.1721 66.3 18 66.3C18.8279 66.3 19.5 65.6279 19.5 64.8C19.5 63.9721 18.8279 63.3 18 63.3C17.1721 63.3 16.5 63.9721 16.5 64.8V64.8" android:fillColor="#E6FA00" />
+    <path android:pathData="M0.4 43.8C0.4 44.6831 1.11694 45.4 2 45.4C2.88306 45.4 3.6 44.6831 3.6 43.8C3.6 42.9169 2.88306 42.2 2 42.2C1.11694 42.2 0.4 42.9169 0.4 43.8V43.8" android:fillColor="#E6FA00" />
+    <path android:pathData="M3.3 18.8C3.3 19.7383 4.06174 20.5 5 20.5C5.93826 20.5 6.7 19.7383 6.7 18.8C6.7 17.8617 5.93826 17.1 5 17.1C4.06174 17.1 3.3 17.8617 3.3 18.8V18.8" android:fillColor="#E6FA00" />
+</vector>

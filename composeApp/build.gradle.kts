@@ -45,6 +45,7 @@ kotlin {
             implementation(projects.core.designsystem)
             implementation(projects.feature.gallery)
             implementation(projects.feature.editor)
+            implementation(projects.feature.result)
             implementation(libs.androidx.lifecycle.viewmodelNavigation3)
         }
     }
