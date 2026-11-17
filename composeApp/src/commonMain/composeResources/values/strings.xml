@@ -2,4 +2,6 @@
     <string name="app_name">ICEC</string>
     <string name="home_tagline">MOSAIC EDITOR CREATOR</string>
     <string name="home_load_photo">Load photo</string>
+    <string name="face_analysis_placeholder">Face analysis is coming next.</string>
+    <string name="back">Back</string>
 </resources>

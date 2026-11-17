@@ -19,6 +19,7 @@ object IcecColors {
     val StudioSlate = Color(0xFF1E1E1E)
     val Hairline = Color(0xFF333333)
     val IconMuted = Color(0xFF555555)
+    val AlertRed = Color(0xFFEF4444)
 }
 
 /** Product UI font. */

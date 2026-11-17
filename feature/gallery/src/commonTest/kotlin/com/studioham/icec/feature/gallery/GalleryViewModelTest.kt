@@ -6,8 +6,10 @@ import com.studioham.icec.media.PhotoLibrary
 import com.studioham.icec.media.PhotoPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -41,7 +43,15 @@ class GalleryViewModelTest {
     private class FakeLibrary(
         var result: () -> List<Photo>,
     ) : PhotoLibrary {
-        override suspend fun photos() = result()
+        var readable = true
+        var loads = 0
+
+        override suspend fun photos(): List<Photo> {
+            loads++
+            return result()
+        }
+
+        override suspend fun isReadable(id: String) = readable
 
         override suspend fun thumbnail(
             id: String,
@@ -81,6 +91,7 @@ class GalleryViewModelTest {
     fun loadFailureCanBeRetried() {
         val library = FakeLibrary { error("MediaStore down") }
         val viewModel = GalleryViewModel(FakePermission(PhotoAccess.Granted, PhotoAccess.Granted), library)
+        viewModel.refresh()
         assertEquals(PhotosState.LoadFailed, viewModel.photos.value)
 
         library.result = { listOf(Photo("1", 0)) }
@@ -88,6 +99,29 @@ class GalleryViewModelTest {
 
         assertEquals(1, (viewModel.photos.value as PhotosState.Loaded).count)
     }
+
+    @Test
+    fun readablePhotoOpens() =
+        runTest {
+            val photo = Photo("1", 0)
+            val viewModel = GalleryViewModel(FakePermission(PhotoAccess.Granted, PhotoAccess.Granted), FakeLibrary { listOf(photo) })
+
+            viewModel.onPhotoClick(photo)
+
+            assertEquals(GalleryEffect.OpenPhoto(photo), viewModel.effects.first())
+        }
+
+    @Test
+    fun unreadablePhotoWarnsAndReloads() =
+        runTest {
+            val library = FakeLibrary { emptyList() }.apply { readable = false }
+            val viewModel = GalleryViewModel(FakePermission(PhotoAccess.Granted, PhotoAccess.Granted), library)
+
+            viewModel.onPhotoClick(Photo("gone", 0))
+
+            assertEquals(GalleryEffect.PhotoUnavailable, viewModel.effects.first())
+            assertEquals(1, library.loads) // UX-030: the deleted photo drops out of the list
+        }
 
     @Test
     fun photosAreGroupedByDayNewestFirst() {

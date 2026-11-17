@@ -1,3 +1,5 @@
 <resources>
     <string name="home_load_photo">사진 불러오기</string>
+    <string name="face_analysis_placeholder">얼굴 분석은 다음 단계에서 구현합니다.</string>
+    <string name="back">뒤로</string>
 </resources>

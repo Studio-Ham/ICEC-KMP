@@ -7,9 +7,10 @@
     <string name="gallery_permission_allow">Allow access</string>
     <string name="gallery_empty_title">No photos</string>
     <string name="gallery_empty_body">There are no photos to show on this device.</string>
-    <string name="gallery_load_failed_title">Couldn\'t load photos</string>
+    <string name="gallery_load_failed_title">Couldn’t load photos</string>
     <string name="gallery_load_failed_body">Something went wrong while loading your photos.\nPlease try again in a moment.</string>
     <string name="gallery_retry">Try again</string>
+    <string name="gallery_photo_unavailable">Couldn’t open this photo</string>
     <string name="gallery_date_today">Today · %1$s %2$s</string>
     <string name="gallery_date_yesterday">Yesterday · %1$s %2$s</string>
     <string name="gallery_date_this_year">%1$s %2$s</string>

@@ -33,6 +33,13 @@ class AndroidPhotoLibrary(
                 }.sortedByDescending { it.takenAtMillis }
         }
 
+    override suspend fun isReadable(id: String): Boolean =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                resolver.openInputStream(ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id.toLong()))?.use { it.read() >= 0 }
+            }.getOrNull() == true
+        }
+
     override suspend fun thumbnail(
         id: String,
         sizePx: Int,
