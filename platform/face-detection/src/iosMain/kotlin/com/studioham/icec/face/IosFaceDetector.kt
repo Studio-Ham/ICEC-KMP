@@ -11,6 +11,7 @@ import platform.Photos.PHImageContentModeAspectFit
 import platform.Photos.PHImageManager
 import platform.Photos.PHImageRequestOptions
 import platform.Photos.PHImageRequestOptionsDeliveryModeHighQualityFormat
+import platform.UIKit.UIApplication
 import platform.UIKit.UIImage
 import swiftPMImport.ICEC.platform.platform.face.detection.MLKFace
 import swiftPMImport.ICEC.platform.platform.face.detection.MLKFaceDetector
@@ -22,7 +23,16 @@ import kotlin.coroutines.resume
 class IosFaceDetector : FaceDetector {
     private val detector = MLKFaceDetector.faceDetectorWithOptions(MLKFaceDetectorOptions())
 
-    override suspend fun detect(photoId: String): List<FaceBounds> = detect(load(photoId))
+    /** UX-040: asks iOS for background time so leaving the app does not suspend a running analysis. */
+    override suspend fun detect(photoId: String): List<FaceBounds> {
+        val app = UIApplication.sharedApplication
+        val task = app.beginBackgroundTaskWithExpirationHandler(null)
+        try {
+            return detect(load(photoId))
+        } finally {
+            app.endBackgroundTask(task)
+        }
+    }
 
     /** ML Kit's synchronous API throws when called on the main thread. */
     internal suspend fun detect(image: UIImage): List<FaceBounds> =

@@ -1,5 +1,12 @@
 <resources>
     <string name="face_analysis_finding">얼굴을 찾는 중...</string>
-    <string name="face_analysis_no_face">얼굴을 찾을 수 없습니다</string>
-    <string name="face_analysis_failed">얼굴 분석 중 문제가 발생했습니다</string>
+    <string name="face_analysis_no_face_title">얼굴을 찾을 수 없습니다</string>
+    <string name="face_analysis_no_face_body">사진에서 인식된 얼굴이 없습니다.\n다른 사진을 선택해 주세요.</string>
+    <string name="face_analysis_failed_title">얼굴 분석 중 문제가 발생했습니다</string>
+    <string name="face_analysis_failed_body">사진을 처리하지 못했습니다.\n다시 시도하거나 다른 사진을 선택해 주세요.</string>
+    <string name="face_analysis_timeout_title">얼굴 분석 시간이 초과되었습니다</string>
+    <string name="face_analysis_timeout_body">해상도가 너무 높거나 처리 중 지연이 발생했습니다.\n다시 시도하거나 다른 사진을 선택해 주세요.</string>
+    <string name="face_analysis_retry">다시 분석하기</string>
+    <string name="face_analysis_pick_another">다른 사진 선택</string>
+    <string name="back">뒤로 가기</string>
 </resources>

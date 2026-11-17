@@ -1,5 +1,12 @@
 <resources>
     <string name="face_analysis_finding">Finding faces…</string>
-    <string name="face_analysis_no_face">No faces found</string>
-    <string name="face_analysis_failed">Something went wrong while analyzing faces</string>
+    <string name="face_analysis_no_face_title">No faces found</string>
+    <string name="face_analysis_no_face_body">No faces were recognized in this photo.\nPlease choose another photo.</string>
+    <string name="face_analysis_failed_title">Something went wrong while analyzing faces</string>
+    <string name="face_analysis_failed_body">We couldn’t process this photo.\nTry again or choose another photo.</string>
+    <string name="face_analysis_timeout_title">Face analysis timed out</string>
+    <string name="face_analysis_timeout_body">The photo may be too large, or processing was delayed.\nTry again or choose another photo.</string>
+    <string name="face_analysis_retry">Analyze again</string>
+    <string name="face_analysis_pick_another">Choose another photo</string>
+    <string name="back">Back</string>
 </resources>
