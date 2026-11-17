@@ -20,4 +20,25 @@ interface PhotoLibrary {
         id: String,
         sizePx: Int,
     ): ImageBitmap?
+
+    /** The photo upright at its original pixel size. Throws when it cannot be read. */
+    suspend fun original(id: String): ImageBitmap
+
+    /**
+     * Saves [image] as a new JPEG photo without metadata and returns its id. The original stays unchanged.
+     * Throws [SaveException] for a full disk or a missing permission, other exceptions for any other failure.
+     */
+    suspend fun save(image: ImageBitmap): String
+}
+
+sealed class SaveException(
+    cause: Throwable?,
+) : Exception(cause) {
+    class NoSpace(
+        cause: Throwable? = null,
+    ) : SaveException(cause)
+
+    class NoPermission(
+        cause: Throwable? = null,
+    ) : SaveException(cause)
 }

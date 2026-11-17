@@ -13,6 +13,7 @@ interface AppGraph {
     val galleryViewModel: GalleryViewModel
     val faceDetector: FaceDetector
     val photoLibrary: PhotoLibrary
+    val photoPermission: PhotoPermission
 
     @DependencyGraph.Factory
     fun interface Factory {

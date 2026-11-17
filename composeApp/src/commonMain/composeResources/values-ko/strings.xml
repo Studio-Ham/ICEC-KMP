@@ -1,3 +1,5 @@
 <resources>
     <string name="home_load_photo">사진 불러오기</string>
+    <string name="result_saved">저장이 완료되었습니다!</string>
+    <string name="result_edit_again">다시 편집하기</string>
 </resources>

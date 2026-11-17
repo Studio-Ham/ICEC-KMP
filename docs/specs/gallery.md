@@ -77,7 +77,7 @@
 
 | 항목 | Android | iOS |
 | --- | --- | --- |
-| 요청 권한 | API 34+: `READ_MEDIA_IMAGES`, `READ_MEDIA_VISUAL_USER_SELECTED` · API 33: `READ_MEDIA_IMAGES` · API 32 이하: `READ_EXTERNAL_STORAGE` | PhotoKit `readWrite` 접근 수준 |
+| 요청 권한 | API 34+: `READ_MEDIA_IMAGES`, `READ_MEDIA_VISUAL_USER_SELECTED` · API 33: `READ_MEDIA_IMAGES` · API 29~32: `READ_EXTERNAL_STORAGE` · API 28 이하: `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE`(Editor 저장용) | PhotoKit `readWrite` 접근 수준 |
 | 제한 접근 | `READ_MEDIA_VISUAL_USER_SELECTED`만 허용되면 `Limited` | `PHAuthorizationStatusLimited` |
 | 재요청 판단 | 요청 이력(SharedPreferences)과 `shouldShowRequestPermissionRationale`로 `NotDetermined`·`Denied`·`Blocked` 구분 | 시스템 팝업은 한 번만 표시. 거부·제한은 `Blocked` |
 | 미지원 미디어 제외 | MIME 타입(`image/jpeg`·`image/png`·`image/heic`·`image/heif`)으로 조회 | 이미지 자산 중 첫 리소스 UTI가 GIF·RAW이면 제외 |

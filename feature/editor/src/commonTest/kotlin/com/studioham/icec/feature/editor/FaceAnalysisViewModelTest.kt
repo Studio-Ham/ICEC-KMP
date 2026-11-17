@@ -1,5 +1,6 @@
 package com.studioham.icec.feature.editor
 
+import androidx.compose.ui.graphics.ImageBitmap
 import com.studioham.icec.face.FaceBounds
 import com.studioham.icec.face.FaceDetector
 import com.studioham.icec.media.Photo
@@ -30,6 +31,10 @@ class FaceAnalysisViewModelTest {
             id: String,
             sizePx: Int,
         ) = null
+
+        override suspend fun original(id: String): ImageBitmap = error("not used")
+
+        override suspend fun save(image: ImageBitmap): String = error("not used")
     }
 
     @BeforeTest fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())

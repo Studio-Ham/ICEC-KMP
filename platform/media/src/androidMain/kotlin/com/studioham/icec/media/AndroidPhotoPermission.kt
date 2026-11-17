@@ -3,6 +3,7 @@ package com.studioham.icec.media
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.READ_MEDIA_IMAGES
 import android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -24,8 +25,13 @@ class AndroidPhotoPermission(
     private val permissions =
         when {
             Build.VERSION.SDK_INT >= 34 -> arrayOf(READ_MEDIA_IMAGES, READ_MEDIA_VISUAL_USER_SELECTED)
+
             Build.VERSION.SDK_INT >= 33 -> arrayOf(READ_MEDIA_IMAGES)
-            else -> arrayOf(READ_EXTERNAL_STORAGE)
+
+            Build.VERSION.SDK_INT >= 29 -> arrayOf(READ_EXTERNAL_STORAGE)
+
+            // Android 9 and below also need write access to save the result.
+            else -> arrayOf(READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE)
         }
 
     private fun granted(permission: String) = activity.checkSelfPermission(permission) == PERMISSION_GRANTED

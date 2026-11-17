@@ -2,12 +2,12 @@
 
 > 상태: Accepted
 > SSOT: Git Repository
-> 최종 검토일: 2026-11-17
+> 최종 검토일: 2026-11-18
 
 ## 테스트 계층
 
 1. `commonMain` 단위 테스트: `Action → State → Effect`, 모자이크 정책과 네비게이션 규칙.
-2. 플랫폼 통합 테스트: 실제 FaceDetector, MosaicRenderer, 사진 접근과 저장 경로.
+2. 플랫폼 통합 테스트: 실제 FaceDetector, 모자이크 렌더링(`withMosaic`), 사진 접근과 저장 경로.
 3. 골든 이미지 테스트: 동일 입력과 파라미터에서 승인된 결과 이미지 회귀 확인.
 4. Compose UI 테스트: `Home → Gallery → FaceAnalysis → Editor(Saving) → Result`, 얼굴 선택·해제와 오류 상태.
 5. 성능 벤치마크: 얼굴 검출, 모자이크 렌더링, 저장 시간과 peak memory.

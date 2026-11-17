@@ -2,8 +2,8 @@
 
 > 상태: Draft
 > SSOT: Git Repository
-> 관련 요구사항: [Wiki FaceAnalysis · Editor UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/editor.md) · [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md) · Figma `[승인] 화면 4` (`316:3606`, `316:4197`, `316:4294`, `335:2`)
-> 관련 결정: [UX-039](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-039), [UX-041](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-041), [UX-042](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-042), [ADR-0001](../adr/0001-face-analysis-route.md)
+> 관련 요구사항: [Wiki FaceAnalysis · Editor UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/editor.md) · [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md) · Figma `[승인] 화면 4` (`316:3606`, `316:4197`, `316:4294`, `335:2`, Snackbar `316:4050`·`316:3747`·`316:3897`)
+> 관련 결정: [UX-039](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-039), [UX-041](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-041), [UX-014](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-014), [UX-016](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-016), [UX-042](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-042), [ADR-0001](../adr/0001-face-analysis-route.md), [ADR-0004](../adr/0004-common-mosaic-rendering.md)
 > 최종 검토일: 2026-11-18
 
 ## 목적
@@ -45,16 +45,36 @@
 - 상단 뒤로가기와 시스템 뒤로가기는 선택 여부와 관계없이 이탈 확인 Dialog를 엽니다(Figma `316:4294`).
 - `나가기`는 Editor를 닫고 Gallery의 이전 위치로 돌아갑니다. `계속 편집`은 Dialog를 닫고 선택을 유지합니다.
 
+### 저장
+
+- 저장 버튼은 원본 해상도 이미지를 읽고, 선택한 얼굴에 미리보기와 같은 모자이크를 그린 뒤 새 사진으로 저장합니다([ADR-0004](../adr/0004-common-mosaic-rendering.md)). 원본은 바꾸지 않습니다.
+- 저장 파일은 메타데이터 없는 JPEG입니다. 방향은 픽셀에 적용되어 있습니다. Android는 `Pictures/ICEC`에 저장합니다.
+- 저장 중에는 편집 화면을 흐리게 덮고 로딩 표시를 보여 줍니다(Figma `335:2`). 얼굴 선택, 저장 재실행과 뒤로가기를 모두 막습니다(UX-014).
+- 저장에 성공하면 `Route.Result(savedPhotoId)`를 Editor 위에 추가합니다. Result에서 뒤로 가면 같은 편집 세션으로 돌아옵니다. Result 구현(#28) 전까지는 저장된 사진을 보여 주는 임시 화면을 씁니다.
+- iOS는 저장하는 동안 Background 실행 시간을 요청합니다. Android는 프로세스가 살아 있는 동안 ViewModel에서 계속 저장합니다.
+
 ## 실패와 복구
 
 | 상황 | 결과 |
 | --- | --- |
 | 화면 이미지를 읽을 수 없음 | 사진 영역을 비워 둡니다. 얼굴 목록과 선택은 그대로 동작합니다 |
-| 저장 실패 | ③에서 정의합니다 |
+| 저장 공간 부족 | Snackbar `저장 공간이 부족하여 저장할 수 없습니다`(`316:4050`) |
+| 저장 권한 없음 | Snackbar `사진 저장 권한 허용이 필요합니다`와 `권한 설정`(`316:3747`). 설정 화면을 엽니다 |
+| 원본 읽기·렌더링·인코딩·그 밖의 저장 실패 | Snackbar `이미지 처리에 실패했습니다.`와 `다시 시도`(`316:3897`) |
+
+저장에 실패하면 저장 중 화면을 닫고 선택을 유지합니다(UX-016). Snackbar는 4초 뒤 사라집니다.
 
 ## 플랫폼 차이
 
-공통 코드로 구현합니다. 시스템 뒤로가기는 Navigation 3에 포함된 `navigationevent-compose`의 `NavigationBackHandler`로 받습니다.
+화면과 모자이크 렌더링은 공통 코드로 구현합니다. 시스템 뒤로가기는 Navigation 3에 포함된 `navigationevent-compose`의 `NavigationBackHandler`로 받습니다.
+
+| 항목 | Android | iOS |
+| --- | --- | --- |
+| 원본 읽기 | API 28+: `ImageDecoder`(방향 적용). API 24~27: `BitmapFactory`, EXIF 회전 미반영 | `PHImageManagerMaximumSize`로 읽고 방향을 적용해 다시 그림 |
+| 저장 | `MediaStore` 새 항목, API 29+는 `IS_PENDING` 사용 | `PHAssetCreationRequest` |
+| 저장 권한 | API 29+: 필요 없음. API 28 이하: `WRITE_EXTERNAL_STORAGE`를 사진 권한과 함께 요청 | 사진 보관함 `readWrite` 권한 |
+| 오류 판별 | `SecurityException` → 권한, `ENOSPC` → 공간 | `PHPhotosError` 코드 |
+| 저장 중 블러 | Android 12+ | 적용 |
 
 ## Acceptance Criteria
 
@@ -66,6 +86,13 @@
 - [x] 뒤로가기는 이탈 확인 Dialog를 열고, `나가기`는 Gallery, `계속 편집`은 선택을 유지한다
 - [x] `EditorTest`: 선택·전체 선택/해제·저장 상태, 이탈 확인, 모자이크 칸 수, 좌표 변환, 얼굴 자르기
 
-### ②·③
+### ③ 저장
+
+- [x] 저장한 이미지가 원본과 같은 해상도이고 선택한 얼굴만 모자이크된다. 원본은 바뀌지 않는다
+- [x] 저장 중에는 입력이 막히고, 실패하면 선택이 유지되며 Snackbar가 원인별로 보인다
+- [x] 저장에 성공하면 Result로 이동하고, 뒤로 가면 같은 편집 세션으로 돌아온다
+- [x] `EditorSaveTest`(iOS): 모자이크 블록, 원본 해상도 저장, 오류 매핑과 재시도
+
+### ②
 
 해당 단계의 Issue에서 이 문서를 갱신합니다.

@@ -1,5 +1,10 @@
 package com.studioham.icec.feature.editor
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,11 +33,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -41,6 +48,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
@@ -66,56 +74,101 @@ import com.studioham.icec.designsystem.Pretendard
 import com.studioham.icec.face.FaceBounds
 import com.studioham.icec.feature.editor.resources.Res
 import com.studioham.icec.feature.editor.resources.back
+import com.studioham.icec.feature.editor.resources.editor_action_retry
+import com.studioham.icec.feature.editor.resources.editor_action_settings
 import com.studioham.icec.feature.editor.resources.editor_clear_all
 import com.studioham.icec.feature.editor.resources.editor_counter
 import com.studioham.icec.feature.editor.resources.editor_detected_faces
+import com.studioham.icec.feature.editor.resources.editor_error_failed
+import com.studioham.icec.feature.editor.resources.editor_error_no_space
+import com.studioham.icec.feature.editor.resources.editor_error_permission
 import com.studioham.icec.feature.editor.resources.editor_exit_body
 import com.studioham.icec.feature.editor.resources.editor_exit_leave
 import com.studioham.icec.feature.editor.resources.editor_exit_stay
 import com.studioham.icec.feature.editor.resources.editor_exit_title
 import com.studioham.icec.feature.editor.resources.editor_face
 import com.studioham.icec.feature.editor.resources.editor_save
+import com.studioham.icec.feature.editor.resources.editor_saving_body
+import com.studioham.icec.feature.editor.resources.editor_saving_title
 import com.studioham.icec.feature.editor.resources.editor_select_all
 import com.studioham.icec.feature.editor.resources.ic_arrow_back
 import com.studioham.icec.feature.editor.resources.ic_check
+import com.studioham.icec.feature.editor.resources.ic_error
+import com.studioham.icec.feature.editor.resources.ic_lock
 import com.studioham.icec.feature.editor.resources.ic_mosaic
 import com.studioham.icec.feature.editor.resources.ic_person
+import com.studioham.icec.feature.editor.resources.ic_retry_small
 import com.studioham.icec.feature.editor.resources.ic_warning
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Duration.Companion.seconds
 
-/** [onExit] leaves the editor after the user confirms (`나가기`). */
+/** [onExit] leaves the editor after the user confirms (`나가기`). [onSaved] gets the new photo's id. */
 @Composable
 fun EditorScreen(
     viewModel: EditorViewModel,
     onExit: () -> Unit,
+    onSaved: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     NavigationBackHandler(rememberNavigationEventState(NavigationEventInfo.None), onBackCompleted = viewModel::onBack)
-    EditorContent(state, viewModel::onFaceClick, viewModel::onSelectAllClick, viewModel::onBack, viewModel::onKeepEditing, onExit, modifier)
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { if (it is EditorEffect.Saved) onSaved(it.photoId) }
+    }
+    if (state.saveError != null) {
+        LaunchedEffect(state.saveError) {
+            delay(4.seconds)
+            viewModel.onSaveErrorDismiss()
+        }
+    }
+    EditorContent(
+        state,
+        EditorActions(
+            viewModel::onFaceClick,
+            viewModel::onSelectAllClick,
+            viewModel::onBack,
+            viewModel::onKeepEditing,
+            onExit,
+            viewModel::onSaveClick,
+            viewModel::onSaveErrorAction,
+        ),
+        modifier,
+    )
 }
+
+internal class EditorActions(
+    val onFaceClick: (Int) -> Unit = {},
+    val onSelectAllClick: () -> Unit = {},
+    val onBack: () -> Unit = {},
+    val onKeepEditing: () -> Unit = {},
+    val onExit: () -> Unit = {},
+    val onSaveClick: () -> Unit = {},
+    val onSaveErrorAction: () -> Unit = {},
+)
 
 /** Figma `[승인] 화면 4: 모자이크 편집 코어` (316:3606), 0 selected (316:4197), exit dialog (316:4294). */
 @Composable
 internal fun EditorContent(
     state: EditorState,
-    onFaceClick: (Int) -> Unit,
-    onSelectAllClick: () -> Unit,
-    onBack: () -> Unit,
-    onKeepEditing: () -> Unit,
-    onExit: () -> Unit,
+    actions: EditorActions,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier.fillMaxSize().background(Color.Black)) {
-        Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-            TopBar(state.faces.size, state.selected.size, onBack)
-            Photo(state, onFaceClick, Modifier.weight(1f).padding(16.dp))
-            FaceList(state, onFaceClick, onSelectAllClick)
-            SaveButton(enabled = state.canSave)
+        // ponytail: Modifier.blur needs Android 12+; older Android shows the saving overlay without blur.
+        Column(
+            Modifier.fillMaxSize().then(if (state.saving) Modifier.blur(4.dp) else Modifier).windowInsetsPadding(WindowInsets.safeDrawing),
+        ) {
+            TopBar(state.faces.size, state.selected.size, actions.onBack)
+            Photo(state, actions.onFaceClick, Modifier.weight(1f).padding(16.dp))
+            FaceList(state, actions.onFaceClick, actions.onSelectAllClick)
+            SaveButton(enabled = state.canSave, actions.onSaveClick)
         }
-        if (state.exitDialog) ExitDialog(onExit, onKeepEditing)
+        state.saveError?.let { SaveErrorSnackbar(it, actions.onSaveErrorAction, Modifier.align(Alignment.BottomCenter)) }
+        if (state.exitDialog) ExitDialog(actions.onExit, actions.onKeepEditing)
+        if (state.saving) Saving()
     }
 }
 
@@ -339,9 +392,12 @@ private fun CheckBadge(modifier: Modifier = Modifier) {
     }
 }
 
-/** UX-039: disabled with no selection. ponytail: saving arrives in #26; the enabled button does nothing yet. */
+/** UX-039: disabled with no selection. */
 @Composable
-private fun SaveButton(enabled: Boolean) {
+private fun SaveButton(
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
     Box(
         Modifier
             .fillMaxWidth()
@@ -350,7 +406,7 @@ private fun SaveButton(enabled: Boolean) {
             .alpha(if (enabled) 1f else 0.4f)
             .clip(RoundedCornerShape(12.dp))
             .background(IcecColors.NeonLime)
-            .clickable(enabled = enabled, role = Role.Button) {},
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         BasicText(
@@ -459,6 +515,83 @@ private fun DialogButton(
     }
 }
 
+/** Figma `[승인] 화면 4-Dialog: 저장 중 로딩 다이얼로그` (335:2). Blocks every input while saving (UX-014). */
+@Composable
+private fun BoxScope.Saving() {
+    Column(
+        Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.7f)).pointerInput(Unit) { detectTapGestures { } },
+        Arrangement.Center,
+        Alignment.CenterHorizontally,
+    ) {
+        val angle by rememberInfiniteTransition().animateFloat(0f, 360f, infiniteRepeatable(tween(1000, easing = LinearEasing)))
+        Canvas(Modifier.size(48.dp)) {
+            val stroke = Stroke(3.5.dp.toPx(), cap = StrokeCap.Round)
+            val inset = 6.dp.toPx()
+            val arc = Size(size.width - 2 * inset, size.height - 2 * inset)
+            drawArc(IcecColors.Hairline, 0f, 360f, false, Offset(inset, inset), arc, style = stroke)
+            drawArc(IcecColors.NeonLime, angle - 90f, 90f, false, Offset(inset, inset), arc, style = stroke)
+        }
+        BasicText(
+            stringResource(Res.string.editor_saving_title),
+            Modifier.padding(top = 16.dp, bottom = 4.dp),
+            style = TextStyle(Color.White, 18.sp, FontWeight.Bold, fontFamily = Pretendard(), lineHeight = 25.sp),
+        )
+        BasicText(
+            stringResource(Res.string.editor_saving_body),
+            style = TextStyle(IcecColors.MutedSlate, 14.sp, fontFamily = Pretendard(), lineHeight = 23.sp),
+        )
+    }
+}
+
+/** Figma Editor Snackbar cases 2–4 (316:4050, 316:3747, 316:3897). */
+@Composable
+private fun SaveErrorSnackbar(
+    error: SaveError,
+    onAction: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val (message, action) =
+        when (error) {
+            SaveError.NoSpace -> Res.string.editor_error_no_space to null
+            SaveError.NoPermission -> Res.string.editor_error_permission to (Res.drawable.ic_lock to Res.string.editor_action_settings)
+            SaveError.Failed -> Res.string.editor_error_failed to (Res.drawable.ic_retry_small to Res.string.editor_action_retry)
+        }
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .padding(start = 16.dp, end = 16.dp, bottom = 92.dp)
+            .fillMaxWidth()
+            .clip(shape)
+            .background(SnackbarFill)
+            .border(1.dp, IcecColors.Hairline, shape)
+            .padding(horizontal = 17.dp, vertical = 14.dp),
+        Arrangement.spacedBy(10.dp),
+        Alignment.CenterVertically,
+    ) {
+        Image(painterResource(Res.drawable.ic_error), null)
+        BasicText(
+            stringResource(message),
+            Modifier.weight(1f),
+            style = TextStyle(Color.White, 14.sp, FontWeight.Medium, fontFamily = Pretendard(), lineHeight = 20.sp),
+        )
+        action?.let { (icon, label) ->
+            Row(
+                Modifier.clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button, onClick = onAction).padding(4.dp),
+                Arrangement.spacedBy(4.dp),
+                Alignment.CenterVertically,
+            ) {
+                Image(painterResource(icon), null, Modifier.size(12.dp))
+                BasicText(
+                    stringResource(label),
+                    style = TextStyle(IcecColors.NeonLime, 13.sp, FontWeight.Bold, fontFamily = Pretendard(), lineHeight = 13.sp),
+                )
+            }
+        }
+    }
+}
+
+private val SnackbarFill = Color(0xFF1C1C1C)
 private val CounterStyle = TextStyle(Color.White, 15.sp, FontWeight.SemiBold, letterSpacing = (-0.375).sp, lineHeight = 15.sp)
 private val BarFill = Color(0xFF1E1E1E)
 private val ViewportFill = Color(0xFF161616)
@@ -474,17 +607,29 @@ private val PreviewFaces = listOf(FaceBounds(0.1f, 0.2f, 0.3f, 0.4f), FaceBounds
 @Preview
 @Composable
 private fun EditorSelectedPreview() {
-    EditorContent(EditorState(faces = PreviewFaces, selected = setOf(1)), {}, {}, {}, {}, {})
+    EditorContent(EditorState(faces = PreviewFaces, selected = setOf(1)), EditorActions())
 }
 
 @Preview
 @Composable
 private fun EditorNoSelectionPreview() {
-    EditorContent(EditorState(faces = PreviewFaces), {}, {}, {}, {}, {})
+    EditorContent(EditorState(faces = PreviewFaces), EditorActions())
 }
 
 @Preview
 @Composable
 private fun EditorExitDialogPreview() {
-    EditorContent(EditorState(faces = PreviewFaces, exitDialog = true), {}, {}, {}, {}, {})
+    EditorContent(EditorState(faces = PreviewFaces, exitDialog = true), EditorActions())
+}
+
+@Preview
+@Composable
+private fun EditorSavingPreview() {
+    EditorContent(EditorState(faces = PreviewFaces, selected = setOf(0), saving = true), EditorActions())
+}
+
+@Preview
+@Composable
+private fun EditorSaveFailedPreview() {
+    EditorContent(EditorState(faces = PreviewFaces, selected = setOf(0), saveError = SaveError.Failed), EditorActions())
 }

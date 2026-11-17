@@ -28,7 +28,7 @@
 
 - EXIF orientation과 Android/iOS 좌표계 차이
 - 고해상도 이미지의 decode, downsampling, memory pressure와 OOM 대응
-- 모자이크 출력 해상도와 저장 렌더러 정책. 블록 크기는 [Editor Spec](../specs/editor.md)에서 정했습니다
+- 대용량 사진 저장의 메모리 상한. 현재는 원본 해상도 이미지 두 장을 메모리에 올립니다([ADR-0004](../adr/0004-common-mosaic-rendering.md))
 - MediaStore와 Photos 저장 결과의 공통 모델 및 오류 매핑
 
 ## 플랫폼 연동
