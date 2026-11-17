@@ -9,8 +9,9 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.studioham.icec.editor.EditorPlaceholder
 import com.studioham.icec.face.FaceBounds
+import com.studioham.icec.feature.editor.EditorScreen
+import com.studioham.icec.feature.editor.EditorViewModel
 import com.studioham.icec.feature.editor.FaceAnalysisScreen
 import com.studioham.icec.feature.editor.FaceAnalysisViewModel
 import com.studioham.icec.feature.gallery.GalleryScreen
@@ -63,7 +64,13 @@ fun App(
                         onPickAnother = { backStack.removeLastOrNull() },
                     )
                 }
-                entry<Route.Editor> { EditorPlaceholder(it.faces.size, onBack = { backStack.removeLastOrNull() }) }
+                entry<Route.Editor> { route ->
+                    EditorScreen(
+                        viewModel { EditorViewModel(route.photoId, route.faces, graph.photoLibrary) },
+                        // Editor replaced FaceAnalysis, so leaving returns to the Gallery's previous position.
+                        onExit = { backStack.removeLastOrNull() },
+                    )
+                }
             },
     )
 }

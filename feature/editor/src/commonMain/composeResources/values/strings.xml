@@ -9,4 +9,14 @@
     <string name="face_analysis_retry">Analyze again</string>
     <string name="face_analysis_pick_another">Choose another photo</string>
     <string name="back">Back</string>
+    <string name="editor_detected_faces">Detected faces</string>
+    <string name="editor_select_all">Select all</string>
+    <string name="editor_clear_all">Clear all</string>
+    <string name="editor_save">Save</string>
+    <string name="editor_counter">%2$d of %1$d faces selected</string>
+    <string name="editor_face">Face %1$d</string>
+    <string name="editor_exit_title">Discard your edits?</string>
+    <string name="editor_exit_body">All mosaic selections on this photo\nwill be cleared.</string>
+    <string name="editor_exit_leave">Leave</string>
+    <string name="editor_exit_stay">Keep editing</string>
 </resources>

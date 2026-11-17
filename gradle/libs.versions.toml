@@ -13,6 +13,7 @@ ktlint = "1.8.0"
 metro = "1.6.0"
 mlkit-faceDetection = "16.1.7"
 navigation3 = "1.2.0"
+navigationevent = "1.1.0"
 spotless = "8.9.0"
 
 [libraries]
@@ -32,6 +33,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 mlkit-faceDetection = { module = "com.google.mlkit:face-detection", version.ref = "mlkit-faceDetection" }
+navigationevent-compose = { module = "org.jetbrains.androidx.navigationevent:navigationevent-compose", version.ref = "navigationevent" }
 navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 
 [plugins]
