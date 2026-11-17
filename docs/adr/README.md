@@ -19,3 +19,4 @@ ADR은 Architecture v1 이후 아키텍처 경계, 핵심 기술, 테스트·CI 
 ## 현재 ADR
 
 - [ADR-0001: FaceAnalysis 별도 Navigation Route 도입](0001-face-analysis-route.md) — Accepted (2026-11-06)
+- [ADR-0002: Android 진입점을 androidApp 모듈로 분리](0002-android-app-module.md) — Accepted (2026-11-17)

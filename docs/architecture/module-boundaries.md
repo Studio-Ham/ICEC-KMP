@@ -3,12 +3,14 @@
 > 상태: Accepted
 > SSOT: Git Repository
 > 원본: [Architecture v1](overview.md)
-> 최종 검토일: 2026-09-10
+> 최종 검토일: 2026-11-17
 
 ICEC는 프로젝트 규모에 맞는 목적 중심 모듈화를 사용합니다.
 
 ```text
+androidApp
 composeApp
+iosApp
 
 core/
   designsystem
@@ -29,7 +31,9 @@ platform/
 
 ## 책임
 
-- `composeApp`: 애플리케이션 진입점, 공통 back stack과 전체 의존성 조립.
+- `androidApp`: Android 진입점(`MainActivity`, 매니페스트, applicationId). `composeApp`의 `App()`만 호출합니다([ADR-0002](../adr/0002-android-app-module.md)).
+- `composeApp`: 공통 UI 진입점(`App()`), iOS 프레임워크, 공통 back stack과 전체 의존성 조립.
+- `iosApp`: iOS 진입점 Xcode 프로젝트. `composeApp` 프레임워크를 링크합니다.
 - `core/designsystem`: Compose로 표현되는 디자인 토큰과 재사용 컴포넌트 계약.
 - `core/ui`: 여러 feature에서 실제로 공유하는 UI 기반 요소.
 - `core/model`: 플랫폼 독립 공통 모델.
@@ -41,7 +45,9 @@ platform/
 
 ```mermaid
 flowchart TD
-    App["composeApp"] --> Feature["feature/*"]
+    Android["androidApp"] --> App["composeApp"]
+    IOS["iosApp"] --> App
+    App --> Feature["feature/*"]
     App --> Platform["platform/*"]
     Feature --> CoreUI["core/ui"]
     Feature --> CoreModel["core/model"]
@@ -51,6 +57,6 @@ flowchart TD
 
 - feature 사이에는 직접 의존성을 만들지 않습니다.
 - feature는 플랫폼 구현체 대신 `platform/*`이 제공하는 공통 계약에 의존합니다.
-- 공통 back stack과 feature 연결은 `composeApp`이 조립합니다.
+- 공통 back stack과 feature 연결은 `composeApp`이 조립합니다. `androidApp`과 `iosApp`에는 기능 코드를 두지 않습니다.
 - 패키지는 모듈의 목적을 반영하고, 초기에는 불필요한 `data/domain/presentation` 하위 계층을 만들지 않습니다.
 - 파일 수와 변경 이유가 실제로 분리될 때만 모듈 또는 하위 패키지를 추가합니다.

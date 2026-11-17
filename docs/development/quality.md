@@ -55,12 +55,19 @@
 
 ## 로컬 검증
 
-Gradle Wrapper가 구성된 이후 코드 변경에는 다음 명령을 사용합니다.
+Gradle Wrapper가 구성된 이후 코드 변경에는 다음 명령을 사용합니다. JDK 17을 사용합니다. Android SDK 경로는 `local.properties`의 `sdk.dir` 또는 `ANDROID_HOME`으로 지정합니다.
 
 ```shell
 ./gradlew spotlessApply spotlessCheck
 ./gradlew assembleDebug
 ./gradlew test
+```
+
+iOS 코드나 공통 UI를 바꾸면 iOS 빌드도 확인합니다.
+
+```shell
+./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -destination 'generic/platform=iOS Simulator' ARCHS=arm64 CODE_SIGNING_ALLOWED=NO build
 ```
 
 문서만 변경하거나 Wrapper가 없는 단계에서는 `git diff --check`, 내부 링크, 외부 SSOT 링크와 문서 인덱스를 검증합니다.
