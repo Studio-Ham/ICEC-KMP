@@ -33,7 +33,6 @@
 
 ## 플랫폼 연동
 
-- Kotlin/Native와 iOS ML Kit Face Detection 연동
 - Android/iOS 제한 사진 접근 권한과 재요청 가능 상태 모델
 - iOS 26 Liquid Glass 적용 범위와 하위 버전 폴백
 - Metro의 iOS 그래프 조립과 빌드 호환성

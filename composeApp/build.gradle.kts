@@ -44,6 +44,7 @@ kotlin {
             implementation(libs.navigation3.ui)
             implementation(projects.core.designsystem)
             implementation(projects.feature.gallery)
+            implementation(projects.platform.faceDetection)
         }
     }
 }

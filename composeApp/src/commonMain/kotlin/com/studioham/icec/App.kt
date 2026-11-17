@@ -45,7 +45,13 @@ fun App(
                         onPhotoSelected = { backStack.add(Route.FaceAnalysis(it.id)) },
                     )
                 }
-                entry<Route.FaceAnalysis> { FaceAnalysisPlaceholder(onBack = { backStack.removeLastOrNull() }) }
+                entry<Route.FaceAnalysis> {
+                    FaceAnalysisPlaceholder(
+                        it.photoId,
+                        graph.faceDetector,
+                        onBack = { backStack.removeLastOrNull() },
+                    )
+                }
             },
     )
 }

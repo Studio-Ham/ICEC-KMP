@@ -8,9 +8,9 @@
 
 - `commonMain`은 얼굴 검출 계약과 플랫폼 독립 결과 모델을 정의합니다.
 - Android는 ML Kit Android SDK를 사용합니다.
-- iOS는 ML Kit iOS SDK를 Kotlin/Native interop으로 연결합니다.
+- iOS는 ML Kit iOS SDK를 Kotlin SwiftPM import로 연결합니다([ADR-0003](../adr/0003-ios-mlkit-swiftpm-import.md)).
 - 얼굴 검출 이후의 선택 상태, 편집 정책과 모자이크 대상 관리는 공통 로직이 담당합니다.
-- iOS 연동 가능 여부, 빌드와 실제 얼굴 좌표 반환은 정식 `platform/face-detection` 구현 과정에서 검증합니다.
+- 2026-11-17 Android·iOS 시뮬레이터에서 실제 얼굴 좌표 반환을 검증했습니다. 계약은 [FaceAnalysis Spec](../specs/face-analysis.md)에 있습니다.
 
 ## 이미지와 모자이크 렌더링
 
