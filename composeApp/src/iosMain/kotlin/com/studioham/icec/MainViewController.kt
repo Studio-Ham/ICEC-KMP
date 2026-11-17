@@ -1,6 +1,11 @@
 package com.studioham.icec
 
 import androidx.compose.ui.window.ComposeUIViewController
+import com.studioham.icec.media.IosPhotoPermission
+import platform.UIKit.UIViewController
 
 @Suppress("ktlint:standard:function-naming", "FunctionName")
-fun MainViewController() = ComposeUIViewController { App() }
+fun MainViewController(): UIViewController {
+    val graph = createAppGraph(IosPhotoPermission())
+    return ComposeUIViewController { App(graph) }
+}

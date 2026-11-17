@@ -31,7 +31,7 @@ platform/
 
 ## 책임
 
-- `androidApp`: Android 진입점(`MainActivity`, 매니페스트, applicationId). `composeApp`의 `App()`만 호출합니다([ADR-0002](../adr/0002-android-app-module.md)).
+- `androidApp`: Android 진입점(`MainActivity`, 매니페스트, applicationId). Android 플랫폼 구현을 만들어 `composeApp`의 앱 그래프에 넘기고 `App()`을 호출합니다([ADR-0002](../adr/0002-android-app-module.md)).
 - `composeApp`: 공통 UI 진입점(`App()`), iOS 프레임워크, 공통 back stack과 전체 의존성 조립.
 - `iosApp`: iOS 진입점 Xcode 프로젝트. `composeApp` 프레임워크를 링크합니다.
 - `core/designsystem`: Compose로 표현되는 디자인 토큰과 재사용 컴포넌트 계약.
@@ -60,4 +60,4 @@ flowchart TD
 - 공통 back stack과 feature 연결은 `composeApp`이 조립합니다. `androidApp`과 `iosApp`에는 기능 코드를 두지 않습니다.
 - 패키지는 모듈의 목적을 반영하고, 초기에는 불필요한 `data/domain/presentation` 하위 계층을 만들지 않습니다.
 - 파일 수와 변경 이유가 실제로 분리될 때만 모듈 또는 하위 패키지를 추가합니다.
-- 2026-11-17 현재 Home은 `composeApp`의 `home` 패키지에 있습니다. Home은 상태와 플랫폼 의존성이 없습니다. `feature/*` 모듈은 Gallery 구현과 Metro 도입 때 분리합니다.
+- 2026-11-17 현재 모듈은 `core/designsystem`, `feature/gallery`, `platform/media`입니다. Home은 상태와 플랫폼 의존성이 없어 `composeApp`의 `home` 패키지에 둡니다.

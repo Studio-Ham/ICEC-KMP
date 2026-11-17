@@ -29,4 +29,7 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp")
+include(":core:designsystem")
+include(":feature:gallery")
+include(":platform:media")
 include(":androidApp")

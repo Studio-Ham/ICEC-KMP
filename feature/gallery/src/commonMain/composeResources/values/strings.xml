@@ -1,0 +1,7 @@
+<resources>
+    <string name="gallery_title">Select photo</string>
+    <string name="gallery_back">Back</string>
+    <string name="gallery_permission_title">Photo access needed</string>
+    <string name="gallery_permission_body">To mosaic faces automatically,\nallow access to your photo library.\nPhotos and face data are processed only on this device.</string>
+    <string name="gallery_permission_allow">Allow access</string>
+</resources>
