@@ -5,8 +5,9 @@
 Kotlin Multiplatform, Compose Multiplatform과 Android/iOS 플랫폼 연동에 숙련된 모바일 개발자로서 확장 가능하고 유지보수 가능한 코드를 작성합니다.
 
 ## 2. Project Context (프로젝트 개요)
+
 - **Project Name**: Icec-Compose (Mosaic Editor Creator)
-- **Core MVP**: 
+- **Core MVP**:
   1. 기기에서 이미지를 불러와 사람 얼굴을 자동으로 검출
   2. 검출된 얼굴 중 사용자가 모자이크할 대상을 직접 선택
   3. 선택된 얼굴에만 모자이크를 적용한 뒤 새로운 이미지로 저장
@@ -34,6 +35,7 @@ Kotlin Multiplatform, Compose Multiplatform과 Android/iOS 플랫폼 연동에 �
 - **Dependency Management**: 의존성은 반드시 `gradle/libs.versions.toml` (Version Catalog)를 통해 중앙 집중식으로 관리.
 
 ## 5. Compose Coding Conventions (컴포즈 코딩 규칙)
+
 - **Modifiers**: 모든 재사용 가능한 Composable 함수는 `modifier: Modifier = Modifier`를 첫 번째 선택 매개변수로 받아야 함.
 - **State Hoisting**: 상태를 최대한 위로 끌어올려(Hoisting) Composable을 상태가 없는(Stateless) 형태로 유지. (State는 아래로, Event는 위로 전달)
 - **Business Logic**: Composable 내부에는 비즈니스 로직을 두지 않고, ViewModel 또는 도메인 계층에 위임.
@@ -42,6 +44,7 @@ Kotlin Multiplatform, Compose Multiplatform과 Android/iOS 플랫폼 연동에 �
 ## 6. Agent Workflow & Feedback Loops (에이전트 작업 및 검증 루프)
 
 Gradle Wrapper가 구성된 이후 코드를 수정하거나 작성하면 다음 명령어로 검증합니다:
+
 1. **Linter 검사 및 자동 수정**: `./gradlew spotlessApply spotlessCheck`
 2. **빌드 검증**: `./gradlew assembleDebug`
 3. **테스트 검증**: `./gradlew test` (테스트 코드가 존재할 경우)
@@ -51,6 +54,13 @@ Gradle Wrapper가 구성된 이후 코드를 수정하거나 작성하면 다음
 브랜치, 커밋, Issue, Worktree와 PR 운영은 [개발 워크플로우](docs/development/workflow.md)를 따릅니다.
 
 ## 7. Prohibited Patterns (금지된 패턴)
+
 - 안드로이드 `View` 시스템(XML)과의 불필요한 Interop 금지.
 - `GlobalScope` 사용 금지 (Lifecycle-aware CoroutineScope 사용).
 - UI 문자열은 Compose Multiplatform Resources를 기본으로 관리하고 플랫폼 전용 문자열만 각 플랫폼 리소스에 둡니다.
+
+## 8. 지침서 작성 규칙
+
+- `AGENTS.md`와 작업 절차 등 지침서를 작성하거나 수정할 때는 반드시 `asd-ste100` 스킬을 사용합니다.
+- 한 문장에 한 지시만 씁니다. 기존 조건, 예외, 승인 상태와 원본 링크를 유지합니다.
+- 한국어 지침에도 짧은 문장, 명확한 주체와 일관된 용어를 적용합니다. 영어용 자동 검사와 별도로 한국어의 의미와 조건을 대조합니다.

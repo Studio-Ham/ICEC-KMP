@@ -2,7 +2,7 @@
 
 > 상태: Reference
 > SSOT: 각 연결된 원본
-> 최종 검토일: 2026-11-05
+> 최종 검토일: 2026-11-17
 
 ## Notion
 
@@ -14,13 +14,20 @@
 
 ## Figma
 
-2026-11-05 사용자 결정에 따라 다음 세 파일이 시각 디자인의 원본입니다. 화면은 Stitch에서 Figma로 이전 중이며 MVP 상세 정리와 화면별 수정이 남아 있습니다.
+2026-11-05 사용자 결정에 따라 다음 세 파일이 시각 디자인의 원본입니다. 각 파일의 운영 가이드는 `Accepted` 상태이고 기준일은 2026-09-10입니다. 2026-11-17에 가이드와 화면 노드를 대조했습니다.
 
 - [ICEC-MVP](https://www.figma.com/design/K8uqTjJDkBnC1lNxfuICv0/ICEC-MVP?node-id=118-4): 화면·상태별 상세 디자인.
 - [ICEC-Design-System](https://www.figma.com/design/Jn0xf2CaB8ZMPWWo3K0Ina/ICEC-Design-System?node-id=3-3): 공통 컴포넌트와 디자인 토큰.
 - [ICEC-Assets](https://www.figma.com/design/etY1iHAlX8Ie0geV0WdIv6/ICEC-Assets?node-id=8-1807): 디자인 에셋.
 
-Figma로 옮겨진 사실만으로 화면을 승인본이나 구현 준비 완료로 보지 않습니다. 구현 전에 관련 화면·상태의 노드와 승인 여부를 확인합니다. Variables, Styles, Components의 세부 구성은 디자인 작업에서 정비합니다.
+운영 가이드는 다음 경계와 순서를 정합니다.
+
+- ICEC-MVP는 화면 레이아웃, 상태 표현과 사용자 플로우를 소유합니다.
+- ICEC-Design-System은 토큰과 TopAppBar·CTA·Snackbar 컴포넌트를 소유합니다.
+- ICEC-Assets는 에셋의 시각 원본을 소유합니다. 실행 가능한 에셋 파일과 플랫폼 리소스는 이 저장소에서 관리합니다.
+- 변경은 Notion 확정, Figma 갱신, 이 저장소의 Spec·Compose 갱신, 시각·동작 검증의 순서로 진행합니다.
+
+가이드의 `Accepted` 상태는 개별 화면의 승인을 뜻하지 않습니다. 2026-11-17 기준으로 화면 프레임에는 승인 표시가 없습니다. Figma로 옮겨진 사실만으로 화면을 승인본이나 구현 준비 완료로 보지 않습니다. 구현 전에 관련 화면·상태의 노드와 승인 여부를 확인합니다. 화면·상태 노드 대응과 확인된 불일치는 [ICEC LLM Wiki의 디자인 참조](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/design/references.md)에서 찾습니다. Variables, Styles, Components의 세부 구성은 디자인 작업에서 정비합니다.
 
 ## 연결 원칙
 

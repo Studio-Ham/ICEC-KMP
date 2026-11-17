@@ -3,17 +3,25 @@
 > 상태: Accepted
 > SSOT: Git Repository
 > 원본: [Notion 기술 설계 및 개발 기획서](https://app.notion.com/p/3d44d984a2188123b909ce5fb78a82ac)
-> 최종 검토일: 2026-09-10
+> 최종 검토일: 2026-11-17
 
 ## 테스트 계층
 
 1. `commonMain` 단위 테스트: `Action → State → Effect`, 모자이크 정책과 네비게이션 규칙.
 2. 플랫폼 통합 테스트: 실제 FaceDetector, MosaicRenderer, 사진 접근과 저장 경로.
 3. 골든 이미지 테스트: 동일 입력과 파라미터에서 승인된 결과 이미지 회귀 확인.
-4. Compose UI 테스트: `Home → Gallery → Editor → Save`, 얼굴 선택·해제와 오류 상태.
+4. Compose UI 테스트: `Home → Gallery → FaceAnalysis → Editor(Saving) → Result`, 얼굴 선택·해제와 오류 상태.
 5. 성능 벤치마크: 얼굴 검출, 모자이크 렌더링, 저장 시간과 peak memory.
 
 얼굴 검출은 모델 특성을 고려해 검출 수와 bounding box 허용 오차를 검증합니다. 결정적인 픽셀 처리가 가능한 모자이크 렌더러는 승인된 출력과 직접 비교합니다.
+
+## UX 검증 기준
+
+- 분석 화면과 복구 경로는 [ADR-0001](../adr/0001-face-analysis-route.md)을 따릅니다. 정상 검출, 미검출, 오류와 시간 초과를 구분합니다. 같은 사진 재시도와 Gallery 복귀를 검증합니다.
+- 저장·뒤로가기·Result 이동은 [Notion Editor UX](https://app.notion.com/p/3d54d984a21881e1b69bc40bd457ad57)와 [Result UX](https://app.notion.com/p/3d54d984a21881168efed467260ff04e)를 따릅니다. 저장 중 입력 차단, 실제 저장 성공 후 Result 진입과 저장 실패 시 편집 상태 유지를 검증합니다.
+- 프로세스 생존 중 상태 유지와 종료 후 초기화는 [UX-034](https://app.notion.com/p/3d54d984a2188115a23fe313809f43ef)와 [UX-040](https://app.notion.com/p/3ec4d984a2188178b347e880fd20ca2a)을 따릅니다. Background 복귀와 Cold Start를 구분합니다. 중복 분석·저장이 발생하지 않는지 검증합니다. 종료된 세션을 복원하지 않는지 검증합니다.
+
+이 목록은 구현 후 검증할 범위입니다. 플랫폼 실행 제약, 취소와 결과 무효화 방식은 관련 Spec에서 구체화합니다.
 
 ## CI
 
