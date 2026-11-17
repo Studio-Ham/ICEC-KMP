@@ -48,12 +48,19 @@
 - 화면이 다시 활성화되면(OS 설정에서 돌아온 경우 포함) 권한을 다시 읽습니다.
 - 상단 뒤로가기는 Home으로 돌아갑니다.
 
+### 사진 목록 계약
+
+- `PhotoLibrary.photos()`는 편집 가능한 정지 이미지를 최신순으로 반환합니다. 읽을 수 없으면 예외를 던집니다.
+- `PhotoLibrary.thumbnail()`은 타일 크기 이상의 썸네일을 반환합니다. 읽을 수 없으면 null을 반환하고 타일은 빈 배경으로 둡니다.
+- 촬영일이 없으면 Android는 추가일, iOS는 생성일을 씁니다. 날짜 묶음은 기기 시간대 기준입니다.
+
 ## 실패와 복구
 
 | 상황 | 결과 |
 | --- | --- |
 | 시스템 팝업에서 거부 | 같은 화면 유지. Android는 두 번째 거부부터 `Blocked` |
 | OS 설정에서 허용하고 복귀 | 권한을 다시 읽고 사진 목록 상태로 전환 |
+| 사진 목록 조회 실패 | LoadFailed. 다시 시도 성공 시 Content 또는 Empty |
 | 허용 후 OS 설정에서 취소 | ③에서 Foreground 복귀 시 `PermissionRequired`로 전환(UX-031) |
 
 ## 플랫폼 차이
@@ -63,6 +70,8 @@
 | 요청 권한 | API 34+: `READ_MEDIA_IMAGES`, `READ_MEDIA_VISUAL_USER_SELECTED` · API 33: `READ_MEDIA_IMAGES` · API 32 이하: `READ_EXTERNAL_STORAGE` | PhotoKit `readWrite` 접근 수준 |
 | 제한 접근 | `READ_MEDIA_VISUAL_USER_SELECTED`만 허용되면 `Limited` | `PHAuthorizationStatusLimited` |
 | 재요청 판단 | 요청 이력(SharedPreferences)과 `shouldShowRequestPermissionRationale`로 `NotDetermined`·`Denied`·`Blocked` 구분 | 시스템 팝업은 한 번만 표시. 거부·제한은 `Blocked` |
+| 미지원 미디어 제외 | MIME 타입(`image/jpeg`·`image/png`·`image/heic`·`image/heif`)으로 조회 | 이미지 자산 중 첫 리소스 UTI가 GIF·RAW이면 제외 |
+| 썸네일 | `loadThumbnail`(API 29+), 이하 `Thumbnails.getThumbnail` | `PHImageManager` 요청 후 JPEG로 변환해 Skia 이미지 생성 |
 | OS 설정 이동 | `ACTION_APPLICATION_DETAILS_SETTINGS` | `UIApplicationOpenSettingsURLString` |
 | 권한 안내 문구 | 앱 화면 문구만 사용 | `NSPhotoLibraryUsageDescription`(현재 영어 1개) |
 
@@ -76,6 +85,14 @@
 - [x] OS 설정에서 허용하고 돌아오면 화면이 갱신된다
 - [x] `GalleryViewModelTest`: 요청 가능 시 시스템 요청, `Blocked` 시 설정 이동
 
-### ②·③
+### ② 사진 목록
+
+- [x] JPEG·PNG·HEIC/HEIF 정지 이미지만 최신순으로 보여 준다. GIF·RAW 등 미지원 미디어는 숨긴다
+- [x] 촬영일 기준으로 묶는다. 오늘·어제·올해·다른 해 라벨을 쓴다
+- [x] 3열 정사각 타일, 2dp 간격, 최상단 이동 버튼(Figma `316:2412`)
+- [x] 사진이 0장이면 Empty(`316:2506`), 조회에 실패하면 LoadFailed(`340:294`)와 다시 시도
+- [x] `GalleryViewModelTest`: 날짜 묶음, 실패 후 다시 시도, 천 단위 구분
+
+### ③
 
 해당 단계의 Issue에서 이 문서를 갱신합니다.

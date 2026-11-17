@@ -27,6 +27,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(libs.kotlinx.coroutines.core)
+            api(libs.compose.ui)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity)
