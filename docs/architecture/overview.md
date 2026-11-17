@@ -30,7 +30,7 @@
 
 ## 현재 단계
 
-Architecture v1은 승인되었습니다. Repository 개발 SSOT를 기반으로 정식 Project Bootstrap을 준비합니다. 별도의 iOS ML Kit 선행 검증 단계는 두지 않으며, 해당 연동은 실제 기능 구현 과정에서 검증합니다.
+Architecture v1은 승인되었습니다. 2026-11-17 Project Bootstrap으로 Android·iOS에서 실행되는 최소 골격을 만들었습니다([ADR-0002](../adr/0002-android-app-module.md)). 별도의 iOS ML Kit 선행 검증 단계는 두지 않으며, 해당 연동은 실제 기능 구현 과정에서 검증합니다.
 
 Architecture v1의 경계나 핵심 기술 선택을 변경할 때는 [ADR](../adr/README.md)을 먼저 작성하고 관련 현재 기준 문서를 함께 갱신합니다.
 

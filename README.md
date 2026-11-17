@@ -12,7 +12,7 @@ ICEC(Mosaic Editor Creator)는 기기 사진에서 얼굴을 자동 검출하고
 
 ## 현재 상태
 
-Architecture v1이 승인되었으며 정식 Project Bootstrap 전 단계입니다. 현재 저장소에는 개발 기준 문서만 있고 Gradle 프로젝트와 애플리케이션 코드는 아직 없습니다.
+Project Bootstrap 단계입니다. Android(`androidApp`)와 iOS(`iosApp`)에서 공통 Compose 화면(`composeApp`)을 실행하는 최소 골격이 있습니다. 기능 구현은 아직 시작하지 않았습니다. 로컬 빌드와 검증 명령은 [품질 전략](docs/development/quality.md#로컬-검증)을 따릅니다.
 
 ## 주요 문서
 
