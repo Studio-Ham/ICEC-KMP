@@ -25,6 +25,7 @@
 ## CI
 
 - GitHub Actions에서 PR 품질 게이트와 `main` 또는 수동 benchmark workflow를 분리합니다.
+- 현재 PR 품질 게이트는 [`ci.yml`](../../.github/workflows/ci.yml)입니다. Android 작업은 `spotlessCheck`·`assembleDebug`·`test`, iOS 작업은 프레임워크 링크와 `iosApp` 시뮬레이터 빌드를 실행합니다. 커버리지와 시각 회귀는 해당 테스트가 생긴 뒤 추가합니다.
 - PR 단계에서는 Android/iOS 빌드, 공통·플랫폼 테스트, 정적 분석, 커버리지와 승인되지 않은 시각 회귀를 blocking gate로 사용합니다.
 - 시각 회귀가 발생하면 diff 이미지를 artifact로 보존합니다.
 - 무거운 iOS 통합 테스트와 실기기 검증은 CI 환경을 확인한 뒤 blocking 범위를 확정합니다.
