@@ -1,0 +1,4 @@
+<resources>
+    <string name="home_load_photo">사진 불러오기</string>
+    <string name="gallery_title">사진 선택</string>
+</resources>

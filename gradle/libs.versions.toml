@@ -7,6 +7,7 @@ androidx-activity = "1.13.0"
 compose-multiplatform = "1.12.2"
 kotlin = "2.4.21"
 ktlint = "1.8.0"
+navigation3 = "1.2.0"
 spotless = "8.9.0"
 
 [libraries]
@@ -17,6 +18,7 @@ compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.re
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-multiplatform" }
 compose-uiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "compose-multiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "compose-multiplatform" }
+navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
