@@ -1,5 +1,6 @@
 package com.studioham.icec.feature.result
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,14 +27,17 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigationevent.NavigationEventInfo
@@ -41,6 +45,9 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
+import com.studioham.icec.designsystem.fitRect
+import com.studioham.icec.designsystem.rememberZoomState
+import com.studioham.icec.designsystem.zoomable
 import com.studioham.icec.feature.result.resources.Res
 import com.studioham.icec.feature.result.resources.ic_edit
 import com.studioham.icec.feature.result.resources.ic_gallery
@@ -56,11 +63,9 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.roundToInt
 
-/**
- * Wiki Result UX: shows the photo actually saved ([savedPhotoId]), not the editor preview. System back means
- * [onEditAgain]. ponytail: pinch zoom and pan come with Editor #25, which builds the shared transform.
- */
+/** Wiki Result UX: shows the photo actually saved ([savedPhotoId]), not the editor preview. System back means [onEditAgain]. */
 @Composable
 fun ResultScreen(
     savedPhotoId: String,
@@ -128,7 +133,7 @@ internal fun ResultContent(
                 .border(1.dp, IcecColors.Hairline, shape),
             contentAlignment = Alignment.Center,
         ) {
-            image?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit) }
+            image?.let { ZoomableImage(it) }
         }
         Column(
             Modifier.widthIn(max = 384.dp).padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
@@ -190,6 +195,21 @@ private fun Button(
     ) {
         Image(painterResource(icon), null)
         BasicText(stringResource(label), style = style.copy(fontFamily = Pretendard()))
+    }
+}
+
+/** Up to 4x pinch zoom and pan, sharing the Editor's transform rules (#25). */
+@Composable
+private fun ZoomableImage(image: ImageBitmap) {
+    val zoom = rememberZoomState()
+    val imageSize = Size(image.width.toFloat(), image.height.toFloat())
+    Canvas(Modifier.fillMaxSize().clipToBounds().zoomable(zoom) { fitRect(imageSize, it) }) {
+        val shown = zoom.transform(fitRect(imageSize, size), size)
+        drawImage(
+            image,
+            dstOffset = IntOffset(shown.left.roundToInt(), shown.top.roundToInt()),
+            dstSize = IntSize(shown.width.roundToInt(), shown.height.roundToInt()),
+        )
     }
 }
 

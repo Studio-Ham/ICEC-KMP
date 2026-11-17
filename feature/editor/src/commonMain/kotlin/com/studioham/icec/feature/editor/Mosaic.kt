@@ -68,16 +68,6 @@ internal fun faceCrop(
     return IntRect(left, top, left + side, top + side)
 }
 
-/** Where an image of [image] size lands when fitted inside [container], centered. */
-internal fun fitRect(
-    image: IntSize,
-    container: Size,
-): Rect {
-    val scale = minOf(container.width / image.width, container.height / image.height)
-    val size = Size(image.width * scale, image.height * scale)
-    return Rect(Offset((container.width - size.width) / 2, (container.height - size.height) / 2), size)
-}
-
 /** [face] pixels of an image [imageWidth] wide, mapped into this fitted image rect. */
 internal fun Rect.map(
     face: IntRect,

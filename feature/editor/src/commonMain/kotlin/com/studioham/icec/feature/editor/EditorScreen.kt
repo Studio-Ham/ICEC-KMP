@@ -71,6 +71,9 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
+import com.studioham.icec.designsystem.fitRect
+import com.studioham.icec.designsystem.rememberZoomState
+import com.studioham.icec.designsystem.zoomable
 import com.studioham.icec.face.FaceBounds
 import com.studioham.icec.feature.editor.resources.Res
 import com.studioham.icec.feature.editor.resources.back
@@ -249,10 +252,14 @@ private fun Photo(
         val pixels = remember(image, state.faces) { state.faces.map { it.toPixels(image.width, image.height) } }
         val blocks = remember(image, pixels) { pixels.map { image.mosaicBlocks(it) } }
         val check = painterResource(Res.drawable.ic_check)
+        val zoom = rememberZoomState()
+        val imageSize = Size(image.width.toFloat(), image.height.toFloat())
         Canvas(
-            Modifier.fillMaxSize().pointerInput(pixels, image) {
+            // Pinch and drag zoom (#25); a short tap still selects a face at any zoom.
+            Modifier.fillMaxSize().zoomable(zoom) { fitRect(imageSize, it) }.pointerInput(pixels, image) {
                 detectTapGestures { tap ->
-                    val fit = fitRect(IntSize(image.width, image.height), Size(size.width.toFloat(), size.height.toFloat()))
+                    val viewport = Size(size.width.toFloat(), size.height.toFloat())
+                    val fit = zoom.transform(fitRect(imageSize, viewport), viewport)
                     // Smallest box wins when boxes overlap, so a small face inside a big one stays reachable.
                     pixels.indices
                         .filter { fit.map(pixels[it], image.width).contains(tap) }
@@ -261,7 +268,7 @@ private fun Photo(
                 }
             },
         ) {
-            val fit = fitRect(IntSize(image.width, image.height), size)
+            val fit = zoom.transform(fitRect(imageSize, size), size)
             drawImage(
                 image,
                 dstOffset = IntOffset(fit.left.toInt(), fit.top.toInt()),
