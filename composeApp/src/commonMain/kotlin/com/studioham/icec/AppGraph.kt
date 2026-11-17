@@ -12,6 +12,7 @@ import dev.zacsweers.metro.createGraphFactory
 interface AppGraph {
     val galleryViewModel: GalleryViewModel
     val faceDetector: FaceDetector
+    val photoLibrary: PhotoLibrary
 
     @DependencyGraph.Factory
     fun interface Factory {

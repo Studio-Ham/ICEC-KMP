@@ -44,7 +44,8 @@ kotlin {
             implementation(libs.navigation3.ui)
             implementation(projects.core.designsystem)
             implementation(projects.feature.gallery)
-            implementation(projects.platform.faceDetection)
+            implementation(projects.feature.editor)
+            implementation(libs.androidx.lifecycle.viewmodelNavigation3)
         }
     }
 }

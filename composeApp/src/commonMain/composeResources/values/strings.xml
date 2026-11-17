@@ -2,6 +2,9 @@
     <string name="app_name">ICEC</string>
     <string name="home_tagline">MOSAIC EDITOR CREATOR</string>
     <string name="home_load_photo">Load photo</string>
-    <string name="face_analysis_placeholder">Face analysis is coming next.</string>
+    <plurals name="editor_placeholder">
+        <item quantity="one">%1$d face found. The editor is coming next.</item>
+        <item quantity="other">%1$d faces found. The editor is coming next.</item>
+    </plurals>
     <string name="back">Back</string>
 </resources>

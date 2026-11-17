@@ -31,6 +31,7 @@ dependencyResolutionManagement {
 include(":composeApp")
 include(":core:designsystem")
 include(":feature:gallery")
+include(":feature:editor")
 include(":platform:media")
 include(":androidApp")
 include(":platform:face-detection")
