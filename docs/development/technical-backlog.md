@@ -3,9 +3,20 @@
 > 상태: Planned
 > SSOT: Git Repository
 > 원본: [Notion 기술 설계 및 개발 기획서](https://app.notion.com/p/3d44d984a2188123b909ce5fb78a82ac)
-> 최종 검토일: 2026-09-10
+> 최종 검토일: 2026-11-17
 
 아래 항목은 Architecture v1의 확정 구현 규칙이 아닙니다. 구현 전에 설계를 구체화하고, 확정 결과를 Spec 또는 ADR로 승격해야 합니다.
+
+확정된 사용자 동작은 Notion의 화면별 UX와 UX 결정을 따릅니다. 아래에서 검토하는 대상은 해당 동작의 구현 방법입니다.
+
+## 세션과 작업 수명주기
+
+- [UX-034](https://app.notion.com/p/3d54d984a2188115a23fe313809f43ef)·[UX-040](https://app.notion.com/p/3ec4d984a2188178b347e880fd20ca2a)에 따른 프로세스 생존 중 작업 유지, 프로세스 종료 후 새 세션 시작과 Navigation 초기화 구현
+- [Editor UX](https://app.notion.com/p/3d54d984a21881e1b69bc40bd457ad57)의 분석·저장 결과 보관, Foreground 복귀 시 반영과 중복 실행 방지
+- OS 일시 정지·실행 시간 만료·프로세스 종료 구분과 플랫폼별 실행 제약 처리
+- 분석 취소 가능 범위, 이전 결과 무효화와 재시도·Timeout 경합 처리
+- [Gallery UX](https://app.notion.com/p/3d54d984a218815b8431e2709f0a1397)의 권한·목록 재조회, 유효한 스크롤 anchor 유지와 삭제된 anchor 복구 구현
+- [Result UX](https://app.notion.com/p/3d54d984a21881168efed467260ff04e)의 저장 직전 Editor 세션·Zoom/Pan 복원과 back stack 조립
 
 ## Editor
 
