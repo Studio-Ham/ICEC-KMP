@@ -1,7 +1,24 @@
 <resources>
     <string name="gallery_title">사진 선택</string>
     <string name="gallery_back">뒤로 가기</string>
+    <string name="gallery_scroll_top">최상단으로 이동</string>
     <string name="gallery_permission_title">사진 접근 권한이 필요합니다</string>
     <string name="gallery_permission_body">얼굴 자동 모자이크 작업을 위해\n기기의 사진 보관함 접근 권한을 허용해 주세요.\n사진과 얼굴 분석 데이터는 기기 안에서만 처리됩니다.</string>
     <string name="gallery_permission_allow">권한 허용하러 가기</string>
+    <string name="gallery_empty_title">사진이 없습니다</string>
+    <string name="gallery_empty_body">기기에 표시할 수 있는 사진이 없습니다.</string>
+    <string name="gallery_load_failed_title">사진을 불러오지 못했습니다</string>
+    <string name="gallery_load_failed_body">사진 목록을 가져오는 중 문제가 발생했습니다.\n잠시 후 다시 시도해 주세요.</string>
+    <string name="gallery_retry">다시 시도</string>
+    <string name="gallery_date_today">오늘 · %1$s월 %2$s일</string>
+    <string name="gallery_date_yesterday">어제 · %1$s월 %2$s일</string>
+    <string name="gallery_date_this_year">%1$s월 %2$s일</string>
+    <string name="gallery_date_other_year">%3$s년 %1$s월 %2$s일</string>
+    <string-array name="gallery_months">
+        <item>1</item><item>2</item><item>3</item><item>4</item><item>5</item><item>6</item>
+        <item>7</item><item>8</item><item>9</item><item>10</item><item>11</item><item>12</item>
+    </string-array>
+    <plurals name="gallery_count">
+        <item quantity="other">%1$s장</item>
+    </plurals>
 </resources>
