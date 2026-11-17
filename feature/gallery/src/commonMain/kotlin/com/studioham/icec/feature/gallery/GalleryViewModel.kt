@@ -9,9 +9,12 @@ import com.studioham.icec.media.PhotoLibrary
 import com.studioham.icec.media.PhotoPermission
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -35,6 +38,15 @@ sealed interface PhotosState {
     data object LoadFailed : PhotosState
 }
 
+sealed interface GalleryEffect {
+    data class OpenPhoto(
+        val photo: Photo,
+    ) : GalleryEffect
+
+    /** UX-030: the tapped photo could not be read; the list stays. */
+    data object PhotoUnavailable : GalleryEffect
+}
+
 @Inject
 class GalleryViewModel(
     private val permission: PhotoPermission,
@@ -46,14 +58,25 @@ class GalleryViewModel(
     private val _photos = MutableStateFlow<PhotosState>(PhotosState.Loading)
     val photos: StateFlow<PhotosState> = _photos.asStateFlow()
 
-    init {
+    private val _effects = Channel<GalleryEffect>(Channel.BUFFERED)
+    val effects: Flow<GalleryEffect> = _effects.receiveAsFlow()
+
+    /** UX-031: on every resume re-read the permission and the list; the grid keeps its anchor by photo id. */
+    fun refresh() {
+        _access.value = permission.status()
         loadIfAllowed()
     }
 
-    /** Re-reads the permission, e.g. after returning from the OS settings. */
-    fun refresh() {
-        _access.value = permission.status()
-        if (_photos.value !is PhotosState.Loaded) loadIfAllowed()
+    /** UX-030: open only a readable photo; otherwise stay, tell the user and drop deleted photos from the list. */
+    fun onPhotoClick(photo: Photo) {
+        viewModelScope.launch {
+            if (library.isReadable(photo.id)) {
+                _effects.send(GalleryEffect.OpenPhoto(photo))
+            } else {
+                _effects.send(GalleryEffect.PhotoUnavailable)
+                loadIfAllowed()
+            }
+        }
     }
 
     /** UX-020~022: ask while the system can ask, otherwise send the user to the OS settings. */
@@ -78,7 +101,7 @@ class GalleryViewModel(
 
     private fun loadIfAllowed() {
         if (_access.value != PhotoAccess.Granted && _access.value != PhotoAccess.Limited) return
-        _photos.value = PhotosState.Loading
+        if (_photos.value !is PhotosState.Loaded) _photos.value = PhotosState.Loading
         viewModelScope.launch {
             _photos.value =
                 try {

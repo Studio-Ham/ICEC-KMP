@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import com.studioham.icec.faceanalysis.FaceAnalysisPlaceholder
 import com.studioham.icec.feature.gallery.GalleryScreen
 import com.studioham.icec.home.HomeScreen
 
@@ -14,6 +15,10 @@ sealed interface Route {
     data object Home : Route
 
     data object Gallery : Route
+
+    data class FaceAnalysis(
+        val photoId: String,
+    ) : Route
 }
 
 // ponytail: in-memory back stack; a cold start begins at Home (UX-034). Android keeps it across
@@ -34,8 +39,13 @@ fun App(
                 entry<Route.Gallery> {
                     // ponytail: ViewModel is scoped to the host, not the entry; add the nav3 ViewModel decorator when a second
                     // ViewModel screen needs its own scope.
-                    GalleryScreen(viewModel { graph.galleryViewModel }, onBack = { backStack.removeLastOrNull() })
+                    GalleryScreen(
+                        viewModel { graph.galleryViewModel },
+                        onBack = { backStack.removeLastOrNull() },
+                        onPhotoSelected = { backStack.add(Route.FaceAnalysis(it.id)) },
+                    )
                 }
+                entry<Route.FaceAnalysis> { FaceAnalysisPlaceholder(onBack = { backStack.removeLastOrNull() }) }
             },
     )
 }

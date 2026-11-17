@@ -39,6 +39,16 @@ class IosPhotoLibrary : PhotoLibrary {
             }
         }
 
+    override suspend fun isReadable(id: String): Boolean {
+        val asset = PHAsset.fetchAssetsWithLocalIdentifiers(listOf(id), null).firstObject as? PHAsset ?: return false
+        val options = PHImageRequestOptions().apply { networkAccessAllowed = true }
+        return suspendCancellableCoroutine { continuation ->
+            PHImageManager.defaultManager().requestImageDataAndOrientationForAsset(asset, options) { data, _, _, _ ->
+                continuation.resume(data != null)
+            }
+        }
+    }
+
     override suspend fun thumbnail(
         id: String,
         sizePx: Int,

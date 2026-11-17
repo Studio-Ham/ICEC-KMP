@@ -29,9 +29,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,9 +72,11 @@ import com.studioham.icec.feature.gallery.resources.gallery_months
 import com.studioham.icec.feature.gallery.resources.gallery_permission_allow
 import com.studioham.icec.feature.gallery.resources.gallery_permission_body
 import com.studioham.icec.feature.gallery.resources.gallery_permission_title
+import com.studioham.icec.feature.gallery.resources.gallery_photo_unavailable
 import com.studioham.icec.feature.gallery.resources.gallery_retry
 import com.studioham.icec.feature.gallery.resources.gallery_scroll_top
 import com.studioham.icec.feature.gallery.resources.gallery_title
+import com.studioham.icec.feature.gallery.resources.ic_alert
 import com.studioham.icec.feature.gallery.resources.ic_arrow_up
 import com.studioham.icec.feature.gallery.resources.ic_back
 import com.studioham.icec.feature.gallery.resources.ic_chevron
@@ -79,6 +85,7 @@ import com.studioham.icec.feature.gallery.resources.ic_photo_large
 import com.studioham.icec.feature.gallery.resources.ic_refresh
 import com.studioham.icec.media.Photo
 import com.studioham.icec.media.PhotoAccess
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -93,22 +100,74 @@ import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 private val TileBackground = Color(0xFF121212)
+private val SnackbarBackground = Color(0xFF1C1C1C)
 
 @Composable
 fun GalleryScreen(
     viewModel: GalleryViewModel,
     onBack: () -> Unit,
+    onPhotoSelected: (Photo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val access by viewModel.access.collectAsStateWithLifecycle()
     val photos by viewModel.photos.collectAsStateWithLifecycle()
+    var unavailable by remember { mutableStateOf(false) }
     LifecycleResumeEffect(viewModel) {
         viewModel.refresh()
         onPauseOrDispose {}
     }
-    GalleryContent(access, photos, onBack, viewModel::onAllowClick, viewModel::onRetryClick, viewModel::thumbnail, modifier)
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect {
+            when (it) {
+                is GalleryEffect.OpenPhoto -> onPhotoSelected(it.photo)
+                GalleryEffect.PhotoUnavailable -> unavailable = true
+            }
+        }
+    }
+    if (unavailable) {
+        LaunchedEffect(Unit) {
+            delay(3.seconds)
+            unavailable = false
+        }
+    }
+    Box(modifier) {
+        GalleryContent(
+            access,
+            photos,
+            onBack,
+            viewModel::onAllowClick,
+            viewModel::onRetryClick,
+            viewModel::onPhotoClick,
+            viewModel::thumbnail,
+        )
+        if (unavailable) UnavailableSnackbar(Modifier.align(Alignment.BottomStart))
+    }
+}
+
+/** Figma `[승인] 화면 2-Snackbar: 사진 로드 실패` (340:326), UX-030. */
+@Composable
+private fun UnavailableSnackbar(modifier: Modifier = Modifier) {
+    Row(
+        modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .padding(start = 16.dp, end = 80.dp, bottom = 24.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(SnackbarBackground)
+            .border(1.dp, IcecColors.AlertRed.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        Arrangement.spacedBy(8.dp),
+        Alignment.CenterVertically,
+    ) {
+        Image(painterResource(Res.drawable.ic_alert), null)
+        BasicText(
+            stringResource(Res.string.gallery_photo_unavailable),
+            style = TextStyle(Color.White, 14.sp, FontWeight.Medium, fontFamily = Pretendard()),
+        )
+    }
 }
 
 @Composable
@@ -118,6 +177,7 @@ private fun GalleryContent(
     onBack: () -> Unit,
     onAllowClick: () -> Unit,
     onRetryClick: () -> Unit,
+    onPhotoClick: (Photo) -> Unit,
     thumbnail: suspend (Photo, Int) -> ImageBitmap?,
     modifier: Modifier = Modifier,
 ) {
@@ -144,7 +204,7 @@ private fun GalleryContent(
                 }
 
                 photos is PhotosState.Loaded -> {
-                    PhotoGrid(photos.sections, thumbnail)
+                    PhotoGrid(photos.sections, onPhotoClick, thumbnail)
                 }
 
                 else -> {
@@ -202,6 +262,7 @@ private fun TopBar(
 @Composable
 private fun PhotoGrid(
     sections: List<PhotoSection>,
+    onPhotoClick: (Photo) -> Unit,
     thumbnail: suspend (Photo, Int) -> ImageBitmap?,
 ) {
     val gridState = rememberLazyGridState()
@@ -221,7 +282,7 @@ private fun PhotoGrid(
                 item(key = section.date.toString(), span = { GridItemSpan(maxLineSpan) }) {
                     SectionHeader(section, today, Modifier.padding(top = if (index == 0) 0.dp else 22.dp))
                 }
-                items(section.photos, key = { it.id }) { PhotoTile(it, thumbnail) }
+                items(section.photos, key = { it.id }) { PhotoTile(it, onPhotoClick, thumbnail) }
             }
         }
         Box(
@@ -271,9 +332,15 @@ private fun SectionHeader(
 @Composable
 private fun PhotoTile(
     photo: Photo,
+    onPhotoClick: (Photo) -> Unit,
     thumbnail: suspend (Photo, Int) -> ImageBitmap?,
 ) {
-    Box(Modifier.aspectRatio(1f).background(TileBackground)) {
+    Box(
+        Modifier
+            .aspectRatio(1f)
+            .background(TileBackground)
+            .clickable(role = Role.Button) { onPhotoClick(photo) },
+    ) {
         // ponytail: one request per visible tile, no cache; add an LRU cache if scrolling back reloads visibly.
         val sizePx = with(LocalDensity.current) { 130.dp.toPx().roundToInt() }
         val image by produceState<ImageBitmap?>(null, photo.id) { value = thumbnail(photo, sizePx) }
@@ -365,17 +432,17 @@ internal fun Int.withThousands(): String =
 @Preview
 @Composable
 private fun PermissionRequiredPreview() {
-    GalleryContent(PhotoAccess.NotDetermined, PhotosState.Loading, {}, {}, {}, { _, _ -> null })
+    GalleryContent(PhotoAccess.NotDetermined, PhotosState.Loading, {}, {}, {}, {}, { _, _ -> null })
 }
 
 @Preview
 @Composable
 private fun EmptyPreview() {
-    GalleryContent(PhotoAccess.Granted, PhotosState.Loaded(emptyList()), {}, {}, {}, { _, _ -> null })
+    GalleryContent(PhotoAccess.Granted, PhotosState.Loaded(emptyList()), {}, {}, {}, {}, { _, _ -> null })
 }
 
 @Preview
 @Composable
 private fun LoadFailedPreview() {
-    GalleryContent(PhotoAccess.Granted, PhotosState.LoadFailed, {}, {}, {}, { _, _ -> null })
+    GalleryContent(PhotoAccess.Granted, PhotosState.LoadFailed, {}, {}, {}, {}, { _, _ -> null })
 }

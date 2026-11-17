@@ -1,6 +1,6 @@
 # Gallery
 
-> 상태: Draft
+> 상태: Accepted
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki Gallery UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/gallery.md) · Figma `[승인] 화면 2` (`316:2412`, `316:2477`, `316:2506`, `316:2532`, `340:294`, `340:326`)
 > 관련 결정: [UX-020~023](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-020), [UX-029~031](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-029)
@@ -37,8 +37,8 @@
 | `NotDetermined` | 아직 묻지 않음 | PermissionRequired |
 | `Denied` | 거부했지만 시스템 팝업을 다시 띄울 수 있음 | PermissionRequired |
 | `Blocked` | OS 설정에서만 허용할 수 있음 | PermissionRequired |
-| `Granted` | 전체 허용 | 사진 목록(②) |
-| `Limited` | 일부 사진만 허용 | 허용된 사진만 보이는 사진 목록(②) |
+| `Granted` | 전체 허용 | 사진 목록 |
+| `Limited` | 일부 사진만 허용 | 허용된 사진만 보이는 사진 목록 |
 
 ### PermissionRequired 동작
 
@@ -53,6 +53,15 @@
 - `PhotoLibrary.photos()`는 편집 가능한 정지 이미지를 최신순으로 반환합니다. 읽을 수 없으면 예외를 던집니다.
 - `PhotoLibrary.thumbnail()`은 타일 크기 이상의 썸네일을 반환합니다. 읽을 수 없으면 null을 반환하고 타일은 빈 배경으로 둡니다.
 - 촬영일이 없으면 Android는 추가일, iOS는 생성일을 씁니다. 날짜 묶음은 기기 시간대 기준입니다.
+- `PhotoLibrary.isReadable()`은 사진 원본을 읽을 수 있는지 확인합니다. iOS는 iCloud 원본 다운로드를 허용합니다.
+
+### 사진 선택
+
+- 타일을 누르면 `GalleryViewModel`이 원본을 확인합니다. 읽을 수 있으면 `GalleryEffect.OpenPhoto`를 보냅니다.
+- `composeApp`은 `OpenPhoto`를 받으면 `Route.FaceAnalysis(photoId)`를 back stack에 추가합니다. FaceAnalysis 구현 전까지는 임시 화면을 보여 줍니다.
+- 읽을 수 없으면 `GalleryEffect.PhotoUnavailable`을 보내고 목록을 다시 읽습니다. 화면은 Snackbar(`340:326`)를 3초 동안 보여 줍니다(UX-030).
+- FaceAnalysis에서 돌아오면 같은 스크롤 위치를 유지합니다. Navigation 3 entry의 saveable 상태가 `LazyGridState`를 보존합니다.
+- 화면이 다시 활성화되면 권한과 목록을 다시 읽습니다. 이미 목록이 있으면 Loading으로 바꾸지 않고 결과만 교체합니다(UX-031).
 
 ## 실패와 복구
 
@@ -61,7 +70,8 @@
 | 시스템 팝업에서 거부 | 같은 화면 유지. Android는 두 번째 거부부터 `Blocked` |
 | OS 설정에서 허용하고 복귀 | 권한을 다시 읽고 사진 목록 상태로 전환 |
 | 사진 목록 조회 실패 | LoadFailed. 다시 시도 성공 시 Content 또는 Empty |
-| 허용 후 OS 설정에서 취소 | ③에서 Foreground 복귀 시 `PermissionRequired`로 전환(UX-031) |
+| 선택한 사진을 읽을 수 없음 | Gallery 유지, Snackbar 표시, 목록 다시 읽기(UX-030) |
+| 허용 후 OS 설정에서 취소 | Foreground 복귀 시 `PermissionRequired`로 전환(UX-031) |
 
 ## 플랫폼 차이
 
@@ -93,6 +103,10 @@
 - [x] 사진이 0장이면 Empty(`316:2506`), 조회에 실패하면 LoadFailed(`340:294`)와 다시 시도
 - [x] `GalleryViewModelTest`: 날짜 묶음, 실패 후 다시 시도, 천 단위 구분
 
-### ③
+### ③ 사진 선택과 갱신
 
-해당 단계의 Issue에서 이 문서를 갱신합니다.
+- [x] 사진을 누르면 FaceAnalysis 경로로 이동한다(임시 화면)
+- [x] 원본을 읽을 수 없으면 Snackbar를 보여 주고 삭제된 사진을 목록에서 뺀다
+- [x] FaceAnalysis에서 돌아오면 스크롤 위치를 유지한다
+- [x] Foreground 복귀 시 권한과 목록을 다시 읽는다
+- [x] `GalleryViewModelTest`: 읽을 수 있는 사진 열기, 읽을 수 없는 사진 안내와 다시 읽기
