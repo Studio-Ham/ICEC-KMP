@@ -1,5 +1,6 @@
 package com.studioham.icec.feature.gallery
 
+import androidx.compose.ui.graphics.ImageBitmap
 import com.studioham.icec.media.Photo
 import com.studioham.icec.media.PhotoAccess
 import com.studioham.icec.media.PhotoLibrary
@@ -57,6 +58,10 @@ class GalleryViewModelTest {
             id: String,
             sizePx: Int,
         ) = null
+
+        override suspend fun original(id: String): ImageBitmap = error("not used")
+
+        override suspend fun save(image: ImageBitmap): String = error("not used")
     }
 
     private val noPhotos = FakeLibrary { emptyList() }

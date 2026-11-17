@@ -2,7 +2,7 @@
 
 > 상태: Accepted
 > SSOT: Git Repository
-> 최종 검토일: 2026-11-17
+> 최종 검토일: 2026-11-18
 
 ## 얼굴 검출
 
@@ -16,24 +16,20 @@
 
 - `commonMain`은 선택된 얼굴과 제품에서 정한 고정 모자이크 강도를 적용하는 플랫폼 독립 정책을 담당합니다.
 - 공통 요청 모델은 얼굴 영역, 선택된 얼굴 집합과 블록 크기처럼 렌더링에 필요한 최소 정보만 가집니다.
-- 픽셀 처리와 이미지 인코딩은 플랫폼 렌더러가 담당합니다.
-- Android와 iOS 구현은 동일한 `MosaicRenderer` 계약을 구현하며 네이티브 이미지 타입을 외부에 노출하지 않습니다.
+- 픽셀 처리는 공통 코드가 담당합니다. 미리보기와 저장은 같은 함수로 블록을 그립니다([ADR-0004](../adr/0004-common-mosaic-rendering.md)).
+- 플랫폼 코드는 원본을 방향을 적용한 원본 해상도 이미지로 읽고, 결과를 JPEG로 저장합니다. 네이티브 이미지 타입은 외부에 노출하지 않습니다.
 - 고해상도 이미지에서는 다운샘플링, 버퍼 재사용과 렌더링 범위 최소화를 검증합니다.
 
-MVP는 사용자에게 강도 조절 기능을 제공하지 않습니다. 렌더링 파라미터와 최종 저장 해상도는 [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md)의 고정 강도·원본 해상도 요구사항을 따릅니다.
+MVP는 사용자에게 강도 조절 기능을 제공하지 않습니다. 블록 크기는 얼굴 폭의 1/8입니다([UX-042](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-042)). 최종 저장 해상도는 [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md)의 원본 해상도 요구사항을 따릅니다.
 
 ```kotlin
-data class MosaicRequest(
-    val selectedFaces: List<FaceBounds>,
-    val blockSize: Int,
-)
-
-interface MosaicRenderer {
-    suspend fun render(
-        image: ImageSource,
-        request: MosaicRequest,
-    ): RenderedImage
+interface PhotoLibrary {
+    // ...
+    suspend fun original(id: String): ImageBitmap
+    suspend fun save(image: ImageBitmap): String
 }
+
+internal fun ImageBitmap.withMosaic(faces: List<IntRect>): ImageBitmap
 ```
 
 ## 미디어 접근과 저장

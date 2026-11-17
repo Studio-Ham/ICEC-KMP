@@ -86,3 +86,26 @@ internal fun Rect.map(
     val scale = width / imageWidth
     return Rect(left + face.left * scale, top + face.top * scale, left + face.right * scale, top + face.bottom * scale)
 }
+
+/**
+ * A copy of this image with [faces] mosaicked. The save path uses it at full resolution; the preview draws the same
+ * [mosaicBlocks] over the screen image, so both follow one rule (UX-042).
+ */
+internal fun ImageBitmap.withMosaic(faces: List<IntRect>): ImageBitmap {
+    val result = ImageBitmap(width, height)
+    val canvas = Canvas(result)
+    canvas.drawImage(this, Offset.Zero, Paint())
+    val blocky = Paint().apply { filterQuality = FilterQuality.None }
+    faces.forEach { face ->
+        val blocks = mosaicBlocks(face)
+        canvas.drawImageRect(
+            blocks,
+            IntOffset.Zero,
+            IntSize(blocks.width, blocks.height),
+            IntOffset(face.left, face.top),
+            IntSize(face.width, face.height),
+            blocky,
+        )
+    }
+    return result
+}

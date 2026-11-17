@@ -16,6 +16,7 @@ import com.studioham.icec.feature.editor.FaceAnalysisScreen
 import com.studioham.icec.feature.editor.FaceAnalysisViewModel
 import com.studioham.icec.feature.gallery.GalleryScreen
 import com.studioham.icec.home.HomeScreen
+import com.studioham.icec.result.ResultPlaceholder
 
 sealed interface Route {
     data object Home : Route
@@ -29,6 +30,10 @@ sealed interface Route {
     data class Editor(
         val photoId: String,
         val faces: List<FaceBounds>,
+    ) : Route
+
+    data class Result(
+        val savedPhotoId: String,
     ) : Route
 }
 
@@ -66,10 +71,15 @@ fun App(
                 }
                 entry<Route.Editor> { route ->
                     EditorScreen(
-                        viewModel { EditorViewModel(route.photoId, route.faces, graph.photoLibrary) },
+                        viewModel { EditorViewModel(route.photoId, route.faces, graph.photoLibrary, graph.photoPermission) },
                         // Editor replaced FaceAnalysis, so leaving returns to the Gallery's previous position.
                         onExit = { backStack.removeLastOrNull() },
+                        // Result sits on top of the Editor, so back returns to the same editing session.
+                        onSaved = { backStack.add(Route.Result(it)) },
                     )
+                }
+                entry<Route.Result> {
+                    ResultPlaceholder(it.savedPhotoId, graph.photoLibrary, onEditAgain = { backStack.removeLastOrNull() })
                 }
             },
     )

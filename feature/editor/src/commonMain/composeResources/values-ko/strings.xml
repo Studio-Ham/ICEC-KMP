@@ -19,4 +19,11 @@
     <string name="editor_exit_body">현재 사진에서 작업 중인 모자이크\n선택 내역이 모두 초기화됩니다.</string>
     <string name="editor_exit_leave">나가기</string>
     <string name="editor_exit_stay">계속 편집</string>
+    <string name="editor_saving_title">저장 중...</string>
+    <string name="editor_saving_body">모자이크 이미지를 생성하고 있습니다</string>
+    <string name="editor_error_no_space">저장 공간이 부족하여 저장할 수 없습니다</string>
+    <string name="editor_error_permission">사진 저장 권한 허용이 필요합니다</string>
+    <string name="editor_error_failed">이미지 처리에 실패했습니다.</string>
+    <string name="editor_action_settings">권한 설정</string>
+    <string name="editor_action_retry">다시 시도</string>
 </resources>

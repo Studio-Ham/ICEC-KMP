@@ -2,11 +2,13 @@ package com.studioham.icec.feature.editor
 
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import com.studioham.icec.face.FaceBounds
 import com.studioham.icec.media.Photo
 import com.studioham.icec.media.PhotoLibrary
+import com.studioham.icec.media.PhotoPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -30,6 +32,18 @@ class EditorTest {
             id: String,
             sizePx: Int,
         ) = null
+
+        override suspend fun original(id: String): ImageBitmap = error("not used")
+
+        override suspend fun save(image: ImageBitmap): String = error("not used")
+    }
+
+    private object NoPermission : PhotoPermission {
+        override fun status() = error("not used")
+
+        override suspend fun request() = error("not used")
+
+        override fun openSettings() = Unit
     }
 
     private val faces = List(3) { FaceBounds(0.1f * it, 0.1f, 0.1f * it + 0.05f, 0.2f) }
@@ -40,7 +54,7 @@ class EditorTest {
 
     @Test
     fun selectionDrivesSelectAllAndSave() {
-        val viewModel = EditorViewModel("1", faces, NoLibrary)
+        val viewModel = EditorViewModel("1", faces, NoLibrary, NoPermission)
         assertFalse(viewModel.state.value.canSave) // Detected ≠ Selected
 
         viewModel.onFaceClick(1)
@@ -60,7 +74,7 @@ class EditorTest {
 
     @Test
     fun backAsksFirstAndKeepEditingKeepsSelection() {
-        val viewModel = EditorViewModel("1", faces, NoLibrary)
+        val viewModel = EditorViewModel("1", faces, NoLibrary, NoPermission)
         viewModel.onFaceClick(0)
 
         viewModel.onBack()

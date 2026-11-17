@@ -2,7 +2,7 @@
 
 > 상태: Accepted
 > SSOT: Git Repository
-> 최종 검토일: 2026-11-17
+> 최종 검토일: 2026-11-18
 
 ADR은 Architecture v1 이후 아키텍처 경계, 핵심 기술, 테스트·CI 정책에 의미 있는 변화가 생길 때 작성합니다. Architecture v1 자체는 현재 기준 문서로 이관했으므로 과거 결정을 소급해 여러 ADR로 만들지 않습니다.
 
@@ -21,3 +21,4 @@ ADR은 Architecture v1 이후 아키텍처 경계, 핵심 기술, 테스트·CI 
 - [ADR-0001: FaceAnalysis 별도 Navigation Route 도입](0001-face-analysis-route.md) — Accepted (2026-11-06)
 - [ADR-0002: Android 진입점을 androidApp 모듈로 분리](0002-android-app-module.md) — Accepted (2026-11-17)
 - [ADR-0003: iOS ML Kit을 Kotlin SwiftPM import로 연결](0003-ios-mlkit-swiftpm-import.md) — Accepted (2026-11-17)
+- [ADR-0004: 모자이크 픽셀 처리를 공통 코드로 구현](0004-common-mosaic-rendering.md) — Accepted (2026-11-18)
