@@ -2,7 +2,7 @@
 
 > 상태: Planned
 > SSOT: Git Repository
-> 최종 검토일: 2026-11-17
+> 최종 검토일: 2026-11-18
 
 아래 항목은 Architecture v1의 확정 구현 규칙이 아닙니다. 구현 전에 설계를 구체화하고, 확정 결과를 Spec 또는 ADR로 승격해야 합니다.
 
@@ -28,7 +28,7 @@
 
 - EXIF orientation과 Android/iOS 좌표계 차이
 - 고해상도 이미지의 decode, downsampling, memory pressure와 OOM 대응
-- 모자이크 블록 크기와 출력 해상도 정책
+- 모자이크 출력 해상도와 저장 렌더러 정책. 블록 크기는 [Editor Spec](../specs/editor.md)에서 정했습니다
 - MediaStore와 Photos 저장 결과의 공통 모델 및 오류 매핑
 
 ## 플랫폼 연동

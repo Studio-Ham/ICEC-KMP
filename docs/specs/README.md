@@ -2,7 +2,7 @@
 
 > 상태: Accepted
 > SSOT: Git Repository
-> 최종 검토일: 2026-11-17
+> 최종 검토일: 2026-11-18
 
 Spec은 승인된 제품·UX 요구사항을 구현 가능한 계약으로 표현합니다. 사용자 정책을 새로 결정하거나 Wiki 정책 내용을 그대로 복제하지 않습니다.
 
@@ -21,3 +21,4 @@ Spec은 승인된 제품·UX 요구사항을 구현 가능한 계약으로 표�
 
 - [Gallery](gallery.md) — Accepted (2026-11-17)
 - [FaceAnalysis](face-analysis.md) — Accepted (2026-11-17)
+- [Editor](editor.md) — Draft (2026-11-18)
