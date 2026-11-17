@@ -2,6 +2,4 @@
     <string name="app_name">ICEC</string>
     <string name="home_tagline">MOSAIC EDITOR CREATOR</string>
     <string name="home_load_photo">Load photo</string>
-    <string name="result_saved">Saved!</string>
-    <string name="result_edit_again">Edit again</string>
 </resources>

@@ -50,7 +50,7 @@
 - 저장 버튼은 원본 해상도 이미지를 읽고, 선택한 얼굴에 미리보기와 같은 모자이크를 그린 뒤 새 사진으로 저장합니다([ADR-0004](../adr/0004-common-mosaic-rendering.md)). 원본은 바꾸지 않습니다.
 - 저장 파일은 메타데이터 없는 JPEG입니다. 방향은 픽셀에 적용되어 있습니다. Android는 `Pictures/ICEC`에 저장합니다.
 - 저장 중에는 편집 화면을 흐리게 덮고 로딩 표시를 보여 줍니다(Figma `335:2`). 얼굴 선택, 저장 재실행과 뒤로가기를 모두 막습니다(UX-014).
-- 저장에 성공하면 `Route.Result(savedPhotoId)`를 Editor 위에 추가합니다. Result에서 뒤로 가면 같은 편집 세션으로 돌아옵니다. Result 구현(#28) 전까지는 저장된 사진을 보여 주는 임시 화면을 씁니다.
+- 저장에 성공하면 `Route.Result(savedPhotoId)`를 Editor 위에 추가합니다. Result에서 뒤로 가면 같은 편집 세션으로 돌아옵니다. Result 화면은 [Result Spec](result.md)을 따릅니다.
 - iOS는 저장하는 동안 Background 실행 시간을 요청합니다. Android는 프로세스가 살아 있는 동안 ViewModel에서 계속 저장합니다.
 
 ## 실패와 복구

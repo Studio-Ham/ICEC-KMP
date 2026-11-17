@@ -3,7 +3,7 @@
 > 상태: Accepted
 > SSOT: Git Repository
 > 원본: [Architecture v1](overview.md)
-> 최종 검토일: 2026-11-17
+> 최종 검토일: 2026-11-18
 
 ICEC는 프로젝트 규모에 맞는 목적 중심 모듈화를 사용합니다.
 
@@ -60,4 +60,4 @@ flowchart TD
 - 공통 back stack과 feature 연결은 `composeApp`이 조립합니다. `androidApp`과 `iosApp`에는 기능 코드를 두지 않습니다.
 - 패키지는 모듈의 목적을 반영하고, 초기에는 불필요한 `data/domain/presentation` 하위 계층을 만들지 않습니다.
 - 파일 수와 변경 이유가 실제로 분리될 때만 모듈 또는 하위 패키지를 추가합니다.
-- 2026-11-17 현재 모듈은 `core/designsystem`, `feature/gallery`, `feature/editor`, `platform/media`, `platform/face-detection`입니다. Home은 상태와 플랫폼 의존성이 없어 `composeApp`의 `home` 패키지에 둡니다.
+- 2026-11-17 현재 모듈은 `core/designsystem`, `feature/gallery`, `feature/editor`, `feature/result`, `platform/media`, `platform/face-detection`입니다. Home은 상태와 플랫폼 의존성이 없어 `composeApp`의 `home` 패키지에 둡니다.
