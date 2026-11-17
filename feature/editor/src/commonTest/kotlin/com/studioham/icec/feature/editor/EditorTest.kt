@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
+import com.studioham.icec.designsystem.fitRect
 import com.studioham.icec.face.FaceBounds
 import com.studioham.icec.media.Photo
 import com.studioham.icec.media.PhotoLibrary
@@ -94,7 +95,7 @@ class EditorTest {
 
     @Test
     fun facesMapIntoTheFittedPhoto() {
-        val fit = fitRect(IntSize(400, 200), Size(200f, 200f)) // letterboxed: 200 x 100 at y = 50
+        val fit = fitRect(Size(400f, 200f), Size(200f, 200f)) // letterboxed: 200 x 100 at y = 50
         assertEquals(Rect(0f, 50f, 200f, 150f), fit)
         assertEquals(Rect(50f, 75f, 150f, 125f), fit.map(IntRect(100, 50, 300, 150), 400))
     }

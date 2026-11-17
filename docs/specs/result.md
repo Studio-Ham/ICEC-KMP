@@ -13,7 +13,7 @@
 ## 범위
 
 - 저장 완료 안내, 저장된 결과 이미지, `다시 편집하기`, `다른 사진 편집하기`, `홈으로 이동`
-- Pinch Zoom과 Pan은 Editor ②(#25)의 변환 코드와 함께 추가합니다.
+- Pinch Zoom과 Pan은 Editor와 같은 `ZoomState` 규칙(최대 4배, 사진 밖 빈 영역 숨김)을 씁니다. Result의 배율은 Editor 배율을 바꾸지 않습니다.
 - 공유 기능은 MVP에서 제외합니다(Wiki Result UX).
 
 ## 계약
@@ -42,4 +42,4 @@
 - [x] `다시 편집하기`와 시스템 뒤로가기는 같은 편집 세션(선택 유지)으로 돌아간다
 - [x] `다른 사진 편집하기`는 새 Gallery를 열고, 그 Gallery에서 뒤로 가면 Home이다
 - [x] `홈으로 이동` 뒤 뒤로가기는 앱을 나간다
-- [ ] Pinch Zoom·Pan(#25)
+- [x] Pinch Zoom·Pan(#25)

@@ -27,6 +27,7 @@ kotlin {
         androidResources {
             enable = true
         }
+        withHostTest {}
     }
 
     sourceSets {
@@ -34,6 +35,10 @@ kotlin {
             api(libs.compose.ui)
             implementation(libs.compose.runtime)
             implementation(libs.compose.components.resources)
+            implementation(libs.compose.foundation)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
         }
     }
 }

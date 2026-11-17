@@ -1,6 +1,6 @@
 # Editor
 
-> 상태: Draft
+> 상태: Accepted
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki FaceAnalysis · Editor UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/editor.md) · [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md) · Figma `[승인] 화면 4` (`316:3606`, `316:4197`, `316:4294`, `335:2`, Snackbar `316:4050`·`316:3747`·`316:3897`)
 > 관련 결정: [UX-039](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-039), [UX-041](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-041), [UX-014](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-014), [UX-016](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-016), [UX-042](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-042), [ADR-0001](../adr/0001-face-analysis-route.md), [ADR-0004](../adr/0004-common-mosaic-rendering.md)
@@ -17,7 +17,7 @@
 | 단계 | Issue | 내용 |
 | --- | --- | --- |
 | ① | #24 | 얼굴 선택, 모자이크 미리보기, 얼굴 목록, 전체 선택/해제, 저장 버튼 상태, 이탈 확인 |
-| ② | #25 | Pinch Zoom, Pan |
+| ② | #25 | Pinch Zoom, Pan (Result 포함) |
 | ③ | #26 | 원본 해상도 모자이크 저장, 저장 중 Dialog, 저장 실패, Result 이동 |
 
 ## 계약
@@ -39,6 +39,15 @@
 - 선택이 0개이면 `전체 선택`, 1개 이상이면 `전체 해제`를 보여 줍니다. 일부만 선택해도 `전체 해제`입니다.
 - 하단 목록은 각 얼굴을 원본 사진에서 정사각형으로 잘라 보여 줍니다. 얼굴 크기의 1.4배를 잘라 여백을 둡니다(UX-041).
 - 상단 카운터는 검출 수와 선택 수를 보여 줍니다.
+
+### Pinch Zoom과 Pan
+
+- 사진은 기본 배율(화면에 맞춘 크기)의 최대 4배까지 확대합니다.
+- 기본 배율에서는 한 손가락 드래그를 무시하고 탭만 얼굴 선택에 씁니다. 확대 상태에서는 짧은 탭이 선택, 드래그가 이동입니다.
+- 사진, 얼굴 가이드와 모자이크 미리보기는 같은 변환으로 그립니다. 가이드 두께와 체크 표시는 화면 기준 크기를 유지합니다.
+- 확대한 사진이 화면보다 큰 방향은 사진 밖 빈 영역이 보이지 않게 이동을 제한합니다. 작은 방향은 가운데에 둡니다.
+- 확대는 손가락 사이 지점을 기준으로 합니다.
+- 변환 규칙은 `core/designsystem`의 `ZoomState`에 있고 Result도 같은 규칙을 씁니다. 상태는 저장 가능한 상태로 두어 Result에서 돌아와도 Editor 배율과 위치가 유지됩니다.
 
 ### 뒤로가기
 
@@ -93,6 +102,9 @@
 - [x] 저장에 성공하면 Result로 이동하고, 뒤로 가면 같은 편집 세션으로 돌아온다
 - [x] `EditorSaveTest`(iOS): 모자이크 블록, 원본 해상도 저장, 오류 매핑과 재시도
 
-### ②
+### ② Pinch Zoom·Pan
 
-해당 단계의 Issue에서 이 문서를 갱신합니다.
+- [x] 최대 4배 확대, 기본 배율에서는 이동 없음
+- [x] 확대·이동 후에도 얼굴 탭 선택이 같은 변환을 따른다
+- [x] 사진 밖 빈 영역이 보이지 않는다
+- [x] `ZoomTest`: 기본 배율 이동 무시, 최대 배율, 이동 제한, 손가락 기준 확대

@@ -21,5 +21,5 @@ Spec은 승인된 제품·UX 요구사항을 구현 가능한 계약으로 표�
 
 - [Gallery](gallery.md) — Accepted (2026-11-17)
 - [FaceAnalysis](face-analysis.md) — Accepted (2026-11-17)
-- [Editor](editor.md) — Draft (2026-11-18)
+- [Editor](editor.md) — Accepted (2026-11-18)
 - [Result](result.md) — Accepted (2026-11-18)
