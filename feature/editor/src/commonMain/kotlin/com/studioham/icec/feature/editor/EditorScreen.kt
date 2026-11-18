@@ -36,6 +36,17 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
+import com.studioham.icec.designsystem.ZoomState
+import com.studioham.icec.designsystem.isTwoPane
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -175,15 +186,31 @@ internal fun EditorContent(
     actions: EditorActions,
     modifier: Modifier = Modifier,
 ) {
+    // Hoisted so zoom and scroll survive switching between the one- and two-pane trees (rotation, window resize).
+    val zoom = rememberZoomState()
+    val rowState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
+    val twoPane = isTwoPane()
     Box(modifier.fillMaxSize().background(Color.Black)) {
         // ponytail: Modifier.blur needs Android 12+; older Android shows the saving overlay without blur.
         Column(
             Modifier.fillMaxSize().then(if (state.saving) Modifier.blur(4.dp) else Modifier).windowInsetsPadding(WindowInsets.safeDrawing),
         ) {
             TopBar(state.faces.size, state.selected.size, actions.onBack)
-            Photo(state, actions.onFaceClick, Modifier.weight(1f).padding(16.dp))
-            FaceList(state, actions.onFaceClick, actions.onSelectAllClick)
-            SaveButton(enabled = state.canSave, actions.onSaveClick)
+            if (twoPane) {
+                // #34: photo on the left, controls on the right (320–360dp).
+                Row(Modifier.weight(1f)) {
+                    Photo(state, zoom, actions.onFaceClick, Modifier.weight(1f).padding(16.dp))
+                    Column(Modifier.width(340.dp).fillMaxHeight()) {
+                        FaceList(state, actions.onFaceClick, actions.onSelectAllClick, rowState, gridState, grid = true, Modifier.weight(1f))
+                        SaveButton(enabled = state.canSave, actions.onSaveClick)
+                    }
+                }
+            } else {
+                Photo(state, zoom, actions.onFaceClick, Modifier.weight(1f).padding(16.dp))
+                FaceList(state, actions.onFaceClick, actions.onSelectAllClick, rowState, gridState, grid = false)
+                SaveButton(enabled = state.canSave, actions.onSaveClick)
+            }
         }
         state.saveError?.let { SaveErrorSnackbar(it, actions.onSaveErrorAction, Modifier.align(Alignment.BottomCenter)) }
         if (state.exitDialog) ExitDialog(actions.onExit, actions.onKeepEditing)
@@ -252,6 +279,7 @@ private fun Count(
 @Composable
 private fun Photo(
     state: EditorState,
+    zoom: ZoomState,
     onFaceClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -268,7 +296,6 @@ private fun Photo(
         val pixels = remember(image, state.faces) { state.faces.map { it.toPixels(image.width, image.height) } }
         val blocks = remember(image, pixels) { pixels.map { image.mosaicBlocks(it) } }
         val check = painterResource(Res.drawable.ic_check)
-        val zoom = rememberZoomState()
         val imageSize = Size(image.width.toFloat(), image.height.toFloat())
         Canvas(
             // Pinch and drag zoom (#25); a short tap still selects a face at any zoom.
@@ -314,13 +341,18 @@ private fun Photo(
     }
 }
 
+/** One row under the photo, or with [grid] a vertical grid in the two-pane side panel (#34). */
 @Composable
 private fun FaceList(
     state: EditorState,
     onFaceClick: (Int) -> Unit,
     onSelectAllClick: () -> Unit,
+    rowState: LazyListState,
+    gridState: LazyGridState,
+    grid: Boolean,
+    modifier: Modifier = Modifier,
 ) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), Arrangement.spacedBy(8.dp)) {
+    Column(modifier.fillMaxWidth().padding(vertical = 8.dp), Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), Arrangement.SpaceBetween, Alignment.CenterVertically) {
             BasicText(
                 stringResource(Res.string.editor_detected_faces),
@@ -337,14 +369,30 @@ private fun FaceList(
             SelectAllChip(clear = state.selected.isNotEmpty(), onSelectAllClick)
         }
         val image = state.image
-        LazyRow(
-            Modifier.fillMaxWidth().height(108.dp),
-            contentPadding = PaddingValues(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            itemsIndexed(state.faces) { index, face ->
-                FaceItem(index, face, image, selected = index in state.selected) { onFaceClick(index) }
+        if (grid) {
+            LazyVerticalGrid(
+                GridCells.FixedSize(84.dp),
+                Modifier.fillMaxWidth().weight(1f),
+                gridState,
+                PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+            ) {
+                itemsIndexed(state.faces) { index, face ->
+                    FaceItem(index, face, image, selected = index in state.selected) { onFaceClick(index) }
+                }
+            }
+        } else {
+            LazyRow(
+                Modifier.fillMaxWidth().height(108.dp),
+                rowState,
+                contentPadding = PaddingValues(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                itemsIndexed(state.faces) { index, face ->
+                    FaceItem(index, face, image, selected = index in state.selected) { onFaceClick(index) }
+                }
             }
         }
     }

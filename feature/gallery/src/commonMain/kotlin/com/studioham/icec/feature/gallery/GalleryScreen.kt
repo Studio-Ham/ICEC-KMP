@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import com.studioham.icec.designsystem.ContentMaxWidth
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -267,7 +269,7 @@ private fun TopBar(
     }
 }
 
-/** Figma 316:2412: date sections, 3 columns, 2dp gaps, scroll-to-top button. */
+/** Figma 316:2412: date sections, adaptive columns (3 on a phone), 2dp gaps, scroll-to-top button. */
 @Composable
 private fun PhotoGrid(
     sections: List<PhotoSection>,
@@ -278,9 +280,9 @@ private fun PhotoGrid(
     val scope = rememberCoroutineScope()
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
     Box(Modifier.fillMaxSize()) {
-        // ponytail: fixed 3 columns per the phone design; Adaptive columns are a design follow-up.
+        // #34: at least 120dp per tile; a portrait phone (about 390dp) still gets 3 columns.
         LazyVerticalGrid(
-            GridCells.Fixed(3),
+            GridCells.Adaptive(120.dp),
             Modifier.fillMaxSize(),
             gridState,
             PaddingValues(top = 12.dp, bottom = 96.dp),
@@ -369,7 +371,7 @@ private fun Message(
     body: StringResource,
     action: @Composable () -> Unit = {},
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(Modifier.widthIn(max = ContentMaxWidth), horizontalAlignment = Alignment.CenterHorizontally) {
         Image(painterResource(icon), null)
         Spacer(Modifier.height(16.dp))
         BasicText(

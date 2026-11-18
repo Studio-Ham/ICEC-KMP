@@ -1,5 +1,8 @@
 package com.studioham.icec.feature.editor
 
+import com.studioham.icec.designsystem.ContentMaxWidth
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -243,7 +246,7 @@ private fun Message(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier.fillMaxWidth().wrapContentWidth().widthIn(max = ContentMaxWidth).padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -271,7 +274,14 @@ private fun Message(
 
 @Composable
 private fun Footer(content: @Composable () -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp), Arrangement.spacedBy(12.dp)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .wrapContentWidth()
+            .widthIn(max = ContentMaxWidth)
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp),
+        Arrangement.spacedBy(12.dp),
+    ) {
         content()
     }
 }
