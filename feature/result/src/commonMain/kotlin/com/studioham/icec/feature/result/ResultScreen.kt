@@ -11,16 +11,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -32,6 +36,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -45,7 +51,9 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
+import com.studioham.icec.designsystem.ZoomState
 import com.studioham.icec.designsystem.fitRect
+import com.studioham.icec.designsystem.isTwoPane
 import com.studioham.icec.designsystem.rememberZoomState
 import com.studioham.icec.designsystem.zoomable
 import com.studioham.icec.feature.result.resources.Res
@@ -89,6 +97,33 @@ internal fun ResultContent(
     onHome: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Hoisted so zoom survives switching between the one- and two-pane trees (rotation, window resize).
+    val zoom = rememberZoomState()
+    val photoShape = RoundedCornerShape(12.dp)
+    val photoBox = Modifier.clip(photoShape).background(PhotoFill).border(1.dp, IcecColors.Hairline, photoShape)
+    if (isTwoPane()) {
+        // #34: saved photo on the left, completion message and actions on the right.
+        Row(
+            modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(16.dp),
+            Arrangement.spacedBy(16.dp),
+        ) {
+            Box(Modifier.weight(1f).fillMaxHeight().then(photoBox), contentAlignment = Alignment.Center) {
+                image?.let { ZoomableImage(it, zoom) }
+            }
+            // Scrolls only when a landscape phone is too short for the whole panel.
+            Box(Modifier.width(340.dp).fillMaxHeight(), contentAlignment = Alignment.Center) {
+                Column(Modifier.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Header()
+                    Actions(onEditAgain, onOtherPhoto, onHome)
+                }
+            }
+        }
+        return
+    }
     Column(
         modifier
             .fillMaxSize()
@@ -99,28 +134,7 @@ internal fun ResultContent(
         Arrangement.SpaceBetween,
         Alignment.CenterHorizontally,
     ) {
-        Column(Modifier.padding(16.dp, 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(painterResource(Res.drawable.ic_success), null, Modifier.padding(bottom = 16.dp))
-            BasicText(
-                stringResource(Res.string.result_title),
-                style =
-                    TextStyle(
-                        Color.White,
-                        22.sp,
-                        FontWeight.Bold,
-                        fontFamily = Pretendard(),
-                        letterSpacing = (-0.55).sp,
-                        lineHeight = 28.sp,
-                        textAlign = TextAlign.Center,
-                    ),
-            )
-            BasicText(
-                stringResource(Res.string.result_location),
-                Modifier.padding(top = 6.dp),
-                style = TextStyle(IcecColors.MutedSlate, 13.sp, fontFamily = Pretendard()),
-            )
-        }
-        val shape = RoundedCornerShape(12.dp)
+        Header()
         Box(
             Modifier
                 .padding(horizontal = 16.dp)
@@ -128,49 +142,82 @@ internal fun ResultContent(
                 .heightIn(max = 420.dp)
                 .fillMaxWidth()
                 .aspectRatio(4f / 5f)
-                .clip(shape)
-                .background(PhotoFill)
-                .border(1.dp, IcecColors.Hairline, shape),
+                .then(photoBox),
             contentAlignment = Alignment.Center,
         ) {
-            image?.let { ZoomableImage(it) }
+            image?.let { ZoomableImage(it, zoom) }
         }
-        Column(
-            Modifier.widthIn(max = 384.dp).padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
-            Arrangement.spacedBy(12.dp),
+        Actions(onEditAgain, onOtherPhoto, onHome)
+    }
+}
+
+@Composable
+private fun Header() {
+    Column(Modifier.padding(16.dp, 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Image(painterResource(Res.drawable.ic_success), null, Modifier.padding(bottom = 16.dp))
+        BasicText(
+            stringResource(Res.string.result_title),
+            Modifier.semantics { heading() },
+            style =
+                TextStyle(
+                    Color.White,
+                    22.sp,
+                    FontWeight.Bold,
+                    fontFamily = Pretendard(),
+                    letterSpacing = (-0.55).sp,
+                    lineHeight = 28.sp,
+                    textAlign = TextAlign.Center,
+                ),
+        )
+        BasicText(
+            stringResource(Res.string.result_location),
+            Modifier.padding(top = 6.dp),
+            style = TextStyle(IcecColors.MutedSlate, 13.sp, fontFamily = Pretendard()),
+        )
+    }
+}
+
+@Composable
+private fun Actions(
+    onEditAgain: () -> Unit,
+    onOtherPhoto: () -> Unit,
+    onHome: () -> Unit,
+) {
+    Column(
+        Modifier.widthIn(max = 384.dp).padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
+        Arrangement.spacedBy(12.dp),
+    ) {
+        Row(
+            // 48dp touch target; the 4dp bottom gap is absorbed into the taller row.
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(role = Role.Button, onClick = onEditAgain)
+                .heightIn(min = 48.dp)
+                .padding(vertical = 8.dp),
+            Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            Alignment.CenterVertically,
         ) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        bottom = 4.dp,
-                    ).clip(RoundedCornerShape(8.dp))
-                    .clickable(role = Role.Button, onClick = onEditAgain)
-                    .padding(vertical = 8.dp),
-                Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-                Alignment.CenterVertically,
-            ) {
-                Image(painterResource(Res.drawable.ic_edit), null)
-                BasicText(
-                    stringResource(Res.string.result_edit_again),
-                    style = TextStyle(IcecColors.MutedSlate, 14.sp, FontWeight.Medium, fontFamily = Pretendard(), lineHeight = 20.sp),
-                )
-            }
-            Button(
-                Res.drawable.ic_gallery,
-                Res.string.result_other_photo,
-                IcecColors.NeonLime,
-                TextStyle(Color.Black, 16.sp, FontWeight.Bold, lineHeight = 20.sp),
-                onOtherPhoto,
-            )
-            Button(
-                Res.drawable.ic_home,
-                Res.string.result_home,
-                HomeFill,
-                TextStyle(Color.White, 18.sp, FontWeight.Bold, letterSpacing = (-0.18).sp, lineHeight = 26.sp),
-                onHome,
+            Image(painterResource(Res.drawable.ic_edit), null)
+            BasicText(
+                stringResource(Res.string.result_edit_again),
+                style = TextStyle(IcecColors.MutedSlate, 14.sp, FontWeight.Medium, fontFamily = Pretendard(), lineHeight = 20.sp),
             )
         }
+        Button(
+            Res.drawable.ic_gallery,
+            Res.string.result_other_photo,
+            IcecColors.NeonLime,
+            TextStyle(Color.Black, 16.sp, FontWeight.Bold, lineHeight = 20.sp),
+            onOtherPhoto,
+        )
+        Button(
+            Res.drawable.ic_home,
+            Res.string.result_home,
+            HomeFill,
+            TextStyle(Color.White, 18.sp, FontWeight.Bold, letterSpacing = (-0.18).sp, lineHeight = 26.sp),
+            onHome,
+        )
     }
 }
 
@@ -185,9 +232,8 @@ private fun Button(
     Row(
         Modifier
             .fillMaxWidth()
-            .height(
-                56.dp,
-            ).clip(RoundedCornerShape(12.dp))
+            .heightIn(min = 56.dp)
+            .clip(RoundedCornerShape(12.dp))
             .background(fill)
             .clickable(role = Role.Button, onClick = onClick),
         Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
@@ -200,8 +246,10 @@ private fun Button(
 
 /** Up to 4x pinch zoom and pan, sharing the Editor's transform rules (#25). */
 @Composable
-private fun ZoomableImage(image: ImageBitmap) {
-    val zoom = rememberZoomState()
+private fun ZoomableImage(
+    image: ImageBitmap,
+    zoom: ZoomState,
+) {
     val imageSize = Size(image.width.toFloat(), image.height.toFloat())
     Canvas(Modifier.fillMaxSize().clipToBounds().zoomable(zoom) { fitRect(imageSize, it) }) {
         val shown = zoom.transform(fitRect(imageSize, size), size)

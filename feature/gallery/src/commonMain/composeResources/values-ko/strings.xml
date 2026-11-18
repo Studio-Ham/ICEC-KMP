@@ -22,4 +22,5 @@
     <plurals name="gallery_count">
         <item quantity="other">%1$s장</item>
     </plurals>
+    <string name="gallery_photo_description">사진, %1$s</string>
 </resources>

@@ -19,10 +19,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -41,7 +44,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +57,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.studioham.icec.designsystem.ContentMaxWidth
 import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
 import com.studioham.icec.face.FaceBounds
@@ -145,7 +153,7 @@ private fun Analyzing(background: ImageBitmap?) {
             Spinner()
             BasicText(
                 stringResource(Res.string.face_analysis_finding),
-                Modifier.padding(horizontal = 16.dp),
+                Modifier.padding(horizontal = 16.dp).semantics { liveRegion = LiveRegionMode.Polite },
                 style =
                     TextStyle(
                         Color.White,
@@ -186,15 +194,16 @@ private fun Spinner() {
 @Composable
 private fun NoFace(onPickAnother: () -> Unit) {
     Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-        Box(Modifier.height(56.dp).padding(start = 12.dp), contentAlignment = Alignment.CenterStart) {
+        Box(Modifier.height(56.dp).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
+            // 48dp touch target, same 24dp icon position as the 40dp design.
             Image(
                 painterResource(Res.drawable.ic_back),
                 stringResource(Res.string.back),
                 Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(24.dp))
                     .clickable(role = Role.Button, onClick = onPickAnother)
-                    .padding(8.dp),
+                    .padding(12.dp),
             )
         }
         Message(
@@ -237,14 +246,18 @@ private fun Message(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier
+            .fillMaxWidth()
+            .wrapContentWidth()
+            .widthIn(max = ContentMaxWidth)
+            .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(Modifier.size(iconBox), contentAlignment = Alignment.Center) { Image(painterResource(icon), null) }
         BasicText(
             stringResource(title),
-            Modifier.padding(top = 24.dp, bottom = 8.dp),
+            Modifier.padding(top = 24.dp, bottom = 8.dp).semantics { heading() },
             style =
                 TextStyle(
                     Color.White,
@@ -265,7 +278,14 @@ private fun Message(
 
 @Composable
 private fun Footer(content: @Composable () -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp), Arrangement.spacedBy(12.dp)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .wrapContentWidth()
+            .widthIn(max = ContentMaxWidth)
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp),
+        Arrangement.spacedBy(12.dp),
+    ) {
         content()
     }
 }
@@ -281,7 +301,7 @@ private fun Button(
     Row(
         Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .clip(shape)
             .background(if (primary) IcecColors.NeonLime else SecondaryFill)
             .then(if (primary) Modifier else Modifier.border(1.dp, SecondaryStroke, shape))

@@ -62,7 +62,7 @@ Gallery에서 고른 사진의 얼굴을 기기 안에서 찾습니다. 결과�
 | 배경 블러 | Android 12+에서만 블러 적용. 이전 버전은 어둡게만 처리 | 블러 적용 |
 | 모델 파일 | 라이브러리에 포함 | `GoogleMVFaceDetectorResources.bundle`을 앱 번들에 복사. 없으면 오류 없이 0개 |
 | Background 실행 | 프로세스가 살아 있으면 ViewModel 코루틴이 계속 실행 | 분석 동안 `beginBackgroundTask`로 실행 시간을 요청. OS가 허용한 시간이 끝나면 일시 정지 |
-| 사용 통계 | ML Kit이 Google 서버로 전송 | 같음 |
+| 사용 통계 | 인터넷 권한을 제거해 전송하지 않음 (#36) | ML Kit이 Google 서버로 전송할 수 있음 |
 
 두 플랫폼의 ML Kit 모델 버전이 다릅니다. 작은 얼굴이 많은 사진에서는 검출 수가 다를 수 있습니다. 2026-11-17 같은 단체 사진에서 Android 6개, iOS 5개를 찾았습니다.
 

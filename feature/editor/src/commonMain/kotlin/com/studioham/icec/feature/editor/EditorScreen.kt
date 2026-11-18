@@ -18,17 +18,28 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -51,9 +62,15 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -71,7 +88,9 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
+import com.studioham.icec.designsystem.ZoomState
 import com.studioham.icec.designsystem.fitRect
+import com.studioham.icec.designsystem.isTwoPane
 import com.studioham.icec.designsystem.rememberZoomState
 import com.studioham.icec.designsystem.zoomable
 import com.studioham.icec.face.FaceBounds
@@ -117,9 +136,15 @@ fun EditorScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val haptic = LocalHapticFeedback.current
     NavigationBackHandler(rememberNavigationEventState(NavigationEventInfo.None), onBackCompleted = viewModel::onBack)
     LaunchedEffect(viewModel) {
-        viewModel.effects.collect { if (it is EditorEffect.Saved) onSaved(it.photoId) }
+        viewModel.effects.collect {
+            if (it is EditorEffect.Saved) {
+                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                onSaved(it.photoId)
+            }
+        }
     }
     if (state.saveError != null) {
         LaunchedEffect(state.saveError) {
@@ -130,7 +155,10 @@ fun EditorScreen(
     EditorContent(
         state,
         EditorActions(
-            viewModel::onFaceClick,
+            { index ->
+                haptic.performHapticFeedback(if (index in state.selected) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn)
+                viewModel.onFaceClick(index)
+            },
             viewModel::onSelectAllClick,
             viewModel::onBack,
             viewModel::onKeepEditing,
@@ -159,15 +187,39 @@ internal fun EditorContent(
     actions: EditorActions,
     modifier: Modifier = Modifier,
 ) {
+    // Hoisted so zoom and scroll survive switching between the one- and two-pane trees (rotation, window resize).
+    val zoom = rememberZoomState()
+    val rowState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
+    val twoPane = isTwoPane()
     Box(modifier.fillMaxSize().background(Color.Black)) {
         // ponytail: Modifier.blur needs Android 12+; older Android shows the saving overlay without blur.
         Column(
             Modifier.fillMaxSize().then(if (state.saving) Modifier.blur(4.dp) else Modifier).windowInsetsPadding(WindowInsets.safeDrawing),
         ) {
             TopBar(state.faces.size, state.selected.size, actions.onBack)
-            Photo(state, actions.onFaceClick, Modifier.weight(1f).padding(16.dp))
-            FaceList(state, actions.onFaceClick, actions.onSelectAllClick)
-            SaveButton(enabled = state.canSave, actions.onSaveClick)
+            if (twoPane) {
+                // #34: photo on the left, controls on the right (320–360dp).
+                Row(Modifier.weight(1f)) {
+                    Photo(state, zoom, actions.onFaceClick, Modifier.weight(1f).padding(16.dp))
+                    Column(Modifier.width(340.dp).fillMaxHeight()) {
+                        FaceList(
+                            state,
+                            actions.onFaceClick,
+                            actions.onSelectAllClick,
+                            rowState,
+                            gridState,
+                            grid = true,
+                            Modifier.weight(1f),
+                        )
+                        SaveButton(enabled = state.canSave, actions.onSaveClick)
+                    }
+                }
+            } else {
+                Photo(state, zoom, actions.onFaceClick, Modifier.weight(1f).padding(16.dp))
+                FaceList(state, actions.onFaceClick, actions.onSelectAllClick, rowState, gridState, grid = false)
+                SaveButton(enabled = state.canSave, actions.onSaveClick)
+            }
         }
         state.saveError?.let { SaveErrorSnackbar(it, actions.onSaveErrorAction, Modifier.align(Alignment.BottomCenter)) }
         if (state.exitDialog) ExitDialog(actions.onExit, actions.onKeepEditing)
@@ -184,7 +236,7 @@ private fun TopBar(
     Box(
         Modifier
             .fillMaxWidth()
-            .height(57.dp)
+            .heightIn(min = 57.dp)
             .background(BarFill)
             .padding(bottom = 1.dp),
     ) {
@@ -193,15 +245,15 @@ private fun TopBar(
             stringResource(Res.string.back),
             Modifier
                 .align(Alignment.CenterStart)
-                .padding(start = 12.dp)
-                .size(40.dp)
+                .padding(start = 8.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .clickable(role = Role.Button, onClick = onBack)
-                .padding(12.dp),
+                .padding(16.dp),
         )
         val counter = stringResource(Res.string.editor_counter, detected, selected)
         Row(
-            Modifier.align(Alignment.Center).semantics(mergeDescendants = true) { contentDescription = counter },
+            Modifier.align(Alignment.Center).clearAndSetSemantics { contentDescription = counter },
             Arrangement.spacedBy(8.dp),
             Alignment.CenterVertically,
         ) {
@@ -236,6 +288,7 @@ private fun Count(
 @Composable
 private fun Photo(
     state: EditorState,
+    zoom: ZoomState,
     onFaceClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -252,7 +305,6 @@ private fun Photo(
         val pixels = remember(image, state.faces) { state.faces.map { it.toPixels(image.width, image.height) } }
         val blocks = remember(image, pixels) { pixels.map { image.mosaicBlocks(it) } }
         val check = painterResource(Res.drawable.ic_check)
-        val zoom = rememberZoomState()
         val imageSize = Size(image.width.toFloat(), image.height.toFloat())
         Canvas(
             // Pinch and drag zoom (#25); a short tap still selects a face at any zoom.
@@ -298,13 +350,18 @@ private fun Photo(
     }
 }
 
+/** One row under the photo, or with [grid] a vertical grid in the two-pane side panel (#34). */
 @Composable
 private fun FaceList(
     state: EditorState,
     onFaceClick: (Int) -> Unit,
     onSelectAllClick: () -> Unit,
+    rowState: LazyListState,
+    gridState: LazyGridState,
+    grid: Boolean,
+    modifier: Modifier = Modifier,
 ) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), Arrangement.spacedBy(8.dp)) {
+    Column(modifier.fillMaxWidth().padding(vertical = 8.dp), Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), Arrangement.SpaceBetween, Alignment.CenterVertically) {
             BasicText(
                 stringResource(Res.string.editor_detected_faces),
@@ -321,14 +378,30 @@ private fun FaceList(
             SelectAllChip(clear = state.selected.isNotEmpty(), onSelectAllClick)
         }
         val image = state.image
-        LazyRow(
-            Modifier.fillMaxWidth().height(108.dp),
-            contentPadding = PaddingValues(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            itemsIndexed(state.faces) { index, face ->
-                FaceItem(index, face, image, selected = index in state.selected) { onFaceClick(index) }
+        if (grid) {
+            LazyVerticalGrid(
+                GridCells.FixedSize(84.dp),
+                Modifier.fillMaxWidth().weight(1f),
+                gridState,
+                PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+            ) {
+                itemsIndexed(state.faces) { index, face ->
+                    FaceItem(index, face, image, selected = index in state.selected) { onFaceClick(index) }
+                }
+            }
+        } else {
+            LazyRow(
+                Modifier.fillMaxWidth().height(108.dp),
+                rowState,
+                contentPadding = PaddingValues(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                itemsIndexed(state.faces) { index, face ->
+                    FaceItem(index, face, image, selected = index in state.selected) { onFaceClick(index) }
+                }
             }
         }
     }
@@ -341,16 +414,23 @@ private fun SelectAllChip(
 ) {
     val color = if (clear) IcecColors.AlertRed else IcecColors.NeonLime
     val fill = if (clear) ClearChipFill else SelectChipFill
-    BasicText(
-        stringResource(if (clear) Res.string.editor_clear_all else Res.string.editor_select_all),
+    // The outer box widens only the touch area to 48dp; the chip keeps its visible size.
+    Box(
         Modifier
-            .clip(CircleShape)
-            .background(fill)
-            .border(1.dp, color.copy(alpha = 0.6f), CircleShape)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 13.dp, vertical = 5.dp),
-        style = TextStyle(color, 12.sp, FontWeight.Bold, fontFamily = Pretendard(), lineHeight = 12.sp),
-    )
+            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+            .clickable(role = Role.Button, interactionSource = null, indication = null, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        BasicText(
+            stringResource(if (clear) Res.string.editor_clear_all else Res.string.editor_select_all),
+            Modifier
+                .clip(CircleShape)
+                .background(fill)
+                .border(1.dp, color.copy(alpha = 0.6f), CircleShape)
+                .padding(horizontal = 13.dp, vertical = 5.dp),
+            style = TextStyle(color, 12.sp, FontWeight.Bold, fontFamily = Pretendard(), lineHeight = 12.sp),
+        )
+    }
 }
 
 /** UX-041: each item shows the face cropped from the photo. */
@@ -409,7 +489,7 @@ private fun SaveButton(
         Modifier
             .fillMaxWidth()
             .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp)
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .alpha(if (enabled) 1f else 0.4f)
             .clip(RoundedCornerShape(12.dp))
             .background(IcecColors.NeonLime)
@@ -453,7 +533,7 @@ private fun BoxScope.ExitDialog(
             Image(painterResource(Res.drawable.ic_warning), null)
             BasicText(
                 stringResource(Res.string.editor_exit_title),
-                Modifier.padding(top = 16.dp, bottom = 8.dp),
+                Modifier.padding(top = 16.dp, bottom = 8.dp).semantics { heading() },
                 style =
                     TextStyle(
                         Color.White,
@@ -511,7 +591,7 @@ private fun DialogButton(
     val shape = RoundedCornerShape(12.dp)
     Box(
         modifier
-            .height(48.dp)
+            .heightIn(min = 48.dp)
             .clip(shape)
             .background(fill)
             .then(if (stroke != null) Modifier.border(1.dp, stroke, shape) else Modifier)
@@ -526,7 +606,11 @@ private fun DialogButton(
 @Composable
 private fun BoxScope.Saving() {
     Column(
-        Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.7f)).pointerInput(Unit) { detectTapGestures { } },
+        Modifier
+            .matchParentSize()
+            .background(Color.Black.copy(alpha = 0.7f))
+            .pointerInput(Unit) { detectTapGestures { } }
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
         Arrangement.Center,
         Alignment.CenterHorizontally,
     ) {
@@ -572,19 +656,25 @@ private fun SaveErrorSnackbar(
             .clip(shape)
             .background(SnackbarFill)
             .border(1.dp, IcecColors.Hairline, shape)
-            .padding(horizontal = 17.dp, vertical = 14.dp),
+            .semantics { liveRegion = LiveRegionMode.Polite }
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 17.dp),
         Arrangement.spacedBy(10.dp),
         Alignment.CenterVertically,
     ) {
         Image(painterResource(Res.drawable.ic_error), null)
         BasicText(
             stringResource(message),
-            Modifier.weight(1f),
+            Modifier.weight(1f).padding(vertical = 14.dp),
             style = TextStyle(Color.White, 14.sp, FontWeight.Medium, fontFamily = Pretendard(), lineHeight = 20.sp),
         )
         action?.let { (icon, label) ->
             Row(
-                Modifier.clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button, onClick = onAction).padding(4.dp),
+                Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable(role = Role.Button, onClick = onAction)
+                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                    .padding(4.dp),
                 Arrangement.spacedBy(4.dp),
                 Alignment.CenterVertically,
             ) {

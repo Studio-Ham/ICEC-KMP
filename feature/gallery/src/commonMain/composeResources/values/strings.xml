@@ -23,4 +23,5 @@
         <item quantity="one">%1$s photo</item>
         <item quantity="other">%1$s photos</item>
     </plurals>
+    <string name="gallery_photo_description">Photo, %1$s</string>
 </resources>
