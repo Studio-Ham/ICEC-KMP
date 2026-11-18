@@ -73,6 +73,22 @@ iOS 코드나 공통 UI를 바꾸면 iOS 빌드도 확인합니다. iOS ML Kit �
 xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -destination 'generic/platform=iOS Simulator' ARCHS=arm64 CODE_SIGNING_ALLOWED=NO build
 ```
 
+### iOS UI 테스트
+
+`iosAppUITests`는 Home → Gallery → Editor → Result 흐름을 XCUITest로 확인합니다. 테스트 전에 얼굴 3개가 있는 사진을 시뮬레이터에 넣고 사진 권한을 초기화합니다.
+
+```shell
+xcrun simctl addmedia <udid> <faces3.jpg>
+xcrun simctl privacy <udid> reset photos com.studioham.icec
+xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -resultBundlePath build/ui.xcresult
+```
+
+`testStoreScreenshots`만 실행하려면 `-only-testing:iosAppUITests/IcecFlowUITests/testStoreScreenshots`를 붙입니다. 스크린샷 첨부는 다음 명령으로 꺼냅니다.
+
+```shell
+xcrun xcresulttool export attachments --path build/ui.xcresult --output-path build/screenshots
+```
+
 ### 릴리스 빌드
 
 ```shell
