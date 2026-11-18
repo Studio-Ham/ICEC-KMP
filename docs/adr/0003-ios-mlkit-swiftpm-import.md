@@ -39,6 +39,7 @@
 - ML Kit 업데이트는 커뮤니티 패키지의 릴리스에 의존합니다. 패키지 버전과 모델 SHA-256을 함께 바꿉니다.
 - 모델 번들이 없으면 ML Kit은 오류 없이 얼굴 0개를 반환합니다. `IosFaceDetectorTest`가 이 경우를 잡습니다.
 - ML Kit은 사용 통계를 Google 서버(`play.googleapis.com`)로 보냅니다. 사진과 얼굴 데이터는 보내지 않습니다. 공식 pod와 Android ML Kit도 같은 동작을 합니다. 출시 전 개인정보 처리방침에서 다시 확인합니다.
+- Android는 `INTERNET`, `ACCESS_NETWORK_STATE` 권한을 매니페스트에서 제거해 사용 통계를 보내지 않습니다(#36).
 - **되돌릴 경로:** 커뮤니티 패키지나 SwiftPM import가 더 동작하지 않으면 1번(공식 pod)으로 바꿉니다. 이 경우 시뮬레이터용 대체 구현을 추가하고 이 ADR을 대체하는 새 ADR을 씁니다. Google이 ML Kit SPM 배포를 시작하면 공식 패키지로 바꿉니다.
 
 ## Verification
