@@ -1,0 +1,1 @@
+Detect faces on your device. Cover selected faces with square pixel mosaic. Save a new full-resolution photo with no GPS metadata. Keep the original photo unchanged.
