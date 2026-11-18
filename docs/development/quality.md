@@ -73,4 +73,18 @@ iOS 코드나 공통 UI를 바꾸면 iOS 빌드도 확인합니다. iOS ML Kit �
 xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -destination 'generic/platform=iOS Simulator' ARCHS=arm64 CODE_SIGNING_ALLOWED=NO build
 ```
 
+### 릴리스 빌드
+
+```shell
+./gradlew :androidApp:bundleRelease
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Release -destination 'generic/platform=iOS' archive -archivePath build/ICEC.xcarchive
+```
+
+- Android release 서명 키는 저장소에 넣지 않습니다.
+- Gradle은 `~/.icec/keystore.properties`에서 `storeFile`, `storePassword`, `keyAlias`, `keyPassword`를 읽습니다.
+- 다른 위치는 `-Picec.keystoreProperties=<경로>`로 지정합니다.
+- 파일이 없으면 release를 서명 없이 빌드합니다(CI).
+- release는 R8 축소와 리소스 축소를 사용합니다. keep 규칙은 `androidApp/proguard-rules.pro`에 근거와 함께 둡니다.
+- 버전은 Android `androidApp/build.gradle.kts`, iOS `iosApp/Configuration/Config.xcconfig`의 `MARKETING_VERSION`·`CURRENT_PROJECT_VERSION`에서 함께 올립니다.
+
 문서만 변경하거나 Wrapper가 없는 단계에서는 `git diff --check`, 내부 링크, 외부 SSOT 링크와 문서 인덱스를 검증합니다.

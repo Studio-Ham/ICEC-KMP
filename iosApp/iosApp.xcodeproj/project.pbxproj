@@ -27,6 +27,14 @@
 			isa = PBXBuildFile;
 			fileRef = 7555FF82242A565900829871;
 		};
+		A1C3E5000000000000000002 = {
+			isa = PBXBuildFile;
+			fileRef = A1C3E5000000000000000001;
+		};
+		A1C3E5000000000000000004 = {
+			isa = PBXBuildFile;
+			fileRef = A1C3E5000000000000000003;
+		};
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -72,6 +80,26 @@
 			fileEncoding = 4;
 			lastKnownFileType = text.xcconfig;
 			path = Config.xcconfig;
+			sourceTree = "<group>";
+		};
+		A1C3E5000000000000000001 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.xml;
+			path = PrivacyInfo.xcprivacy;
+			sourceTree = "<group>";
+		};
+		A1C3E5000000000000000005 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.strings;
+			name = en;
+			path = en.lproj/InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		A1C3E5000000000000000006 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.strings;
+			name = ko;
+			path = ko.lproj/InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXFileReference section */
@@ -127,6 +155,8 @@
 				058557BA273AAA24004C7B11,
 				7555FF82242A565900829871,
 				7555FF8C242A565B00829871,
+				A1C3E5000000000000000001,
+				A1C3E5000000000000000003,
 				2152FB032600AC8F00CF470E,
 				058557D7273AAEEB004C7B11,
 			);
@@ -142,6 +172,18 @@
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
+
+/* Begin PBXVariantGroup section */
+		A1C3E5000000000000000003 = {
+			isa = PBXVariantGroup;
+			children = (
+				A1C3E5000000000000000005,
+				A1C3E5000000000000000006,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin PBXNativeTarget section */
 		7555FF7A242A565900829871 = {
@@ -187,6 +229,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				ko,
 				Base,
 			);
 			mainGroup = 7555FF72242A565900829871;
@@ -209,6 +252,8 @@
 			files = (
 				058557D9273AAEEB004C7B11,
 				058557BB273AAA24004C7B11,
+				A1C3E5000000000000000002,
+				A1C3E5000000000000000004,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
