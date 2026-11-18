@@ -19,7 +19,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v6
-      - run: ./gradlew spotlessCheck assembleDebug test allTests
+      - run: ./gradlew spotlessCheck assembleDebug :androidApp:bundleRelease test allTests
 
   ios:
     runs-on: macos-latest

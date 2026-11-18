@@ -1,0 +1,1 @@
+mosaic,face mosaic,pixelate,hide face,photo editor,on-device,privacy,anonymize
