@@ -1,13 +1,5 @@
 package com.studioham.icec.feature.gallery
 
-import com.studioham.icec.feature.gallery.resources.gallery_photo_description
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,11 +16,12 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import com.studioham.icec.designsystem.ContentMaxWidth
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -56,7 +49,12 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.studioham.icec.designsystem.ContentMaxWidth
 import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
 import com.studioham.icec.feature.gallery.resources.Res
@@ -82,6 +81,7 @@ import com.studioham.icec.feature.gallery.resources.gallery_months
 import com.studioham.icec.feature.gallery.resources.gallery_permission_allow
 import com.studioham.icec.feature.gallery.resources.gallery_permission_body
 import com.studioham.icec.feature.gallery.resources.gallery_permission_title
+import com.studioham.icec.feature.gallery.resources.gallery_photo_description
 import com.studioham.icec.feature.gallery.resources.gallery_photo_unavailable
 import com.studioham.icec.feature.gallery.resources.gallery_retry
 import com.studioham.icec.feature.gallery.resources.gallery_scroll_top
