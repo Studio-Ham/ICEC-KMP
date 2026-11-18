@@ -1,5 +1,7 @@
 package com.studioham.icec.feature.result
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -103,6 +105,7 @@ internal fun ResultContent(
             Image(painterResource(Res.drawable.ic_success), null, Modifier.padding(bottom = 16.dp))
             BasicText(
                 stringResource(Res.string.result_title),
+                Modifier.semantics { heading() },
                 style =
                     TextStyle(
                         Color.White,
@@ -140,12 +143,12 @@ internal fun ResultContent(
             Arrangement.spacedBy(12.dp),
         ) {
             Row(
+                // 48dp touch target; the 4dp bottom gap is absorbed into the taller row.
                 Modifier
                     .fillMaxWidth()
-                    .padding(
-                        bottom = 4.dp,
-                    ).clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp))
                     .clickable(role = Role.Button, onClick = onEditAgain)
+                    .heightIn(min = 48.dp)
                     .padding(vertical = 8.dp),
                 Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
                 Alignment.CenterVertically,
@@ -185,9 +188,8 @@ private fun Button(
     Row(
         Modifier
             .fillMaxWidth()
-            .height(
-                56.dp,
-            ).clip(RoundedCornerShape(12.dp))
+            .heightIn(min = 56.dp)
+            .clip(RoundedCornerShape(12.dp))
             .background(fill)
             .clickable(role = Role.Button, onClick = onClick),
         Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),

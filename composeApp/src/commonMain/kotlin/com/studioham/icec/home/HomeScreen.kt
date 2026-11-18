@@ -1,5 +1,6 @@
 package com.studioham.icec.home
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -71,7 +72,7 @@ fun HomeScreen(
                 .align(Alignment.BottomCenter)
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp)
                 .fillMaxWidth()
-                .height(56.dp)
+                .heightIn(min = 56.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(IcecColors.NeonLime)
                 .clickable(role = Role.Button, onClick = onLoadPhotoClick),

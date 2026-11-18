@@ -1,5 +1,13 @@
 package com.studioham.icec.feature.gallery
 
+import com.studioham.icec.feature.gallery.resources.gallery_photo_description
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -158,7 +166,8 @@ private fun UnavailableSnackbar(modifier: Modifier = Modifier) {
             .clip(RoundedCornerShape(12.dp))
             .background(SnackbarBackground)
             .border(1.dp, IcecColors.AlertRed.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
         Arrangement.spacedBy(8.dp),
         Alignment.CenterVertically,
     ) {
@@ -224,21 +233,21 @@ private fun TopBar(
     Box(
         Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .background(IcecColors.StudioSlate)
             .drawBehind { drawLine(IcecColors.Hairline, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) },
     ) {
         Box(
             Modifier
-                .padding(start = 16.dp)
-                .size(40.dp)
+                .padding(start = 12.dp)
+                .size(48.dp)
                 .align(Alignment.CenterStart)
                 .clickable(role = Role.Button, onClick = onBack),
             Alignment.Center,
         ) { Image(painterResource(Res.drawable.ic_back), stringResource(Res.string.gallery_back)) }
         BasicText(
             stringResource(Res.string.gallery_title),
-            Modifier.align(Alignment.Center),
+            Modifier.align(Alignment.Center).semantics { heading() },
             TextStyle(
                 Color.White,
                 15.sp,
@@ -282,7 +291,7 @@ private fun PhotoGrid(
                 item(key = section.date.toString(), span = { GridItemSpan(maxLineSpan) }) {
                     SectionHeader(section, today, Modifier.padding(top = if (index == 0) 0.dp else 22.dp))
                 }
-                items(section.photos, key = { it.id }) { PhotoTile(it, onPhotoClick, thumbnail) }
+                items(section.photos, key = { it.id }) { PhotoTile(it, section.date, today, onPhotoClick, thumbnail) }
             }
         }
         Box(
@@ -332,14 +341,18 @@ private fun SectionHeader(
 @Composable
 private fun PhotoTile(
     photo: Photo,
+    date: LocalDate,
+    today: LocalDate,
     onPhotoClick: (Photo) -> Unit,
     thumbnail: suspend (Photo, Int) -> ImageBitmap?,
 ) {
+    val description = stringResource(Res.string.gallery_photo_description, dateLabel(date, today))
     Box(
         Modifier
             .aspectRatio(1f)
             .background(TileBackground)
-            .clickable(role = Role.Button) { onPhotoClick(photo) },
+            .clickable(role = Role.Button) { onPhotoClick(photo) }
+            .semantics { contentDescription = description },
     ) {
         // ponytail: one request per visible tile, no cache; add an LRU cache if scrolling back reloads visibly.
         val sizePx = with(LocalDensity.current) { 130.dp.toPx().roundToInt() }
@@ -361,6 +374,7 @@ private fun Message(
         Spacer(Modifier.height(16.dp))
         BasicText(
             stringResource(title),
+            Modifier.semantics { heading() },
             style =
                 TextStyle(
                     Color.White,
@@ -391,6 +405,7 @@ private fun TextAction(
         Modifier
             .clip(RoundedCornerShape(8.dp))
             .clickable(role = Role.Button, onClick = onClick)
+            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         Arrangement.spacedBy(6.dp),
         Alignment.CenterVertically,

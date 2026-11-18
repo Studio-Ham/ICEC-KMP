@@ -1,5 +1,12 @@
 package com.studioham.icec.feature.editor
 
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -117,9 +124,15 @@ fun EditorScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val haptic = LocalHapticFeedback.current
     NavigationBackHandler(rememberNavigationEventState(NavigationEventInfo.None), onBackCompleted = viewModel::onBack)
     LaunchedEffect(viewModel) {
-        viewModel.effects.collect { if (it is EditorEffect.Saved) onSaved(it.photoId) }
+        viewModel.effects.collect {
+            if (it is EditorEffect.Saved) {
+                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                onSaved(it.photoId)
+            }
+        }
     }
     if (state.saveError != null) {
         LaunchedEffect(state.saveError) {
@@ -130,7 +143,10 @@ fun EditorScreen(
     EditorContent(
         state,
         EditorActions(
-            viewModel::onFaceClick,
+            { index ->
+                haptic.performHapticFeedback(if (index in state.selected) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn)
+                viewModel.onFaceClick(index)
+            },
             viewModel::onSelectAllClick,
             viewModel::onBack,
             viewModel::onKeepEditing,
@@ -184,7 +200,7 @@ private fun TopBar(
     Box(
         Modifier
             .fillMaxWidth()
-            .height(57.dp)
+            .heightIn(min = 57.dp)
             .background(BarFill)
             .padding(bottom = 1.dp),
     ) {
@@ -193,11 +209,11 @@ private fun TopBar(
             stringResource(Res.string.back),
             Modifier
                 .align(Alignment.CenterStart)
-                .padding(start = 12.dp)
-                .size(40.dp)
+                .padding(start = 8.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .clickable(role = Role.Button, onClick = onBack)
-                .padding(12.dp),
+                .padding(16.dp),
         )
         val counter = stringResource(Res.string.editor_counter, detected, selected)
         Row(
@@ -341,16 +357,23 @@ private fun SelectAllChip(
 ) {
     val color = if (clear) IcecColors.AlertRed else IcecColors.NeonLime
     val fill = if (clear) ClearChipFill else SelectChipFill
-    BasicText(
-        stringResource(if (clear) Res.string.editor_clear_all else Res.string.editor_select_all),
+    // The outer box widens only the touch area to 48dp; the chip keeps its visible size.
+    Box(
         Modifier
-            .clip(CircleShape)
-            .background(fill)
-            .border(1.dp, color.copy(alpha = 0.6f), CircleShape)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 13.dp, vertical = 5.dp),
-        style = TextStyle(color, 12.sp, FontWeight.Bold, fontFamily = Pretendard(), lineHeight = 12.sp),
-    )
+            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+            .clickable(role = Role.Button, interactionSource = null, indication = null, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        BasicText(
+            stringResource(if (clear) Res.string.editor_clear_all else Res.string.editor_select_all),
+            Modifier
+                .clip(CircleShape)
+                .background(fill)
+                .border(1.dp, color.copy(alpha = 0.6f), CircleShape)
+                .padding(horizontal = 13.dp, vertical = 5.dp),
+            style = TextStyle(color, 12.sp, FontWeight.Bold, fontFamily = Pretendard(), lineHeight = 12.sp),
+        )
+    }
 }
 
 /** UX-041: each item shows the face cropped from the photo. */
@@ -409,7 +432,7 @@ private fun SaveButton(
         Modifier
             .fillMaxWidth()
             .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp)
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .alpha(if (enabled) 1f else 0.4f)
             .clip(RoundedCornerShape(12.dp))
             .background(IcecColors.NeonLime)
@@ -453,7 +476,7 @@ private fun BoxScope.ExitDialog(
             Image(painterResource(Res.drawable.ic_warning), null)
             BasicText(
                 stringResource(Res.string.editor_exit_title),
-                Modifier.padding(top = 16.dp, bottom = 8.dp),
+                Modifier.padding(top = 16.dp, bottom = 8.dp).semantics { heading() },
                 style =
                     TextStyle(
                         Color.White,
@@ -511,7 +534,7 @@ private fun DialogButton(
     val shape = RoundedCornerShape(12.dp)
     Box(
         modifier
-            .height(48.dp)
+            .heightIn(min = 48.dp)
             .clip(shape)
             .background(fill)
             .then(if (stroke != null) Modifier.border(1.dp, stroke, shape) else Modifier)
@@ -526,7 +549,11 @@ private fun DialogButton(
 @Composable
 private fun BoxScope.Saving() {
     Column(
-        Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.7f)).pointerInput(Unit) { detectTapGestures { } },
+        Modifier
+            .matchParentSize()
+            .background(Color.Black.copy(alpha = 0.7f))
+            .pointerInput(Unit) { detectTapGestures { } }
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
         Arrangement.Center,
         Alignment.CenterHorizontally,
     ) {
@@ -572,19 +599,25 @@ private fun SaveErrorSnackbar(
             .clip(shape)
             .background(SnackbarFill)
             .border(1.dp, IcecColors.Hairline, shape)
-            .padding(horizontal = 17.dp, vertical = 14.dp),
+            .semantics { liveRegion = LiveRegionMode.Polite }
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 17.dp),
         Arrangement.spacedBy(10.dp),
         Alignment.CenterVertically,
     ) {
         Image(painterResource(Res.drawable.ic_error), null)
         BasicText(
             stringResource(message),
-            Modifier.weight(1f),
+            Modifier.weight(1f).padding(vertical = 14.dp),
             style = TextStyle(Color.White, 14.sp, FontWeight.Medium, fontFamily = Pretendard(), lineHeight = 20.sp),
         )
         action?.let { (icon, label) ->
             Row(
-                Modifier.clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button, onClick = onAction).padding(4.dp),
+                Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable(role = Role.Button, onClick = onAction)
+                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                    .padding(4.dp),
                 Arrangement.spacedBy(4.dp),
                 Alignment.CenterVertically,
             ) {

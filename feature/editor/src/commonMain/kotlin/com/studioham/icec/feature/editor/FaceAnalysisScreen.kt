@@ -1,5 +1,10 @@
 package com.studioham.icec.feature.editor
 
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -145,7 +150,7 @@ private fun Analyzing(background: ImageBitmap?) {
             Spinner()
             BasicText(
                 stringResource(Res.string.face_analysis_finding),
-                Modifier.padding(horizontal = 16.dp),
+                Modifier.padding(horizontal = 16.dp).semantics { liveRegion = LiveRegionMode.Polite },
                 style =
                     TextStyle(
                         Color.White,
@@ -186,15 +191,16 @@ private fun Spinner() {
 @Composable
 private fun NoFace(onPickAnother: () -> Unit) {
     Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-        Box(Modifier.height(56.dp).padding(start = 12.dp), contentAlignment = Alignment.CenterStart) {
+        Box(Modifier.height(56.dp).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
+            // 48dp touch target, same 24dp icon position as the 40dp design.
             Image(
                 painterResource(Res.drawable.ic_back),
                 stringResource(Res.string.back),
                 Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(24.dp))
                     .clickable(role = Role.Button, onClick = onPickAnother)
-                    .padding(8.dp),
+                    .padding(12.dp),
             )
         }
         Message(
@@ -244,7 +250,7 @@ private fun Message(
         Box(Modifier.size(iconBox), contentAlignment = Alignment.Center) { Image(painterResource(icon), null) }
         BasicText(
             stringResource(title),
-            Modifier.padding(top = 24.dp, bottom = 8.dp),
+            Modifier.padding(top = 24.dp, bottom = 8.dp).semantics { heading() },
             style =
                 TextStyle(
                     Color.White,
@@ -281,7 +287,7 @@ private fun Button(
     Row(
         Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .clip(shape)
             .background(if (primary) IcecColors.NeonLime else SecondaryFill)
             .then(if (primary) Modifier else Modifier.border(1.dp, SecondaryStroke, shape))
