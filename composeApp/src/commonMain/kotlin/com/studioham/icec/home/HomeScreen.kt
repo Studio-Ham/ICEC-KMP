@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import com.studioham.icec.designsystem.ContentMaxWidth
@@ -58,7 +58,7 @@ fun HomeScreen(
         Column(
             Modifier.align(Alignment.Center).then(if (short) Modifier.padding(bottom = 96.dp) else Modifier),
             horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(painterResource(Res.drawable.logo), stringResource(Res.string.app_name), Modifier.size(if (short) 96.dp else 160.dp))
+            Image(painterResource(Res.drawable.logo), stringResource(Res.string.app_name), Modifier.width(if (short) 62.dp else 104.dp))
             Spacer(Modifier.height(12.dp))
             BasicText(
                 stringResource(Res.string.home_tagline),
