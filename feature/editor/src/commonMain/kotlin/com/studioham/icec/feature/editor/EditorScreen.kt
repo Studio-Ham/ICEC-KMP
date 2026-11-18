@@ -71,6 +71,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -244,7 +245,7 @@ private fun TopBar(
         )
         val counter = stringResource(Res.string.editor_counter, detected, selected)
         Row(
-            Modifier.align(Alignment.Center).semantics(mergeDescendants = true) { contentDescription = counter },
+            Modifier.align(Alignment.Center).clearAndSetSemantics { contentDescription = counter },
             Arrangement.spacedBy(8.dp),
             Alignment.CenterVertically,
         ) {
