@@ -5,20 +5,27 @@ import XCTest
 final class IcecFlowUITests: XCTestCase {
     private let app = XCUIApplication()
     private let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-    private let allowLabels = [
-        "Allow Full Access", "Allow Access to All Photos", "Allow Access to All",
-        "Allow Full Library Access", "Allow", "OK",
-    ]
+    private static let preferred = ["Full", "All", "전체", "모든"]
+    private static let forbidden = ["Don’t", "Don't", "허용 안 함", "Limit", "제한"]
+    private static let fallback = ["Allow", "OK", "허용", "확인"]
+
+    /// Taps the full-access button of a permission alert. Never taps deny or limit.
+    @discardableResult
+    private static func allow(_ alert: XCUIElement) -> Bool {
+        let buttons = alert.buttons.allElementsBoundByIndex.filter { button in
+            !forbidden.contains { button.label.contains($0) }
+        }
+        let target = buttons.first { button in preferred.contains { button.label.contains($0) } }
+            ?? buttons.first { fallback.contains($0.label) }
+        target?.tap()
+        return target != nil
+    }
 
     override func setUp() {
         continueAfterFailure = false
         app.launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
-        addUIInterruptionMonitor(withDescription: "Photos permission") { [allowLabels] alert in
-            for label in allowLabels where alert.buttons[label].exists {
-                alert.buttons[label].tap()
-                return true
-            }
-            return false
+        addUIInterruptionMonitor(withDescription: "Photos permission") { alert in
+            Self.allow(alert)
         }
         app.launch()
     }
@@ -71,17 +78,12 @@ final class IcecFlowUITests: XCTestCase {
         face.tap()
     }
 
-    /// Taps the in-app "Allow access" button if shown, then the system alert.
+    /// Taps the in-app "Allow access" button if shown, then the system alert directly.
     private func allowPhotos() {
         let inApp = element("Allow access")
         if inApp.waitForExistence(timeout: 3) { inApp.tap() }
-        for label in allowLabels {
-            let button = springboard.buttons[label]
-            if button.waitForExistence(timeout: label == allowLabels[0] ? 3 : 0.5) {
-                button.tap()
-                break
-            }
-        }
+        let alert = springboard.alerts.firstMatch
+        if alert.waitForExistence(timeout: 5) { Self.allow(alert) }
     }
 
     private func element(_ label: String, contains: Bool = false) -> XCUIElement {
