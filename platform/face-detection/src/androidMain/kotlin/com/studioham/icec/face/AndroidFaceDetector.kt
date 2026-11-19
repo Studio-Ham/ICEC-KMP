@@ -9,6 +9,7 @@ import android.os.Build
 import android.provider.MediaStore.Images.Media
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetectorOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -19,7 +20,14 @@ class AndroidFaceDetector(
     context: Context,
 ) : FaceDetector {
     private val resolver = context.applicationContext.contentResolver
-    private val detector = FaceDetection.getClient()
+    private val detector =
+        FaceDetection.getClient(
+            FaceDetectorOptions
+                .Builder()
+                .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                .setMinFaceSize(MIN_FACE_SIZE)
+                .build(),
+        )
 
     override suspend fun detect(photoId: String): List<FaceBounds> {
         val bitmap = withContext(Dispatchers.IO) { decode(photoId) }

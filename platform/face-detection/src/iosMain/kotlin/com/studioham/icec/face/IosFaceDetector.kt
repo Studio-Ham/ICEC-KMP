@@ -16,12 +16,19 @@ import platform.UIKit.UIImage
 import swiftPMImport.ICEC.platform.platform.face.detection.MLKFace
 import swiftPMImport.ICEC.platform.platform.face.detection.MLKFaceDetector
 import swiftPMImport.ICEC.platform.platform.face.detection.MLKFaceDetectorOptions
+import swiftPMImport.ICEC.platform.platform.face.detection.MLKFaceDetectorPerformanceModeAccurate
 import swiftPMImport.ICEC.platform.platform.face.detection.MLKVisionImage
 import kotlin.coroutines.resume
 
 @OptIn(ExperimentalForeignApi::class)
 class IosFaceDetector : FaceDetector {
-    private val detector = MLKFaceDetector.faceDetectorWithOptions(MLKFaceDetectorOptions())
+    private val detector =
+        MLKFaceDetector.faceDetectorWithOptions(
+            MLKFaceDetectorOptions().apply {
+                performanceMode = MLKFaceDetectorPerformanceModeAccurate
+                minFaceSize = MIN_FACE_SIZE.toDouble()
+            },
+        )
 
     /** UX-040: asks iOS for background time so leaving the app does not suspend a running analysis. */
     override suspend fun detect(photoId: String): List<FaceBounds> {
