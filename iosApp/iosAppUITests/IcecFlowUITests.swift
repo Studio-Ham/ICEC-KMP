@@ -8,6 +8,7 @@ final class IcecFlowUITests: XCTestCase {
     private static let preferred = ["Full", "All", "전체", "모든"]
     private static let forbidden = ["Don’t", "Don't", "허용 안 함", "Limit", "제한"]
     private static let fallback = ["Allow", "OK", "허용", "확인"]
+    private static var savedCount = 0
 
     /// Taps the full-access button of a permission alert. Never taps deny or limit.
     @discardableResult
@@ -51,24 +52,76 @@ final class IcecFlowUITests: XCTestCase {
         save(name: "store-04-result")
     }
 
+    func testRapidLeaveDoesNotCrash() {
+        openEditor()
+        XCTAssertTrue(element("0 of 3 faces selected").waitForExistence(timeout: 30))
+        element("Back").tap()
+
+        let leave = element("Leave")
+        XCTAssertTrue(leave.waitForExistence(timeout: 5))
+        let frame = leave.frame
+        let leaveCenter = app.coordinate(withNormalizedOffset: .zero)
+            .withOffset(CGVector(dx: frame.midX, dy: frame.midY))
+        for _ in 0..<3 {
+            leaveCenter.tap()
+        }
+
+        Thread.sleep(forTimeInterval: 1)
+        XCTAssertEqual(app.state, .runningForeground)
+        let photo = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH 'Photo, '")).firstMatch
+        XCTAssertTrue(photo.exists)
+        snap("gallery-after-rapid-leave")
+    }
+
+    func testResultBlocksSwipeBack() {
+        openEditor()
+        tapFace(1)
+        save()
+
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5))
+            .press(
+                forDuration: 0.1,
+                thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5))
+            )
+
+        Thread.sleep(forTimeInterval: 1)
+        XCTAssertTrue(element("Saved!").exists)
+        let editAgain = element("Edit again")
+        XCTAssertTrue(editAgain.exists)
+        snap("result-after-swipe-back")
+        editAgain.tap()
+        XCTAssertTrue(element("1 of 3 faces selected").waitForExistence(timeout: 5))
+    }
+
     private func openEditor() {
         let load = element("Load photo")
         XCTAssertTrue(load.waitForExistence(timeout: 20))
         snap("01-home")
         load.tap()
         allowPhotos()
-        let firstPhoto = app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label BEGINSWITH 'Photo, '")).firstMatch
-        XCTAssertTrue(firstPhoto.waitForExistence(timeout: 20))
+        let photos = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH 'Photo, '"))
+        XCTAssertTrue(photos.firstMatch.waitForExistence(timeout: 20))
+        let galleryPhotos = photos.allElementsBoundByIndex
+        // The newest-first gallery lists saved results, then the fixture, then simulator samples.
+        guard galleryPhotos.indices.contains(Self.savedCount) else {
+            XCTFail("Expected a fixture photo in the gallery")
+            return
+        }
         snap("02-gallery")
-        firstPhoto.tap()
+        galleryPhotos[Self.savedCount].tap()
         snap("03-editor")
     }
 
     private func save(name: String = "06-result") {
         element("Save").tap()
         allowPhotos()
-        XCTAssertTrue(element("Saved!").waitForExistence(timeout: 30))
+        guard element("Saved!").waitForExistence(timeout: 30) else {
+            XCTFail("Expected the photo to save successfully")
+            return
+        }
+        Self.savedCount += 1
         snap(name)
     }
 

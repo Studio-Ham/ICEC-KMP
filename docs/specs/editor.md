@@ -4,7 +4,7 @@
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki FaceAnalysis · Editor UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/editor.md) · [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md) · Figma `[승인] 화면 4` (`316:3606`, `316:4197`, `316:4294`, `335:2`, Snackbar `316:4050`·`316:3747`·`316:3897`)
 > 관련 결정: [UX-039](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-039), [UX-041](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-041), [UX-014](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-014), [UX-016](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-016), [UX-042](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-042), [ADR-0001](../adr/0001-face-analysis-route.md), [ADR-0004](../adr/0004-common-mosaic-rendering.md)
-> 최종 검토일: 2026-11-18
+> 최종 검토일: 2026-11-19
 
 ## 목적
 
@@ -27,6 +27,7 @@
 - `feature/editor`가 `EditorViewModel`과 `EditorScreen`을 제공합니다. FaceAnalysis와 같은 모듈입니다([ADR-0001](../adr/0001-face-analysis-route.md)).
 - `Route.Editor(photoId, faces)`로 진입합니다. FaceAnalysis를 대체하므로 Editor를 나가면 Gallery로 돌아갑니다.
 - 화면 이미지는 `PhotoLibrary.thumbnail(photoId, 2048)`입니다. 저장 이미지는 ③에서 원본 해상도로 따로 렌더링합니다.
+- 사진 상자는 이미지 비율에 맞추고 12dp 둥근 모서리로 자릅니다. 1dp 테두리를 두르고 바깥 여백 배경은 채우지 않습니다.
 - 얼굴은 왼쪽부터 정렬합니다. 사진 위 가이드와 하단 목록이 같은 순서를 씁니다.
 - 모든 얼굴은 미선택으로 시작합니다(`Detected ≠ Selected`).
 - `EditorState`는 얼굴 목록, 선택한 얼굴 집합과 이탈 확인 Dialog 표시 여부를 가집니다. `canSave`는 선택이 1개 이상일 때 참입니다(UX-039).
@@ -92,6 +93,7 @@
 - [x] 모든 얼굴은 미선택으로 시작하고, 사진 위 가이드와 목록 항목을 눌러 선택/해제한다
 - [x] 선택한 얼굴에 모자이크 미리보기가 바로 보인다
 - [x] 선택 0개이면 `전체 선택`과 비활성 저장, 1개 이상이면 `전체 해제`와 활성 저장
+- [x] 사진 상자가 이미지 비율에 맞고 12dp 둥근 모서리로 보인다
 - [x] 뒤로가기는 이탈 확인 Dialog를 열고, `나가기`는 Gallery, `계속 편집`은 선택을 유지한다
 - [x] `EditorTest`: 선택·전체 선택/해제·저장 상태, 이탈 확인, 모자이크 칸 수, 좌표 변환, 얼굴 자르기
 

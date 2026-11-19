@@ -48,6 +48,9 @@ kotlin {
             implementation(projects.feature.result)
             implementation(libs.androidx.lifecycle.viewmodelNavigation3)
         }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
     }
 }
 

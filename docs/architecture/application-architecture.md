@@ -2,7 +2,7 @@
 
 > 상태: Accepted
 > SSOT: Git Repository
-> 최종 검토일: 2026-11-17
+> 최종 검토일: 2026-11-19
 
 ## 상태 관리
 
@@ -35,6 +35,10 @@ sealed interface EditorEffect {
 
 - 공통 네비게이션은 Navigation 3를 사용합니다.
 - 타입 안전한 Route/Key와 back stack을 `commonMain`에서 관리합니다.
+- back stack 변경 콜백(`pop`, `push`, `startOver`, `onFacesDetected`)은 호출한 route가 back stack 맨 위일 때만 이동합니다.
+- 뒤로가기(`pop`, `NavDisplay.onBack`)는 마지막 항목인 `Home`을 제거하지 않습니다.
+- 이 규칙은 비활성 route의 중복 콜백이나 `나가기` 연타로 back stack이 비는 문제를 막습니다. back stack이 비면 `NavDisplay`가 `backstack cannot be empty` 예외를 던집니다.
+- `BackStackTest`가 맨 위 route 검사, 중복 이동 무시와 `Home` 유지를 검증합니다.
 - MVP 정상 흐름은 `Home → Gallery → FaceAnalysis → Editor → Result`입니다.
 - 사진 선택 후 `FaceAnalysis`를 별도 Route로 열어 얼굴 검출을 수행합니다. 검출된 얼굴이 있으면 `Editor`로 이동합니다.
 - 얼굴이 없거나 분석에 실패·시간 초과한 경우에는 각각 `NoFaceDetected`, `AnalysisFailed`, `AnalysisTimeout` 화면으로 이동합니다. 오류·시간 초과 화면은 같은 사진 재분석 또는 이전 Gallery 탐색 위치 복귀를 지원합니다.
