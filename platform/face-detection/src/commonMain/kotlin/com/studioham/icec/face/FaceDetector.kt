@@ -8,6 +8,9 @@ data class FaceBounds(
     val bottom: Float,
 )
 
+/** Minimum detectable face width is 3% of the input image width. */
+internal const val MIN_FACE_SIZE = 0.03f
+
 fun interface FaceDetector {
     /**
      * Faces in the photo with platform id [photoId] (MediaStore id, PHAsset localIdentifier). An empty list means
