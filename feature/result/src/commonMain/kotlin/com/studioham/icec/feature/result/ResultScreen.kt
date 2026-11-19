@@ -138,7 +138,7 @@ internal fun ResultContent(
                 .padding(top = 24.dp),
             contentAlignment = Alignment.Center,
         ) {
-            image?.let { ZoomableImage(it, zoom) }
+            image?.let { ZoomableImage(it, zoom, Modifier.widthIn(max = 384.dp)) }
         }
         Actions(onEditAgain, onOtherPhoto, onHome)
     }
@@ -242,12 +242,12 @@ private fun Button(
 private fun ZoomableImage(
     image: ImageBitmap,
     zoom: ZoomState,
+    modifier: Modifier = Modifier,
 ) {
     val imageSize = Size(image.width.toFloat(), image.height.toFloat())
     val shape = RoundedCornerShape(12.dp)
     Canvas(
-        Modifier
-            .widthIn(max = 384.dp)
+        modifier
             .aspectRatio(imageSize.width / imageSize.height)
             .clip(shape)
             .border(1.dp, IcecColors.Hairline, shape)
