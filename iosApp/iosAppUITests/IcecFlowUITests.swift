@@ -8,6 +8,7 @@ final class IcecFlowUITests: XCTestCase {
     private static let preferred = ["Full", "All", "전체", "모든"]
     private static let forbidden = ["Don’t", "Don't", "허용 안 함", "Limit", "제한"]
     private static let fallback = ["Allow", "OK", "허용", "확인"]
+    private static var savedCount = 0
 
     /// Taps the full-access button of a permission alert. Never taps deny or limit.
     @discardableResult
@@ -102,20 +103,25 @@ final class IcecFlowUITests: XCTestCase {
         let photos = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label BEGINSWITH 'Photo, '"))
         XCTAssertTrue(photos.firstMatch.waitForExistence(timeout: 20))
-        // Saved results appear before the fixture in the newest-first gallery.
-        guard let fixture = photos.allElementsBoundByIndex.last else {
+        let galleryPhotos = photos.allElementsBoundByIndex
+        // The newest-first gallery lists saved results, then the fixture, then simulator samples.
+        guard galleryPhotos.indices.contains(Self.savedCount) else {
             XCTFail("Expected a fixture photo in the gallery")
             return
         }
         snap("02-gallery")
-        fixture.tap()
+        galleryPhotos[Self.savedCount].tap()
         snap("03-editor")
     }
 
     private func save(name: String = "06-result") {
         element("Save").tap()
         allowPhotos()
-        XCTAssertTrue(element("Saved!").waitForExistence(timeout: 30))
+        guard element("Saved!").waitForExistence(timeout: 30) else {
+            XCTFail("Expected the photo to save successfully")
+            return
+        }
+        Self.savedCount += 1
         snap(name)
     }
 
