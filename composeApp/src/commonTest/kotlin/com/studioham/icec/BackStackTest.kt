@@ -14,7 +14,7 @@ class BackStackTest {
         backStack.pop(editor)
         backStack.pop(editor)
 
-        assertEquals(listOf(Route.Home, gallery), backStack)
+        assertEquals(listOf<Route>(Route.Home, gallery), backStack)
     }
 
     @Test
@@ -23,7 +23,7 @@ class BackStackTest {
 
         backStack.pop(Route.Home)
 
-        assertEquals(listOf(Route.Home), backStack)
+        assertEquals(listOf<Route>(Route.Home), backStack)
     }
 
     @Test
@@ -33,7 +33,7 @@ class BackStackTest {
         backStack.push(Route.Home, gallery)
         backStack.push(Route.Home, gallery)
 
-        assertEquals(listOf(Route.Home, gallery), backStack)
+        assertEquals(listOf<Route>(Route.Home, gallery), backStack)
     }
 
     @Test
@@ -43,6 +43,6 @@ class BackStackTest {
         backStack.pop(gallery)
         backStack.push(gallery, Route.FaceAnalysis("another-photo"))
 
-        assertEquals(listOf(Route.Home, gallery, editor), backStack)
+        assertEquals(listOf<Route>(Route.Home, gallery, editor), backStack)
     }
 }

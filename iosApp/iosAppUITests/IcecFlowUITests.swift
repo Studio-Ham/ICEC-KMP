@@ -99,11 +99,16 @@ final class IcecFlowUITests: XCTestCase {
         snap("01-home")
         load.tap()
         allowPhotos()
-        let firstPhoto = app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label BEGINSWITH 'Photo, '")).firstMatch
-        XCTAssertTrue(firstPhoto.waitForExistence(timeout: 20))
+        let photos = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH 'Photo, '"))
+        XCTAssertTrue(photos.firstMatch.waitForExistence(timeout: 20))
+        // Saved results appear before the fixture in the newest-first gallery.
+        guard let fixture = photos.allElementsBoundByIndex.last else {
+            XCTFail("Expected a fixture photo in the gallery")
+            return
+        }
         snap("02-gallery")
-        firstPhoto.tap()
+        fixture.tap()
         snap("03-editor")
     }
 
