@@ -38,7 +38,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -96,6 +98,7 @@ import com.studioham.icec.feature.gallery.resources.ic_refresh
 import com.studioham.icec.media.Photo
 import com.studioham.icec.media.PhotoAccess
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -151,6 +154,7 @@ fun GalleryScreen(
             viewModel::onAllowClick,
             viewModel::onRetryClick,
             viewModel::onPhotoClick,
+            viewModel::onLoadMore,
             viewModel::thumbnail,
         )
         if (unavailable) UnavailableSnackbar(Modifier.align(Alignment.BottomStart))
@@ -189,11 +193,12 @@ private fun GalleryContent(
     onAllowClick: () -> Unit,
     onRetryClick: () -> Unit,
     onPhotoClick: (Photo) -> Unit,
+    onLoadMore: () -> Unit,
     thumbnail: suspend (Photo, Int) -> ImageBitmap?,
     modifier: Modifier = Modifier,
 ) {
     val allowed = access == PhotoAccess.Granted || access == PhotoAccess.Limited
-    val count = (photos as? PhotosState.Loaded)?.count?.takeIf { allowed }
+    val count = (photos as? PhotosState.Loaded)?.total?.takeIf { allowed }
     Column(modifier.fillMaxSize().background(Color.Black).windowInsetsPadding(WindowInsets.safeDrawing)) {
         TopBar(count, onBack)
         Box(Modifier.fillMaxWidth().weight(1f), Alignment.Center) {
@@ -210,12 +215,18 @@ private fun GalleryContent(
                     }
                 }
 
-                photos is PhotosState.Loaded && photos.sections.isEmpty() -> {
+                photos is PhotosState.Loaded && photos.sections.isEmpty() && photos.appendFailed -> {
+                    Message(Res.drawable.ic_photo_large, Res.string.gallery_load_failed_title, Res.string.gallery_load_failed_body) {
+                        TextAction(Res.drawable.ic_refresh, Res.string.gallery_retry, chevron = false, onLoadMore)
+                    }
+                }
+
+                photos is PhotosState.Loaded && photos.sections.isEmpty() && photos.next == null -> {
                     Message(Res.drawable.ic_photo_large, Res.string.gallery_empty_title, Res.string.gallery_empty_body)
                 }
 
                 photos is PhotosState.Loaded -> {
-                    PhotoGrid(photos.sections, onPhotoClick, thumbnail)
+                    PhotoGrid(photos.sections, photos.next, onPhotoClick, onLoadMore, thumbnail)
                 }
 
                 else -> {
@@ -273,13 +284,30 @@ private fun TopBar(
 @Composable
 private fun PhotoGrid(
     sections: List<PhotoSection>,
+    next: Int?,
     onPhotoClick: (Photo) -> Unit,
+    onLoadMore: () -> Unit,
     thumbnail: suspend (Photo, Int) -> ImageBitmap?,
+    modifier: Modifier = Modifier,
 ) {
     val gridState = rememberLazyGridState()
+    val loadMore by rememberUpdatedState(onLoadMore)
+    val itemCount = sections.sumOf { it.photos.size + 1 }
+    LaunchedEffect(next, itemCount) {
+        if (next == null) return@LaunchedEffect
+        snapshotFlow {
+            val layout = gridState.layoutInfo
+            val lastVisible = layout.visibleItemsInfo.lastOrNull()?.index ?: -1
+            if (layout.totalItemsCount == itemCount && itemCount - lastVisible - 1 <= 30) {
+                gridState.isScrollInProgress
+            } else {
+                null
+            }
+        }.filterNotNull().collect { loadMore() }
+    }
     val scope = rememberCoroutineScope()
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-    Box(Modifier.fillMaxSize()) {
+    Box(modifier.fillMaxSize()) {
         // #34: at least 120dp per tile; a portrait phone (about 390dp) still gets 3 columns.
         LazyVerticalGrid(
             GridCells.Adaptive(120.dp),
@@ -296,6 +324,7 @@ private fun PhotoGrid(
                 items(section.photos, key = { it.id }) { PhotoTile(it, section.date, today, onPhotoClick, thumbnail) }
             }
         }
+        if (sections.isEmpty()) return@Box
         Box(
             Modifier
                 .align(Alignment.BottomEnd)
@@ -449,17 +478,17 @@ internal fun Int.withThousands(): String =
 @Preview
 @Composable
 private fun PermissionRequiredPreview() {
-    GalleryContent(PhotoAccess.NotDetermined, PhotosState.Loading, {}, {}, {}, {}, { _, _ -> null })
+    GalleryContent(PhotoAccess.NotDetermined, PhotosState.Loading, {}, {}, {}, {}, {}, { _, _ -> null })
 }
 
 @Preview
 @Composable
 private fun EmptyPreview() {
-    GalleryContent(PhotoAccess.Granted, PhotosState.Loaded(emptyList()), {}, {}, {}, {}, { _, _ -> null })
+    GalleryContent(PhotoAccess.Granted, PhotosState.Loaded(emptyList(), total = 0), {}, {}, {}, {}, {}, { _, _ -> null })
 }
 
 @Preview
 @Composable
 private fun LoadFailedPreview() {
-    GalleryContent(PhotoAccess.Granted, PhotosState.LoadFailed, {}, {}, {}, {}, { _, _ -> null })
+    GalleryContent(PhotoAccess.Granted, PhotosState.LoadFailed, {}, {}, {}, {}, {}, { _, _ -> null })
 }

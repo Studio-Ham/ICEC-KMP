@@ -9,7 +9,9 @@ import com.studioham.icec.media.PhotoLibrary
 import com.studioham.icec.media.PhotoPermission
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,9 +33,10 @@ sealed interface PhotosState {
 
     data class Loaded(
         val sections: List<PhotoSection>,
-    ) : PhotosState {
-        val count = sections.sumOf { it.photos.size }
-    }
+        val total: Int,
+        val next: Int? = null,
+        val appendFailed: Boolean = false,
+    ) : PhotosState
 
     data object LoadFailed : PhotosState
 }
@@ -61,6 +64,8 @@ class GalleryViewModel(
     private val _effects = Channel<GalleryEffect>(Channel.BUFFERED)
     val effects: Flow<GalleryEffect> = _effects.receiveAsFlow()
 
+    private var loadJob: Job? = null
+
     /** UX-031: on every resume re-read the permission and the list; the grid keeps its anchor by photo id. */
     fun refresh() {
         _access.value = permission.status()
@@ -74,7 +79,7 @@ class GalleryViewModel(
                 _effects.send(GalleryEffect.OpenPhoto(photo))
             } else {
                 _effects.send(GalleryEffect.PhotoUnavailable)
-                loadIfAllowed()
+                refresh()
             }
         }
     }
@@ -99,19 +104,57 @@ class GalleryViewModel(
         sizePx: Int,
     ): ImageBitmap? = library.thumbnail(photo.id, sizePx)
 
+    fun onLoadMore() {
+        val loaded = _photos.value as? PhotosState.Loaded ?: return
+        val next = loaded.next ?: return
+        if (!hasAccess() || loadJob?.isActive == true) return
+        load(next, PAGE_SIZE, loaded)
+    }
+
     private fun loadIfAllowed() {
-        if (_access.value != PhotoAccess.Granted && _access.value != PhotoAccess.Limited) return
-        if (_photos.value !is PhotosState.Loaded) _photos.value = PhotosState.Loading
-        viewModelScope.launch {
-            _photos.value =
+        loadJob?.cancel()
+        if (!hasAccess()) return
+        val loaded = _photos.value as? PhotosState.Loaded
+        val loadedRange = loaded?.let { it.next ?: it.total } ?: 0
+        if (loaded == null) _photos.value = PhotosState.Loading
+        load(0, maxOf(PAGE_SIZE, loadedRange))
+    }
+
+    private fun hasAccess(): Boolean = _access.value == PhotoAccess.Granted || _access.value == PhotoAccess.Limited
+
+    private fun load(
+        offset: Int,
+        limit: Int,
+        previous: PhotosState.Loaded? = null,
+    ) {
+        loadJob =
+            viewModelScope.launch {
                 try {
-                    PhotosState.Loaded(library.photos().groupByDay(TimeZone.currentSystemDefault()))
+                    val page = library.photos(offset, limit)
+                    ensureActive()
+                    val combined = previous?.sections.orEmpty().flatMap { it.photos } + page.photos
+                    _photos.value =
+                        PhotosState.Loaded(
+                            combined.distinctBy { it.id }.groupByDay(TimeZone.currentSystemDefault()),
+                            page.total,
+                            page.next,
+                        )
                 } catch (e: CancellationException) {
                     throw e
                 } catch (_: Exception) {
-                    PhotosState.LoadFailed
+                    ensureActive()
+                    _photos.value =
+                        when {
+                            previous == null -> PhotosState.LoadFailed
+                            previous.sections.isEmpty() -> previous.copy(appendFailed = true)
+                            else -> previous
+                        }
                 }
-        }
+            }
+    }
+
+    private companion object {
+        const val PAGE_SIZE = 60
     }
 }
 

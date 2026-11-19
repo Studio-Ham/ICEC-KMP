@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.unit.IntRect
 import com.studioham.icec.face.FaceBounds
-import com.studioham.icec.media.Photo
 import com.studioham.icec.media.PhotoLibrary
+import com.studioham.icec.media.PhotoPage
 import com.studioham.icec.media.PhotoPermission
 import com.studioham.icec.media.SaveException
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +43,10 @@ class EditorSaveTest {
     ) : PhotoLibrary {
         var saved: ImageBitmap? = null
 
-        override suspend fun photos() = emptyList<Photo>()
+        override suspend fun photos(
+            offset: Int,
+            limit: Int,
+        ) = PhotoPage(emptyList(), null, 0)
 
         override suspend fun isReadable(id: String) = true
 
