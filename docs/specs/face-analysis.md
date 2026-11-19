@@ -4,7 +4,7 @@
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki FaceAnalysis · Editor UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/editor.md) · [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md) · Figma `[승인] 화면 3` (`316:2600`, `316:2750`, `316:2774`, `340:397`)
 > 관련 결정: [UX-002](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-002), [UX-037~038](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-037), [UX-040](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-040), [ADR-0001](../adr/0001-face-analysis-route.md), [ADR-0003](../adr/0003-ios-mlkit-swiftpm-import.md)
-> 최종 검토일: 2026-11-17
+> 최종 검토일: 2026-11-19
 
 ## 목적
 
@@ -12,7 +12,7 @@ Gallery에서 고른 사진의 얼굴을 기기 안에서 찾습니다. 결과�
 
 ## 범위
 
-구현은 세 단계로 나눕니다.
+구현은 세 단계로 나뉩니다.
 
 | 단계 | Issue | 내용 |
 | --- | --- | --- |
@@ -29,6 +29,12 @@ Gallery에서 고른 사진의 얼굴을 기기 안에서 찾습니다. 결과�
 - 빈 목록은 분석에 성공했고 얼굴이 없다는 뜻입니다. 사진을 읽을 수 없거나 검출기가 실패하면 예외를 던집니다.
 - `FaceBounds`는 똑바로 세운 사진 기준의 비율(0~1)입니다. 화면이나 저장 해상도에 상관없이 같은 값을 씁니다.
 - 분석용 이미지는 긴 변 2048px 이하로 줄입니다. PRD가 검출 단계의 다운샘플링을 허용합니다.
+- `AndroidFaceDetector`와 `IosFaceDetector`는 ML Kit `performanceMode`를 `ACCURATE`로 설정합니다(이전 기본값 `FAST`).
+- 두 검출기는 `minFaceSize`를 `commonMain` `FaceDetector.kt`의 공통 상수 `MIN_FACE_SIZE`(`0.03f`)로 설정합니다(이전 기본값 `0.1`).
+- 검출기는 기본값 `0.1`일 때 얼굴 폭이 이미지 폭의 10% 이상인 얼굴만 찾습니다. `0.03`은 얼굴 폭이 3% 이상인 얼굴까지 찾습니다.
+- TestFlight에서 검출기가 단체 사진의 작은 얼굴과 옆얼굴을 찾지 못했습니다(#46). 이 문제를 해결하려고 `ACCURATE` 모드와 `MIN_FACE_SIZE`를 적용했습니다.
+- 감도 조정 후에도 입력 이미지 상한(긴 변 2048px)과 분석 제한 시간(10초)은 그대로 유지합니다.
+- 2026-11-19 Argon 환경의 iOS 시뮬레이터에서 `three-faces.jpg`를 검증했습니다. 검출기는 얼굴 3개를 찾았습니다. 1장 검출 시간은 147ms입니다.
 - 검출은 메인 스레드 밖에서 실행합니다.
 - 시간 초과는 10초입니다(2026-11-17 사용자 결정). `FaceAnalysisViewModel`이 검출 호출에 적용합니다.
 
