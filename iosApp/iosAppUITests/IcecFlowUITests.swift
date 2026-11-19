@@ -51,6 +51,48 @@ final class IcecFlowUITests: XCTestCase {
         save(name: "store-04-result")
     }
 
+    func testRapidLeaveDoesNotCrash() {
+        openEditor()
+        XCTAssertTrue(element("0 of 3 faces selected").waitForExistence(timeout: 30))
+        element("Back").tap()
+
+        let leave = element("Leave")
+        XCTAssertTrue(leave.waitForExistence(timeout: 5))
+        let frame = leave.frame
+        let leaveCenter = app.coordinate(withNormalizedOffset: .zero)
+            .withOffset(CGVector(dx: frame.midX, dy: frame.midY))
+        for _ in 0..<3 {
+            leaveCenter.tap()
+        }
+
+        Thread.sleep(forTimeInterval: 1)
+        XCTAssertEqual(app.state, .runningForeground)
+        let photo = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH 'Photo, '")).firstMatch
+        XCTAssertTrue(photo.exists)
+        snap("gallery-after-rapid-leave")
+    }
+
+    func testResultBlocksSwipeBack() {
+        openEditor()
+        tapFace(1)
+        save()
+
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5))
+            .press(
+                forDuration: 0.1,
+                thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5))
+            )
+
+        Thread.sleep(forTimeInterval: 1)
+        XCTAssertTrue(element("Saved!").exists)
+        let editAgain = element("Edit again")
+        XCTAssertTrue(editAgain.exists)
+        snap("result-after-swipe-back")
+        editAgain.tap()
+        XCTAssertTrue(element("1 of 3 faces selected").waitForExistence(timeout: 5))
+    }
+
     private func openEditor() {
         let load = element("Load photo")
         XCTAssertTrue(load.waitForExistence(timeout: 20))
