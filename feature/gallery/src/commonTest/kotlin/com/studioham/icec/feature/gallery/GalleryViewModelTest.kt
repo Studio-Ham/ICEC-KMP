@@ -4,7 +4,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.studioham.icec.media.Photo
 import com.studioham.icec.media.PhotoAccess
 import com.studioham.icec.media.PhotoLibrary
+import com.studioham.icec.media.PhotoPage
 import com.studioham.icec.media.PhotoPermission
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -45,11 +47,18 @@ class GalleryViewModelTest {
         var result: () -> List<Photo>,
     ) : PhotoLibrary {
         var readable = true
-        var loads = 0
+        val loads = mutableListOf<Pair<Int, Int>>()
+        var beforeLoad: suspend (Int) -> Unit = {}
 
-        override suspend fun photos(): List<Photo> {
-            loads++
-            return result()
+        override suspend fun photos(
+            offset: Int,
+            limit: Int,
+        ): PhotoPage {
+            loads += offset to limit
+            beforeLoad(offset)
+            val photos = result()
+            val end = minOf(offset + limit, photos.size)
+            return PhotoPage(photos.drop(offset).take(limit), end.takeIf { it < photos.size }, photos.size)
         }
 
         override suspend fun isReadable(id: String) = readable
@@ -102,7 +111,7 @@ class GalleryViewModelTest {
         library.result = { listOf(Photo("1", 0)) }
         viewModel.onRetryClick()
 
-        assertEquals(1, (viewModel.photos.value as PhotosState.Loaded).count)
+        assertEquals(1, (viewModel.photos.value as PhotosState.Loaded).total)
     }
 
     @Test
@@ -125,8 +134,98 @@ class GalleryViewModelTest {
             viewModel.onPhotoClick(Photo("gone", 0))
 
             assertEquals(GalleryEffect.PhotoUnavailable, viewModel.effects.first())
-            assertEquals(1, library.loads) // UX-030: the deleted photo drops out of the list
+            assertEquals(listOf(0 to 60), library.loads) // UX-030: the deleted photo drops out of the list
         }
+
+    @Test
+    fun firstPageLoadsWithoutReadingMore() {
+        val library = pagedLibrary()
+        val viewModel = gallery(library)
+
+        viewModel.refresh()
+
+        assertEquals(listOf(0 to 60), library.loads)
+        assertEquals(60, viewModel.loadedPhotos().size)
+        assertEquals(125, (viewModel.photos.value as PhotosState.Loaded).total)
+    }
+
+    @Test
+    fun loadMoreAppendsTheNextPage() {
+        val library = pagedLibrary()
+        val viewModel = gallery(library)
+        viewModel.refresh()
+
+        viewModel.onLoadMore()
+
+        assertEquals(listOf(0 to 60, 60 to 60), library.loads)
+        assertEquals(library.result().take(120), viewModel.loadedPhotos())
+    }
+
+    @Test
+    fun loadMoreStopsAtTheEnd() {
+        val library = pagedLibrary(61)
+        val viewModel = gallery(library)
+        viewModel.refresh()
+
+        viewModel.onLoadMore()
+        viewModel.onLoadMore()
+
+        assertEquals(listOf(0 to 60, 60 to 60), library.loads)
+        assertEquals(library.result(), viewModel.loadedPhotos())
+    }
+
+    @Test
+    fun concurrentLoadMoreReadsThePageOnlyOnce() =
+        runTest {
+            val gate = CompletableDeferred<Unit>()
+            val library = pagedLibrary().apply { beforeLoad = { offset -> if (offset == 60) gate.await() } }
+            val viewModel = gallery(library)
+            viewModel.refresh()
+
+            viewModel.onLoadMore()
+            viewModel.onLoadMore()
+
+            assertEquals(listOf(0 to 60, 60 to 60), library.loads)
+            gate.complete(Unit)
+            assertEquals(library.result().take(120), viewModel.loadedPhotos())
+        }
+
+    @Test
+    fun refreshRereadsTheLoadedRange() {
+        val library = pagedLibrary()
+        val viewModel = gallery(library)
+        viewModel.refresh()
+        viewModel.onLoadMore()
+        val updated = listOf(Photo("new", 126)) + library.result()
+        library.result = { updated }
+
+        viewModel.refresh()
+
+        assertEquals(listOf(0 to 60, 60 to 60, 0 to 120), library.loads)
+        assertEquals(updated.take(120), viewModel.loadedPhotos())
+    }
+
+    @Test
+    fun loadMoreFailureKeepsTheListAndCanBeRetried() {
+        val library = pagedLibrary().apply { beforeLoad = { offset -> if (offset == 60) error("MediaStore down") } }
+        val viewModel = gallery(library)
+        viewModel.refresh()
+        val loaded = viewModel.photos.value
+
+        viewModel.onLoadMore()
+        assertEquals(loaded, viewModel.photos.value)
+        library.beforeLoad = {}
+        viewModel.onLoadMore()
+
+        assertEquals(listOf(0 to 60, 60 to 60, 60 to 60), library.loads)
+        assertEquals(library.result().take(120), viewModel.loadedPhotos())
+    }
+
+    private fun pagedLibrary(count: Int = 125) = FakeLibrary { (count downTo 1).map { Photo(it.toString(), it.toLong()) } }
+
+    private fun gallery(library: FakeLibrary) = GalleryViewModel(FakePermission(PhotoAccess.Granted, PhotoAccess.Granted), library)
+
+    private fun GalleryViewModel.loadedPhotos() = (photos.value as PhotosState.Loaded).sections.flatMap { it.photos }
 
     @Test
     fun photosAreGroupedByDayNewestFirst() {

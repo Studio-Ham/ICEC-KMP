@@ -9,6 +9,7 @@ import kotlinx.cinterop.readValue
 import kotlinx.cinterop.useContents
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.jetbrains.skia.EncodedImageFormat
@@ -23,6 +24,7 @@ import platform.Foundation.timeIntervalSince1970
 import platform.Photos.PHAsset
 import platform.Photos.PHAssetCreationRequest
 import platform.Photos.PHAssetMediaTypeImage
+import platform.Photos.PHAssetPlaybackStyleImageAnimated
 import platform.Photos.PHAssetResource
 import platform.Photos.PHAssetResourceTypePhoto
 import platform.Photos.PHFetchOptions
@@ -48,15 +50,24 @@ import kotlin.coroutines.resumeWithException
 
 @OptIn(ExperimentalForeignApi::class)
 class IosPhotoLibrary : PhotoLibrary {
-    override suspend fun photos(): List<Photo> =
+    override suspend fun photos(
+        offset: Int,
+        limit: Int,
+    ): PhotoPage =
         withContext(Dispatchers.Default) {
             val options = PHFetchOptions().apply { sortDescriptors = listOf(NSSortDescriptor(key = "creationDate", ascending = false)) }
             val result = PHAsset.fetchAssetsWithMediaType(PHAssetMediaTypeImage, options)
-            (0 until result.count.toInt()).mapNotNull { index ->
-                val asset = result.objectAtIndex(index.toULong()) as PHAsset
-                if (asset.isUnsupported()) return@mapNotNull null
-                Photo(asset.localIdentifier, ((asset.creationDate?.timeIntervalSince1970 ?: 0.0) * 1000).toLong())
-            }
+            val total = result.count.toInt()
+            val end = offset + minOf(limit, (total - offset).coerceAtLeast(0))
+            val photos =
+                (offset until end).mapNotNull { index ->
+                    ensureActive()
+                    val asset = result.objectAtIndex(index.toULong()) as PHAsset
+                    if (asset.isUnsupported()) return@mapNotNull null
+                    Photo(asset.localIdentifier, ((asset.creationDate?.timeIntervalSince1970 ?: 0.0) * 1000).toLong())
+                }
+            // ponytail: total includes hidden GIF and RAW assets. Count eligible assets separately if an exact total is needed.
+            PhotoPage(photos, end.takeIf { it < total }, total)
         }
 
     override suspend fun isReadable(id: String): Boolean {
@@ -166,8 +177,8 @@ private fun UIImage.upright(): UIImage {
     }
 }
 
-// ponytail: GIF and RAW are found by the first resource's UTI; one lookup per asset, cache it if large libraries list slowly.
 private fun PHAsset.isUnsupported(): Boolean {
+    if (playbackStyle == PHAssetPlaybackStyleImageAnimated) return true
     val uti = (PHAssetResource.assetResourcesForAsset(this).firstOrNull() as? PHAssetResource)?.uniformTypeIdentifier ?: return false
     return uti == "com.compuserve.gif" || uti.contains("raw", ignoreCase = true)
 }

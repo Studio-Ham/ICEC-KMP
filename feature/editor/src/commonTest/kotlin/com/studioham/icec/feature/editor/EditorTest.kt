@@ -7,8 +7,8 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import com.studioham.icec.designsystem.fitRect
 import com.studioham.icec.face.FaceBounds
-import com.studioham.icec.media.Photo
 import com.studioham.icec.media.PhotoLibrary
+import com.studioham.icec.media.PhotoPage
 import com.studioham.icec.media.PhotoPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,7 +25,10 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class EditorTest {
     private object NoLibrary : PhotoLibrary {
-        override suspend fun photos() = emptyList<Photo>()
+        override suspend fun photos(
+            offset: Int,
+            limit: Int,
+        ) = PhotoPage(emptyList(), null, 0)
 
         override suspend fun isReadable(id: String) = true
 

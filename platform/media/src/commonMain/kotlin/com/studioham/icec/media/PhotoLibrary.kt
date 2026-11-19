@@ -8,9 +8,22 @@ data class Photo(
     val takenAtMillis: Long,
 )
 
+/** [photos] contains editable images in newest-first order. [next] is the next source offset, or null at the end. */
+data class PhotoPage(
+    val photos: List<Photo>,
+    val next: Int?,
+    val total: Int,
+)
+
 interface PhotoLibrary {
-    /** Editable still images (JPEG, PNG, HEIC/HEIF), newest first. Throws when the library cannot be read. */
-    suspend fun photos(): List<Photo>
+    /**
+     * Reads up to [limit] source entries from [offset]. Unsupported entries can make the page shorter.
+     * The page total is the source list size. Throws when the library cannot be read.
+     */
+    suspend fun photos(
+        offset: Int,
+        limit: Int,
+    ): PhotoPage
 
     /** True when the original can be read now; false when it was deleted or cannot be opened. */
     suspend fun isReadable(id: String): Boolean
