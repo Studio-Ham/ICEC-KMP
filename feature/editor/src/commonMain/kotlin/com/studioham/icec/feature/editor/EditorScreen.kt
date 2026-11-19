@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -293,32 +294,31 @@ private fun Photo(
     modifier: Modifier = Modifier,
 ) {
     val image = state.image
-    val shape = RoundedCornerShape(8.dp)
-    Box(
-        modifier
-            .fillMaxSize()
-            .clip(shape)
-            .background(ViewportFill)
-            .border(1.dp, IcecColors.Hairline, shape),
-    ) {
+    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         if (image == null) return@Box
         val pixels = remember(image, state.faces) { state.faces.map { it.toPixels(image.width, image.height) } }
         val blocks = remember(image, pixels) { pixels.map { image.mosaicBlocks(it) } }
         val check = painterResource(Res.drawable.ic_check)
         val imageSize = Size(image.width.toFloat(), image.height.toFloat())
+        val shape = RoundedCornerShape(12.dp)
         Canvas(
             // Pinch and drag zoom (#25); a short tap still selects a face at any zoom.
-            Modifier.fillMaxSize().zoomable(zoom) { fitRect(imageSize, it) }.pointerInput(pixels, image) {
-                detectTapGestures { tap ->
-                    val viewport = Size(size.width.toFloat(), size.height.toFloat())
-                    val fit = zoom.transform(fitRect(imageSize, viewport), viewport)
-                    // Smallest box wins when boxes overlap, so a small face inside a big one stays reachable.
-                    pixels.indices
-                        .filter { fit.map(pixels[it], image.width).contains(tap) }
-                        .minByOrNull { pixels[it].width * pixels[it].height }
-                        ?.let(onFaceClick)
-                }
-            },
+            Modifier
+                .aspectRatio(imageSize.width / imageSize.height)
+                .clip(shape)
+                .border(1.dp, IcecColors.Hairline, shape)
+                .zoomable(zoom) { fitRect(imageSize, it) }
+                .pointerInput(pixels, image) {
+                    detectTapGestures { tap ->
+                        val viewport = Size(size.width.toFloat(), size.height.toFloat())
+                        val fit = zoom.transform(fitRect(imageSize, viewport), viewport)
+                        // Smallest box wins when boxes overlap, so a small face inside a big one stays reachable.
+                        pixels.indices
+                            .filter { fit.map(pixels[it], image.width).contains(tap) }
+                            .minByOrNull { pixels[it].width * pixels[it].height }
+                            ?.let(onFaceClick)
+                    }
+                },
         ) {
             val fit = zoom.transform(fitRect(imageSize, size), size)
             drawImage(

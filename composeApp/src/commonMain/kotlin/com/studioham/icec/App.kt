@@ -51,52 +51,73 @@ fun App(
     NavDisplay(
         backStack = backStack,
         modifier = modifier,
-        onBack = { backStack.removeLastOrNull() },
+        onBack = { if (backStack.size > 1) backStack.removeLastOrNull() },
         // Each entry owns its ViewModels, so every FaceAnalysis analyzes its own photo and is cleared on pop.
         entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator(), rememberViewModelStoreNavEntryDecorator()),
         entryProvider =
             entryProvider {
-                entry<Route.Home> { HomeScreen(onLoadPhotoClick = { backStack.add(Route.Gallery()) }) }
-                entry<Route.Gallery> {
+                entry<Route.Home> { route ->
+                    HomeScreen(onLoadPhotoClick = { backStack.push(route, Route.Gallery()) })
+                }
+                entry<Route.Gallery> { route ->
                     GalleryScreen(
                         viewModel { graph.galleryViewModel },
-                        onBack = { backStack.removeLastOrNull() },
-                        onPhotoSelected = { backStack.add(Route.FaceAnalysis(it.id)) },
+                        onBack = { backStack.pop(route) },
+                        onPhotoSelected = { backStack.push(route, Route.FaceAnalysis(it.id)) },
                     )
                 }
                 entry<Route.FaceAnalysis> { route ->
                     FaceAnalysisScreen(
                         viewModel { FaceAnalysisViewModel(route.photoId, graph.faceDetector, graph.photoLibrary) },
                         // Replace FaceAnalysis so leaving the Editor returns to the Gallery (UX-037).
-                        onFacesDetected = { faces -> backStack[backStack.lastIndex] = Route.Editor(route.photoId, faces) },
-                        onPickAnother = { backStack.removeLastOrNull() },
+                        onFacesDetected = { faces ->
+                            if (backStack.lastOrNull() == route) {
+                                backStack[backStack.lastIndex] = Route.Editor(route.photoId, faces)
+                            }
+                        },
+                        onPickAnother = { backStack.pop(route) },
                     )
                 }
                 entry<Route.Editor> { route ->
                     EditorScreen(
                         viewModel { EditorViewModel(route.photoId, route.faces, graph.photoLibrary, graph.photoPermission) },
                         // Editor replaced FaceAnalysis, so leaving returns to the Gallery's previous position.
-                        onExit = { backStack.removeLastOrNull() },
+                        onExit = { backStack.pop(route) },
                         // Result sits on top of the Editor, so back returns to the same editing session.
-                        onSaved = { backStack.add(Route.Result(it)) },
+                        onSaved = { backStack.push(route, Route.Result(it)) },
                     )
                 }
-                entry<Route.Result> {
+                entry<Route.Result> { route ->
                     ResultScreen(
-                        it.savedPhotoId,
+                        route.savedPhotoId,
                         graph.photoLibrary,
                         // Result sits on top of the Editor, so popping restores the editing session.
-                        onEditAgain = { backStack.removeLastOrNull() },
-                        onOtherPhoto = { backStack.startOver(gallery = true) },
-                        onHome = { backStack.startOver(gallery = false) },
+                        onEditAgain = { backStack.pop(route) },
+                        onOtherPhoto = { backStack.startOver(route, gallery = true) },
+                        onHome = { backStack.startOver(route, gallery = false) },
                     )
                 }
             },
     )
 }
 
+internal fun MutableList<Route>.pop(from: Route) {
+    if (size > 1 && last() == from) removeAt(lastIndex)
+}
+
+internal fun MutableList<Route>.push(
+    from: Route,
+    to: Route,
+) {
+    if (lastOrNull() == from) add(to)
+}
+
 /** Ends the editing session: keeps only Home, then opens a fresh Gallery when [gallery] is true (Wiki Result UX). */
-private fun MutableList<Route>.startOver(gallery: Boolean) {
+private fun MutableList<Route>.startOver(
+    from: Route.Result,
+    gallery: Boolean,
+) {
+    if (lastOrNull() != from) return
     val session = filterIsInstance<Route.Gallery>().maxOfOrNull { it.session } ?: 0
     retainAll { it == Route.Home }
     if (gallery) add(Route.Gallery(session + 1))

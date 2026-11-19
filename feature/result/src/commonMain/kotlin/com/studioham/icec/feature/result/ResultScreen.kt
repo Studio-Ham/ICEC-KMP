@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -31,7 +30,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -73,7 +71,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
-/** Wiki Result UX: shows the photo actually saved ([savedPhotoId]), not the editor preview. System back means [onEditAgain]. */
+/** Wiki Result UX: shows the photo actually saved ([savedPhotoId]), not the editor preview. Consumes system back and stays on Result. */
 @Composable
 fun ResultScreen(
     savedPhotoId: String,
@@ -84,7 +82,7 @@ fun ResultScreen(
     modifier: Modifier = Modifier,
 ) {
     val image by produceState<ImageBitmap?>(null, savedPhotoId) { value = library.thumbnail(savedPhotoId, IMAGE_PX) }
-    NavigationBackHandler(rememberNavigationEventState(NavigationEventInfo.None), onBackCompleted = onEditAgain)
+    NavigationBackHandler(rememberNavigationEventState(NavigationEventInfo.None), onBackCompleted = {})
     ResultContent(image, onEditAgain, onOtherPhoto, onHome, modifier)
 }
 
@@ -99,8 +97,6 @@ internal fun ResultContent(
 ) {
     // Hoisted so zoom survives switching between the one- and two-pane trees (rotation, window resize).
     val zoom = rememberZoomState()
-    val photoShape = RoundedCornerShape(12.dp)
-    val photoBox = Modifier.clip(photoShape).background(PhotoFill).border(1.dp, IcecColors.Hairline, photoShape)
     if (isTwoPane()) {
         // #34: saved photo on the left, completion message and actions on the right.
         Row(
@@ -111,7 +107,7 @@ internal fun ResultContent(
                 .padding(16.dp),
             Arrangement.spacedBy(16.dp),
         ) {
-            Box(Modifier.weight(1f).fillMaxHeight().then(photoBox), contentAlignment = Alignment.Center) {
+            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
                 image?.let { ZoomableImage(it, zoom) }
             }
             // Scrolls only when a landscape phone is too short for the whole panel.
@@ -131,18 +127,15 @@ internal fun ResultContent(
                 Color.Black,
             ).windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(top = 32.dp, start = 16.dp, end = 16.dp),
-        Arrangement.SpaceBetween,
-        Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Header()
         Box(
             Modifier
-                .padding(horizontal = 16.dp)
-                .widthIn(max = 384.dp)
-                .heightIn(max = 420.dp)
+                .weight(1f)
                 .fillMaxWidth()
-                .aspectRatio(4f / 5f)
-                .then(photoBox),
+                .padding(horizontal = 16.dp)
+                .padding(top = 24.dp),
             contentAlignment = Alignment.Center,
         ) {
             image?.let { ZoomableImage(it, zoom) }
@@ -251,7 +244,15 @@ private fun ZoomableImage(
     zoom: ZoomState,
 ) {
     val imageSize = Size(image.width.toFloat(), image.height.toFloat())
-    Canvas(Modifier.fillMaxSize().clipToBounds().zoomable(zoom) { fitRect(imageSize, it) }) {
+    val shape = RoundedCornerShape(12.dp)
+    Canvas(
+        Modifier
+            .widthIn(max = 384.dp)
+            .aspectRatio(imageSize.width / imageSize.height)
+            .clip(shape)
+            .border(1.dp, IcecColors.Hairline, shape)
+            .zoomable(zoom) { fitRect(imageSize, it) },
+    ) {
         val shown = zoom.transform(fitRect(imageSize, size), size)
         drawImage(
             image,
@@ -262,7 +263,6 @@ private fun ZoomableImage(
 }
 
 private const val IMAGE_PX = 2048
-private val PhotoFill = Color(0xFF161616)
 private val HomeFill = Color(0xFF2A2A2A)
 
 @Preview
