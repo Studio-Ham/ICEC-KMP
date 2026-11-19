@@ -2,7 +2,7 @@
 
 > 상태: Accepted
 > SSOT: Git Repository
-> 최종 검토일: 2026-11-18
+> 최종 검토일: 2026-11-19
 
 ## 테스트 계층
 
@@ -88,6 +88,13 @@ xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp -destination 'pl
 ```shell
 xcrun xcresulttool export attachments --path build/ui.xcresult --output-path build/screenshots
 ```
+
+`IcecFlowUITests`는 다음 시나리오를 검증합니다.
+
+- `testFullFlow`: Home → Gallery → Editor → Result 전체 흐름과 얼굴 선택 저장을 확인합니다.
+- `testStoreScreenshots`: 스토어 스크린샷용 Editor·Result 화면을 캡처합니다.
+- `testRapidLeaveDoesNotCrash`: Editor 이탈 Dialog의 `Leave` 버튼을 연타해도 앱이 크래시하지 않고 Gallery로 복귀하는지 확인합니다.
+- `testResultBlocksSwipeBack`: Result 화면에서 왼쪽 스와이프 뒤로가기가 화면을 유지하는지 확인합니다.
 
 ### 릴리스 빌드
 
