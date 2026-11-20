@@ -4,7 +4,7 @@
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki FaceAnalysis · Editor UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/editor.md) · [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md) · Figma `[승인] 화면 3` (`316:2600`, `316:2750`, `316:2774`, `340:397`)
 > 관련 결정: [UX-002](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-002), [UX-037~038](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-037), [UX-040](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-040), [ADR-0001](../adr/0001-face-analysis-route.md), [ADR-0003](../adr/0003-ios-mlkit-swiftpm-import.md)
-> 최종 검토일: 2026-11-19
+> 최종 검토일: 2026-11-20
 
 ## 목적
 
@@ -35,6 +35,16 @@ Gallery에서 고른 사진의 얼굴을 기기 안에서 찾습니다. 결과�
 - TestFlight에서 검출기가 단체 사진의 작은 얼굴과 옆얼굴을 찾지 못했습니다(#46). 이 문제를 해결하려고 `ACCURATE` 모드와 `MIN_FACE_SIZE`를 적용했습니다.
 - 감도 조정 후에도 입력 이미지 상한(긴 변 2048px)과 분석 제한 시간(10초)은 그대로 유지합니다.
 - 2026-11-19 Argon 환경의 iOS 시뮬레이터에서 `three-faces.jpg`를 검증했습니다. 검출기는 얼굴 3개를 찾았습니다. 1장 검출 시간은 147ms입니다.
+- `IosFaceDetector.detect(image)`는 ML Kit에 넘기기 전에 `UIImage.rgbx()`로 8bit sRGB RGBX, `bytesPerRow = width × 4` 비트맵을 만듭니다.
+- 실기기 ML Kit은 행 패딩이 있는 이미지를 바르게 읽지 못합니다. 폭이 4의 배수가 아닌 작은 사진에서 생깁니다.
+- 단위 테스트 `convertsBgrxToRgbxAtTheSamePixelSize`는 13×8 BGRX 입력에서 출력 `bytesPerRow`가 52인지 확인합니다.
+- 실기기(iPhone 15 Pro Max, 2026-11-20)에서 증명사진(JPEG 425×567)을 진단했습니다. 시뮬레이터에서는 재현되지 않았습니다.
+
+| 입력 조건 | `bytesPerRow` | 픽셀 형식 / `bitmapInfo` | 검출 수 |
+| --- | --- | --- | --- |
+| `PHImageManager` 원본 CGImage | 1728 (행 패딩 28바이트) | BGRX (`kCGImageAlphaNoneSkipFirst \| kCGBitmapByteOrder32Little`, 8198) | 0개 (ACCURATE·FAST 모두) |
+| 1차 수정 (RGBX, `bytesPerRow` 자동) | 패딩 남음 | RGBX | 0개 |
+| 2차 수정 (RGBX, `bytesPerRow = width × 4`) | 1700 | RGBX (`kCGImageAlphaNoneSkipLast`, 5) | 1개 |
 - 검출은 메인 스레드 밖에서 실행합니다.
 - 시간 초과는 10초입니다(2026-11-17 사용자 결정). `FaceAnalysisViewModel`이 검출 호출에 적용합니다.
 
