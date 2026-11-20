@@ -10,6 +10,7 @@ import platform.CoreGraphics.CGContextRelease
 import platform.CoreGraphics.CGImageAlphaInfo
 import platform.CoreGraphics.CGImageGetAlphaInfo
 import platform.CoreGraphics.CGImageGetBitmapInfo
+import platform.CoreGraphics.CGImageGetBytesPerRow
 import platform.CoreGraphics.CGImageGetHeight
 import platform.CoreGraphics.CGImageGetWidth
 import platform.CoreGraphics.CGImageRelease
@@ -43,7 +44,8 @@ class IosFaceDetectorTest {
     fun convertsBgrxToRgbxAtTheSamePixelSize() {
         val colorSpace = assertNotNull(CGColorSpaceCreateWithName(kCGColorSpaceSRGB))
         val bitmapInfo = CGImageAlphaInfo.kCGImageAlphaNoneSkipFirst.value or kCGBitmapByteOrder32Little
-        val context = CGBitmapContextCreate(null, 12u, 8u, 8u, 0u, colorSpace, bitmapInfo)
+        val width = 13uL
+        val context = CGBitmapContextCreate(null, width, 8u, 8u, 0u, colorSpace, bitmapInfo)
         CGColorSpaceRelease(colorSpace)
         assertNotNull(context)
 
@@ -62,7 +64,8 @@ class IosFaceDetectorTest {
         val output = assertNotNull(result.CGImage)
         assertEquals(CGImageAlphaInfo.kCGImageAlphaNoneSkipLast, CGImageGetAlphaInfo(output))
         assertEquals(kCGBitmapByteOrderDefault, CGImageGetBitmapInfo(output) and kCGBitmapByteOrderMask)
-        assertEquals(12uL, CGImageGetWidth(output))
+        assertEquals(width, CGImageGetWidth(output))
+        assertEquals(width * 4u, CGImageGetBytesPerRow(output))
         assertEquals(8uL, CGImageGetHeight(output))
     }
 }

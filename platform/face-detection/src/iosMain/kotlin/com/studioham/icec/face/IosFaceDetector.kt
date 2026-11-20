@@ -99,14 +99,14 @@ class IosFaceDetector : FaceDetector {
     }
 }
 
-/** ML Kit on physical devices fails to find faces in BGRX (NoneSkipFirst, 32Little) images. */
+/** ML Kit on physical devices fails to find faces in BGRX images or images with row padding. */
 @OptIn(ExperimentalForeignApi::class)
 internal fun UIImage.rgbx(): UIImage {
     val source = CGImage ?: return this
     val width = CGImageGetWidth(source)
     val height = CGImageGetHeight(source)
     val colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB) ?: return this
-    val context = CGBitmapContextCreate(null, width, height, 8u, 0u, colorSpace, CGImageAlphaInfo.kCGImageAlphaNoneSkipLast.value)
+    val context = CGBitmapContextCreate(null, width, height, 8u, width * 4u, colorSpace, CGImageAlphaInfo.kCGImageAlphaNoneSkipLast.value)
     CGColorSpaceRelease(colorSpace)
     context ?: return this
 
