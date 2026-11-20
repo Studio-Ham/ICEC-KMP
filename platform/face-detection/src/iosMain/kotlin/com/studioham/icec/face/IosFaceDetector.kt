@@ -5,7 +5,19 @@ import kotlinx.cinterop.useContents
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import platform.CoreGraphics.CGBitmapContextCreate
+import platform.CoreGraphics.CGBitmapContextCreateImage
+import platform.CoreGraphics.CGColorSpaceCreateWithName
+import platform.CoreGraphics.CGColorSpaceRelease
+import platform.CoreGraphics.CGContextDrawImage
+import platform.CoreGraphics.CGContextRelease
+import platform.CoreGraphics.CGImageAlphaInfo
+import platform.CoreGraphics.CGImageGetHeight
+import platform.CoreGraphics.CGImageGetWidth
+import platform.CoreGraphics.CGImageRelease
+import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.CGSizeMake
+import platform.CoreGraphics.kCGColorSpaceSRGB
 import platform.Photos.PHAsset
 import platform.Photos.PHImageContentModeAspectFit
 import platform.Photos.PHImageManager
@@ -44,7 +56,7 @@ class IosFaceDetector : FaceDetector {
     /** ML Kit's synchronous API throws when called on the main thread. */
     internal suspend fun detect(image: UIImage): List<FaceBounds> =
         withContext(Dispatchers.Default) {
-            val vision = MLKVisionImage(image).apply { orientation = image.imageOrientation }
+            val vision = MLKVisionImage(image.rgbx()).apply { orientation = image.imageOrientation }
             val faces = detector.resultsInImage(vision, null) ?: error("Face detection failed")
             image.size.useContents {
                 faces.map {
@@ -84,5 +96,28 @@ class IosFaceDetector : FaceDetector {
 
     private companion object {
         const val MAX_SIDE = 2048.0
+    }
+}
+
+/** ML Kit on physical devices fails to find faces in BGRX (NoneSkipFirst, 32Little) images. */
+@OptIn(ExperimentalForeignApi::class)
+internal fun UIImage.rgbx(): UIImage {
+    val source = CGImage ?: return this
+    val width = CGImageGetWidth(source)
+    val height = CGImageGetHeight(source)
+    val colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB) ?: return this
+    val context = CGBitmapContextCreate(null, width, height, 8u, 0u, colorSpace, CGImageAlphaInfo.kCGImageAlphaNoneSkipLast.value)
+    CGColorSpaceRelease(colorSpace)
+    context ?: return this
+
+    CGContextDrawImage(context, CGRectMake(0.0, 0.0, width.toDouble(), height.toDouble()), source)
+    val converted = CGBitmapContextCreateImage(context)
+    CGContextRelease(context)
+    converted ?: return this
+
+    return try {
+        UIImage.imageWithCGImage(converted, scale = scale, orientation = imageOrientation)
+    } finally {
+        CGImageRelease(converted)
     }
 }
