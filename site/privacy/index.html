@@ -23,12 +23,15 @@
 <li>저장한 새 사진에는 GPS를 포함한 메타데이터가 없습니다.</li>
 <li>앱은 사용자의 사진과 얼굴 분석 데이터를 Ham Studio 또는 외부 서버로 보내지 않습니다.</li>
 </ul>
-<h3>3. 제3자 SDK (Google ML Kit 사용 통계)</h3>
+<h3>3. 제3자 SDK</h3>
 <ul>
-<li>앱은 기기 내 얼굴 검출에 Google ML Kit를 사용합니다.</li>
-<li>Google ML Kit는 기기 안에서 얼굴을 찾습니다. 사진과 얼굴 데이터는 Google로 보내지 않습니다.</li>
-<li>Google ML Kit는 SDK 사용 통계와 성능 지표를 Google 서버(<code>play.googleapis.com</code>)로 보낼 수 있습니다.</li>
-<li>Google의 데이터 처리는 <a href="https://policies.google.com/privacy">Google 개인정보처리방침</a>을 따릅니다.</li>
+<li>iOS 앱에는 Google ML Kit 얼굴 검출 SDK가 들어 있습니다.</li>
+<li>이 SDK는 진단과 사용 분석을 위해 기기 정보(제조사, 모델, 운영체제 버전), 앱 정보(번들 ID와 버전), 설치별 식별자를 Google에 보낼 수 있습니다.</li>
+<li>이 SDK는 같은 목적으로 성능 지표, API 설정(이미지 형식과 해상도), 기능 이벤트와 오류 코드도 Google에 보낼 수 있습니다.</li>
+<li>앱은 기기에서 사진을 처리하고 얼굴을 검출합니다. 사진과 얼굴 검출 결과는 기기에 남습니다.</li>
+<li>Ham Studio는 SDK가 전송하는 정보로 사용자를 식별하지 않습니다.</li>
+<li>Android 앱에는 인터넷 권한이 없어 이 정보를 보내지 않습니다.</li>
+<li>자세한 내용은 <a href="https://developers.google.com/ml-kit/ios-data-disclosure">Google ML Kit iOS 데이터 공개 안내</a>와 <a href="https://policies.google.com/privacy">Google 개인정보처리방침</a>을 확인하세요.</li>
 </ul>
 <h3>4. 앱 권한 및 사용 목적</h3>
 <ul>
@@ -81,12 +84,15 @@
 <li>The saved photo contains no metadata, including GPS data.</li>
 <li>ICEC does not send your photos or face data to Ham Studio or any external server.</li>
 </ul>
-<h3>3. Third-Party SDK (Google ML Kit Usage Statistics)</h3>
+<h3>3. Third-Party SDK</h3>
 <ul>
-<li>ICEC uses Google ML Kit for on-device face detection.</li>
-<li>Google ML Kit does not send photos or face data to Google.</li>
-<li>Google ML Kit may send SDK usage statistics and performance metrics to Google servers (<code>play.googleapis.com</code>).</li>
-<li>Google processes that SDK telemetry under the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.</li>
+<li>The iOS app includes the Google ML Kit face detection SDK.</li>
+<li>For diagnostics and usage analytics, the SDK may send Google device details (manufacturer, model, and OS version), app details (bundle ID and version), and per-installation identifiers.</li>
+<li>For the same purposes, the SDK may send performance metrics, API settings (image format and resolution), feature events, and error codes.</li>
+<li>The app processes photos and detects faces on the device. Photos and face detection results stay on the device.</li>
+<li>Ham Studio does not use the data sent by the SDK to identify users.</li>
+<li>The Android app has no internet permission and does not send this data.</li>
+<li>See the <a href="https://developers.google.com/ml-kit/ios-data-disclosure">Google ML Kit iOS data disclosure guide</a> and the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.</li>
 </ul>
 <h3>4. App Permissions and Purpose</h3>
 <ul>
