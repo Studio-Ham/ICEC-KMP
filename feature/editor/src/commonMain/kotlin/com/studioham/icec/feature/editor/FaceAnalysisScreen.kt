@@ -60,6 +60,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.studioham.icec.designsystem.ContentMaxWidth
 import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
+import com.studioham.icec.designsystem.resources.ic_gallery
+import com.studioham.icec.designsystem.resources.ic_retry
 import com.studioham.icec.face.FaceBounds
 import com.studioham.icec.feature.editor.resources.Res
 import com.studioham.icec.feature.editor.resources.back
@@ -75,14 +77,12 @@ import com.studioham.icec.feature.editor.resources.face_analysis_timeout_title
 import com.studioham.icec.feature.editor.resources.ic_alert_triangle
 import com.studioham.icec.feature.editor.resources.ic_back
 import com.studioham.icec.feature.editor.resources.ic_clock
-import com.studioham.icec.feature.editor.resources.ic_gallery
-import com.studioham.icec.feature.editor.resources.ic_image
 import com.studioham.icec.feature.editor.resources.ic_no_face
-import com.studioham.icec.feature.editor.resources.ic_retry
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.studioham.icec.designsystem.resources.Res as DesignRes
 
 /** [onPickAnother] returns to the Gallery's previous position, like the back action (UX-038). */
 @Composable
@@ -214,7 +214,7 @@ private fun NoFace(onPickAnother: () -> Unit) {
             Modifier.weight(1f),
         )
         Footer {
-            Button(Res.drawable.ic_gallery, Res.string.face_analysis_pick_another, primary = true, onPickAnother)
+            Button(DesignRes.drawable.ic_gallery, Res.string.face_analysis_pick_another, primary = true, onPickAnother)
         }
     }
 }
@@ -231,8 +231,8 @@ private fun Problem(
     Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
         Message(icon, 40.dp, title, body, Modifier.weight(1f))
         Footer {
-            Button(Res.drawable.ic_retry, Res.string.face_analysis_retry, primary = true, onRetryClick)
-            Button(Res.drawable.ic_image, Res.string.face_analysis_pick_another, primary = false, onPickAnother)
+            Button(DesignRes.drawable.ic_retry, Res.string.face_analysis_retry, primary = true, onRetryClick)
+            Button(DesignRes.drawable.ic_gallery, Res.string.face_analysis_pick_another, primary = false, onPickAnother)
         }
     }
 }
@@ -309,7 +309,12 @@ private fun Button(
         Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         Alignment.CenterVertically,
     ) {
-        Image(painterResource(icon), null)
+        Image(
+            painterResource(icon),
+            null,
+            Modifier.size(16.dp),
+            colorFilter = ColorFilter.tint(if (primary) Color.Black else Color.White),
+        )
         BasicText(
             stringResource(label),
             style =

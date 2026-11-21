@@ -1,6 +1,5 @@
 <resources>
-    <string name="result_title">Saved!</string>
-    <string name="result_location">Saved to your photo library</string>
+    <string name="result_title">Saved to your photo library</string>
     <string name="result_edit_again">Edit again</string>
     <string name="result_other_photo">Edit another photo</string>
     <string name="result_home">Go home</string>
