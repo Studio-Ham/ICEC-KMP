@@ -14,6 +14,7 @@
     <string name="editor_clear_all">Clear all</string>
     <string name="editor_save">Save</string>
     <string name="editor_counter">%2$d of %1$d faces selected</string>
+    <string name="editor_counter_label">Faces %1$d · Mosaic %2$d</string>
     <string name="editor_face">Face %1$d</string>
     <string name="editor_exit_title">Discard your edits?</string>
     <string name="editor_exit_body">All mosaic selections on this photo\nwill be cleared.</string>

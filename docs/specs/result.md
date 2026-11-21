@@ -4,7 +4,7 @@
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki Result UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/result.md) · Figma `[승인] 화면 5: 저장 완료` (`81:3156`)
 > 관련 결정: [UX-043](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-043), [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045), [ADR-0004](../adr/0004-common-mosaic-rendering.md)
-> 최종 검토일: 2026-11-21
+> 최종 검토일: 2026-11-22
 
 ## 목적
 
@@ -12,7 +12,7 @@
 
 ## 범위
 
-- 저장 완료 안내(한 줄 제목, 보조문 없음, [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045)), 저장된 결과 이미지, `다시 편집하기`, `다른 사진 편집하기`, `홈으로 이동`
+- 저장 완료 안내(한 줄 제목, 보조문 없음, [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045)), 저장된 결과 이미지, `다시 편집하기`, `다른 사진 편집하기`, `홈으로`
 - Pinch Zoom과 Pan은 Editor와 같은 `ZoomState` 규칙(최대 4배, 사진 밖 빈 영역 숨김)을 씁니다. Result의 배율은 Editor 배율을 바꾸지 않습니다.
 - 공유 기능은 MVP에서 제외합니다(Wiki Result UX).
 
@@ -28,7 +28,7 @@
 - `다시 편집하기`는 Result를 back stack에서 뺍니다. 아래에 남은 Editor가 저장 직전 선택을 그대로 보여 줍니다.
 - 시스템 뒤로가기는 `NavigationBackHandler`로 소비하고 Result 화면을 유지합니다([UX-043](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-043)).
 - `다른 사진 편집하기`는 back stack을 Home만 남기고 새 `Route.Gallery(session)`을 추가합니다. 새 session이라 Gallery 상태와 스크롤 위치를 새로 만들고 최신 사진부터 보여 줍니다.
-- `홈으로 이동`은 back stack을 Home만 남깁니다. Home에서 뒤로 가면 앱을 나갑니다.
+- `홈으로`는 back stack을 Home만 남깁니다. Home에서 뒤로 가면 앱을 나갑니다. 홈 버튼 글자 크기는 `16.sp`입니다.
 - 다시 저장하면 새 사진이 하나 더 생깁니다. 이전 저장 결과는 그대로 둡니다.
 
 ## 실패와 복구
@@ -48,5 +48,5 @@
 - [x] `다시 편집하기`는 같은 편집 세션(선택 유지)으로 돌아간다
 - [x] 시스템 뒤로가기와 iOS 스와이프 뒤로가기는 Result 화면을 유지한다
 - [x] `다른 사진 편집하기`는 새 Gallery를 열고, 그 Gallery에서 뒤로 가면 Home이다
-- [x] `홈으로 이동` 뒤 뒤로가기는 앱을 나간다
+- [x] `홈으로` 뒤 뒤로가기는 앱을 나간다
 - [x] Pinch Zoom·Pan(#25)

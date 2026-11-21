@@ -74,7 +74,9 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -101,6 +103,7 @@ import com.studioham.icec.feature.editor.resources.editor_action_retry
 import com.studioham.icec.feature.editor.resources.editor_action_settings
 import com.studioham.icec.feature.editor.resources.editor_clear_all
 import com.studioham.icec.feature.editor.resources.editor_counter
+import com.studioham.icec.feature.editor.resources.editor_counter_label
 import com.studioham.icec.feature.editor.resources.editor_detected_faces
 import com.studioham.icec.feature.editor.resources.editor_error_failed
 import com.studioham.icec.feature.editor.resources.editor_error_no_space
@@ -117,12 +120,9 @@ import com.studioham.icec.feature.editor.resources.ic_arrow_back
 import com.studioham.icec.feature.editor.resources.ic_check
 import com.studioham.icec.feature.editor.resources.ic_error
 import com.studioham.icec.feature.editor.resources.ic_lock
-import com.studioham.icec.feature.editor.resources.ic_mosaic
-import com.studioham.icec.feature.editor.resources.ic_person
 import com.studioham.icec.feature.editor.resources.ic_retry_small
 import com.studioham.icec.feature.editor.resources.ic_warning
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration.Companion.seconds
@@ -252,15 +252,28 @@ private fun TopBar(
                 .padding(16.dp),
         )
         val counter = stringResource(Res.string.editor_counter, detected, selected)
-        Row(
-            Modifier.align(Alignment.Center).clearAndSetSemantics { contentDescription = counter },
-            Arrangement.spacedBy(8.dp),
-            Alignment.CenterVertically,
-        ) {
-            Count(Res.drawable.ic_person, detected, Color.White)
-            BasicText("/", style = CounterStyle.copy(color = Color.White.copy(alpha = 0.4f), fontWeight = FontWeight.Normal))
-            Count(Res.drawable.ic_mosaic, selected, IcecColors.NeonLime)
-        }
+        val label = stringResource(Res.string.editor_counter_label, detected, selected)
+        val styledLabel =
+            buildAnnotatedString {
+                append(label)
+                val detectedDigits = detected.toString()
+                val selectedDigits = selected.toString()
+                val detectedStart = label.indexOf(detectedDigits)
+                val selectedStart = label.lastIndexOf(selectedDigits)
+                val separator = label.indexOf('·')
+                addStyle(SpanStyle(fontWeight = FontWeight.Bold), detectedStart, detectedStart + detectedDigits.length)
+                addStyle(SpanStyle(color = Color(0xFF444444)), separator, separator + 1)
+                addStyle(
+                    SpanStyle(color = IcecColors.NeonLime, fontWeight = FontWeight.Bold),
+                    selectedStart,
+                    selectedStart + selectedDigits.length,
+                )
+            }
+        BasicText(
+            styledLabel,
+            Modifier.align(Alignment.Center).padding(horizontal = 56.dp).clearAndSetSemantics { contentDescription = counter },
+            style = CounterStyle.copy(textAlign = TextAlign.Center),
+        )
         Box(
             Modifier
                 .align(Alignment.BottomCenter)
@@ -269,18 +282,6 @@ private fun TopBar(
                 .offset(y = 1.dp)
                 .background(IcecColors.Hairline),
         )
-    }
-}
-
-@Composable
-private fun Count(
-    icon: DrawableResource,
-    value: Int,
-    color: Color,
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Image(painterResource(icon), null)
-        BasicText("$value", style = CounterStyle.copy(color = color))
     }
 }
 
