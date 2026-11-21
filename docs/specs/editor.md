@@ -60,7 +60,7 @@
 - 저장 버튼은 원본 해상도 이미지를 읽고, 선택한 얼굴에 미리보기와 같은 모자이크를 그린 뒤 새 사진으로 저장합니다([ADR-0004](../adr/0004-common-mosaic-rendering.md)). 원본은 바꾸지 않습니다.
 - 저장 파일은 메타데이터 없는 JPEG입니다. 방향은 픽셀에 적용되어 있습니다. Android는 `Pictures/ICEC`에 저장합니다.
 - 저장 중에는 편집 화면을 흐리게 덮고 보조문 없이 로딩 표시와 제목만 보여 줍니다(Figma `335:2`, UX-045). 얼굴 선택, 저장 재실행과 뒤로가기를 모두 막습니다(UX-014).
-- 저장에 성공하면 `Route.Result(savedPhotoId)`를 Editor 위에 추가합니다. Result에서 뒤로 가면 같은 편집 세션으로 돌아옵니다. Result 화면은 [Result Spec](result.md)을 따릅니다.
+- 저장에 성공하면 `Route.Result(savedPhotoId)`를 Editor 위에 추가합니다. Result는 Android 시스템 뒤로가기와 iOS 스와이프 뒤로가기를 소비하고 화면을 유지하며, `다시 편집하기` 버튼(`App.kt`의 `pop(from)`)으로만 같은 편집 세션으로 돌아옵니다([UX-043](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-043)). Result 화면은 [Result Spec](result.md)을 따릅니다.
 - iOS는 저장하는 동안 Background 실행 시간을 요청합니다. Android는 프로세스가 살아 있는 동안 ViewModel에서 계속 저장합니다.
 
 ## 실패와 복구
@@ -101,7 +101,7 @@
 
 - [x] 저장한 이미지가 원본과 같은 해상도이고 선택한 얼굴만 모자이크된다. 원본은 바뀌지 않는다
 - [x] 저장 중에는 입력이 막히고, 실패하면 선택이 유지되며 Snackbar가 원인별로 보인다
-- [x] 저장에 성공하면 Result로 이동하고, 뒤로 가면 같은 편집 세션으로 돌아온다
+- [x] 저장에 성공하면 Result로 이동하고, Result는 시스템·스와이프 뒤로가기를 소비하며 `다시 편집하기` 버튼으로만 같은 편집 세션으로 돌아온다([UX-043](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-043))
 - [x] `EditorSaveTest`(iOS): 모자이크 블록, 원본 해상도 저장, 오류 매핑과 재시도
 
 ### ② Pinch Zoom·Pan
