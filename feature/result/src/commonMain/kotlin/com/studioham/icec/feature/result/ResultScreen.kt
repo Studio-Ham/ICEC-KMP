@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -53,15 +54,14 @@ import com.studioham.icec.designsystem.ZoomState
 import com.studioham.icec.designsystem.fitRect
 import com.studioham.icec.designsystem.isTwoPane
 import com.studioham.icec.designsystem.rememberZoomState
+import com.studioham.icec.designsystem.resources.ic_gallery
 import com.studioham.icec.designsystem.zoomable
 import com.studioham.icec.feature.result.resources.Res
 import com.studioham.icec.feature.result.resources.ic_edit
-import com.studioham.icec.feature.result.resources.ic_gallery
 import com.studioham.icec.feature.result.resources.ic_home
 import com.studioham.icec.feature.result.resources.ic_success
 import com.studioham.icec.feature.result.resources.result_edit_again
 import com.studioham.icec.feature.result.resources.result_home
-import com.studioham.icec.feature.result.resources.result_location
 import com.studioham.icec.feature.result.resources.result_other_photo
 import com.studioham.icec.feature.result.resources.result_title
 import com.studioham.icec.media.PhotoLibrary
@@ -70,6 +70,7 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
+import com.studioham.icec.designsystem.resources.Res as DesignRes
 
 /** Wiki Result UX: shows the photo actually saved ([savedPhotoId]), not the editor preview. Consumes system back and stays on Result. */
 @Composable
@@ -162,11 +163,6 @@ private fun Header() {
                     textAlign = TextAlign.Center,
                 ),
         )
-        BasicText(
-            stringResource(Res.string.result_location),
-            Modifier.padding(top = 6.dp),
-            style = TextStyle(IcecColors.MutedSlate, 13.sp, fontFamily = Pretendard()),
-        )
     }
 }
 
@@ -191,14 +187,14 @@ private fun Actions(
             Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
             Alignment.CenterVertically,
         ) {
-            Image(painterResource(Res.drawable.ic_edit), null)
+            Image(painterResource(Res.drawable.ic_edit), null, Modifier.size(16.dp))
             BasicText(
                 stringResource(Res.string.result_edit_again),
                 style = TextStyle(IcecColors.MutedSlate, 14.sp, FontWeight.Medium, fontFamily = Pretendard(), lineHeight = 20.sp),
             )
         }
         Button(
-            Res.drawable.ic_gallery,
+            DesignRes.drawable.ic_gallery,
             Res.string.result_other_photo,
             IcecColors.NeonLime,
             TextStyle(Color.Black, 16.sp, FontWeight.Bold, lineHeight = 20.sp),
@@ -232,7 +228,7 @@ private fun Button(
         Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         Alignment.CenterVertically,
     ) {
-        Image(painterResource(icon), null)
+        Image(painterResource(icon), null, Modifier.size(16.dp))
         BasicText(stringResource(label), style = style.copy(fontFamily = Pretendard()))
     }
 }

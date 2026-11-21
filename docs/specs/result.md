@@ -3,8 +3,8 @@
 > 상태: Accepted
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki Result UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/result.md) · Figma `[승인] 화면 5: 저장 완료` (`81:3156`)
-> 관련 결정: [UX-043](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-043), [ADR-0004](../adr/0004-common-mosaic-rendering.md)
-> 최종 검토일: 2026-11-19
+> 관련 결정: [UX-043](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-043), [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045), [ADR-0004](../adr/0004-common-mosaic-rendering.md)
+> 최종 검토일: 2026-11-21
 
 ## 목적
 
@@ -12,13 +12,14 @@
 
 ## 범위
 
-- 저장 완료 안내, 저장된 결과 이미지, `다시 편집하기`, `다른 사진 편집하기`, `홈으로 이동`
+- 저장 완료 안내(한 줄 제목, 보조문 없음, [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045)), 저장된 결과 이미지, `다시 편집하기`, `다른 사진 편집하기`, `홈으로 이동`
 - Pinch Zoom과 Pan은 Editor와 같은 `ZoomState` 규칙(최대 4배, 사진 밖 빈 영역 숨김)을 씁니다. Result의 배율은 Editor 배율을 바꾸지 않습니다.
 - 공유 기능은 MVP에서 제외합니다(Wiki Result UX).
 
 ## 계약
 
 - `feature/result`가 `ResultScreen`을 제공합니다. 상태가 저장 결과 이미지뿐이므로 ViewModel은 두지 않습니다.
+- 저장 완료 아이콘(`ic_success`)은 장식 점 없이 표시합니다. 버튼 아이콘은 `16.dp` 크기를 사용합니다.
 - `Route.Result(savedPhotoId)`로 진입합니다. Editor 저장 성공 후에만 Editor 위에 추가됩니다.
 - 이미지는 `PhotoLibrary.thumbnail(savedPhotoId, 2048)`로 읽은 실제 저장 결과입니다. Editor 미리보기를 쓰지 않습니다.
 - 이미지 상자는 이미지 비율에 맞추고 12dp 둥근 모서리로 자릅니다. 1dp 테두리를 두르고 배경을 채우지 않습니다.

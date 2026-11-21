@@ -37,14 +37,15 @@ import com.studioham.icec.designsystem.ContentMaxWidth
 import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
 import com.studioham.icec.designsystem.SpaceMono
+import com.studioham.icec.designsystem.resources.ic_gallery
 import com.studioham.icec.resources.Res
 import com.studioham.icec.resources.app_name
 import com.studioham.icec.resources.home_load_photo
 import com.studioham.icec.resources.home_tagline
-import com.studioham.icec.resources.ic_photo
 import com.studioham.icec.resources.logo
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import com.studioham.icec.designsystem.resources.Res as DesignRes
 
 /** Figma `[승인] 화면 1: 메인 홈` (315:1272). */
 @Composable
@@ -88,7 +89,7 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Image(painterResource(Res.drawable.ic_photo), null)
+            Image(painterResource(DesignRes.drawable.ic_gallery), null)
             BasicText(
                 stringResource(Res.string.home_load_photo),
                 style =

@@ -2,7 +2,7 @@
 
 > 상태: Accepted
 > SSOT: Git Repository
-> 최종 검토일: 2026-11-18
+> 최종 검토일: 2026-11-21
 
 이 문서는 Compose Multiplatform UI와 Android 릴리스 축소 구현 규칙을 정의합니다. 제품 요구사항과 UX 정책은 [ICEC LLM Wiki](../references/llm-wiki.md)를 따릅니다. 시각 디자인 원본은 [제품·UX·디자인 참조](../references/product-design.md)의 Figma 문서를 따릅니다. Composable 기본 규칙은 루트 [`AGENTS.md`](../../AGENTS.md) 5절을 따릅니다.
 
@@ -78,6 +78,9 @@
 - Composable 코드에 사용자에게 보이는 문자열을 직접 쓰지 않습니다.
 - Android 런처 이름(`androidApp/src/main/res/values/strings.xml`의 `app_name`)처럼 플랫폼 매니페스트가 직접 읽는 문자열만 플랫폼 리소스에 둡니다.
 - Figma에서 내보낸 SVG 아이콘과 벡터 그래픽은 Android VectorDrawable XML로 변환해 `src/commonMain/composeResources/drawable/`에 둡니다.
+- 여러 모듈이 함께 쓰는 아이콘(`ic_gallery`, `ic_retry`)은 `core/designsystem/src/commonMain/composeResources/drawable/`에 둡니다.
+- `core/designsystem/build.gradle.kts`에서 `publicResClass = true`를 설정해 다른 모듈이 `com.studioham.icec.designsystem.resources.Res`로 접근하게 합니다.
+- 버튼 안의 아이콘은 `16.dp` 크기를 사용합니다.
 - 변환한 벡터는 공통 코드에서 `painterResource(Res.drawable.<이름>)`로 읽습니다.
 - 시각 에셋 원본 관리는 [제품·UX·디자인 참조](../references/product-design.md)를 따릅니다.
 

@@ -44,5 +44,6 @@ kotlin {
 }
 
 compose.resources {
+    publicResClass = true
     packageOfResClass = "com.studioham.icec.designsystem.resources"
 }

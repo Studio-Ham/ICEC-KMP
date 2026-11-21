@@ -111,7 +111,6 @@ import com.studioham.icec.feature.editor.resources.editor_exit_stay
 import com.studioham.icec.feature.editor.resources.editor_exit_title
 import com.studioham.icec.feature.editor.resources.editor_face
 import com.studioham.icec.feature.editor.resources.editor_save
-import com.studioham.icec.feature.editor.resources.editor_saving_body
 import com.studioham.icec.feature.editor.resources.editor_saving_title
 import com.studioham.icec.feature.editor.resources.editor_select_all
 import com.studioham.icec.feature.editor.resources.ic_arrow_back
@@ -375,7 +374,7 @@ private fun FaceList(
                         lineHeight = 20.sp,
                     ),
             )
-            SelectAllChip(clear = state.selected.isNotEmpty(), onSelectAllClick)
+            SelectAllButton(clear = state.selected.isNotEmpty(), onSelectAllClick)
         }
         val image = state.image
         if (grid) {
@@ -408,13 +407,10 @@ private fun FaceList(
 }
 
 @Composable
-private fun SelectAllChip(
+private fun SelectAllButton(
     clear: Boolean,
     onClick: () -> Unit,
 ) {
-    val color = if (clear) IcecColors.AlertRed else IcecColors.NeonLime
-    val fill = if (clear) ClearChipFill else SelectChipFill
-    // The outer box widens only the touch area to 48dp; the chip keeps its visible size.
     Box(
         Modifier
             .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
@@ -423,12 +419,8 @@ private fun SelectAllChip(
     ) {
         BasicText(
             stringResource(if (clear) Res.string.editor_clear_all else Res.string.editor_select_all),
-            Modifier
-                .clip(CircleShape)
-                .background(fill)
-                .border(1.dp, color.copy(alpha = 0.6f), CircleShape)
-                .padding(horizontal = 13.dp, vertical = 5.dp),
-            style = TextStyle(color, 12.sp, FontWeight.Bold, fontFamily = Pretendard(), lineHeight = 12.sp),
+            Modifier.padding(horizontal = 13.dp),
+            style = TextStyle(IcecColors.NeonLime, 12.sp, FontWeight.Bold, fontFamily = Pretendard(), lineHeight = 12.sp),
         )
     }
 }
@@ -560,7 +552,7 @@ private fun BoxScope.ExitDialog(
             Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(12.dp)) {
                 DialogButton(
                     stringResource(Res.string.editor_exit_leave),
-                    IcecColors.AlertRed,
+                    IcecColors.AlertRedStrong,
                     SecondaryFill,
                     SecondaryStroke,
                     onLeave,
@@ -624,12 +616,8 @@ private fun BoxScope.Saving() {
         }
         BasicText(
             stringResource(Res.string.editor_saving_title),
-            Modifier.padding(top = 16.dp, bottom = 4.dp),
+            Modifier.padding(top = 16.dp).semantics { heading() },
             style = TextStyle(Color.White, 18.sp, FontWeight.Bold, fontFamily = Pretendard(), lineHeight = 25.sp),
-        )
-        BasicText(
-            stringResource(Res.string.editor_saving_body),
-            style = TextStyle(IcecColors.MutedSlate, 14.sp, fontFamily = Pretendard(), lineHeight = 23.sp),
         )
     }
 }
@@ -694,8 +682,6 @@ private val BarFill = Color(0xFF1E1E1E)
 private val ViewportFill = Color(0xFF161616)
 private val ItemFill = Color(0xFF1E1E1E)
 private val GuideBlue = Color(0xCC3098FF)
-private val ClearChipFill = Color(0xFF2A1515)
-private val SelectChipFill = Color(0x1FE6FA00)
 private val SecondaryFill = Color(0xFF242424)
 private val SecondaryStroke = Color(0xFF3A3A3A)
 

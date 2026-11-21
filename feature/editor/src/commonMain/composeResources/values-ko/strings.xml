@@ -3,9 +3,9 @@
     <string name="face_analysis_no_face_title">얼굴을 찾을 수 없습니다</string>
     <string name="face_analysis_no_face_body">사진에서 인식된 얼굴이 없습니다.\n다른 사진을 선택해 주세요.</string>
     <string name="face_analysis_failed_title">얼굴 분석 중 문제가 발생했습니다</string>
-    <string name="face_analysis_failed_body">사진을 처리하지 못했습니다.\n다시 시도하거나 다른 사진을 선택해 주세요.</string>
+    <string name="face_analysis_failed_body">사진을 처리하지 못했습니다.</string>
     <string name="face_analysis_timeout_title">얼굴 분석 시간이 초과되었습니다</string>
-    <string name="face_analysis_timeout_body">해상도가 너무 높거나 처리 중 지연이 발생했습니다.\n다시 시도하거나 다른 사진을 선택해 주세요.</string>
+    <string name="face_analysis_timeout_body">분석이 오래 걸려 중단했습니다.</string>
     <string name="face_analysis_retry">다시 분석하기</string>
     <string name="face_analysis_pick_another">다른 사진 선택</string>
     <string name="back">뒤로 가기</string>
@@ -20,7 +20,6 @@
     <string name="editor_exit_leave">나가기</string>
     <string name="editor_exit_stay">계속 편집</string>
     <string name="editor_saving_title">저장 중...</string>
-    <string name="editor_saving_body">모자이크 이미지를 생성하고 있습니다</string>
     <string name="editor_error_no_space">저장 공간이 부족하여 저장할 수 없습니다</string>
     <string name="editor_error_permission">사진 저장 권한 허용이 필요합니다</string>
     <string name="editor_error_failed">이미지 처리에 실패했습니다.</string>

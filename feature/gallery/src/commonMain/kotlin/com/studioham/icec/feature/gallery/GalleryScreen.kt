@@ -47,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
@@ -68,6 +69,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.studioham.icec.designsystem.ContentMaxWidth
 import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
+import com.studioham.icec.designsystem.resources.ic_retry
 import com.studioham.icec.feature.gallery.resources.Res
 import com.studioham.icec.feature.gallery.resources.gallery_back
 import com.studioham.icec.feature.gallery.resources.gallery_count
@@ -94,7 +96,6 @@ import com.studioham.icec.feature.gallery.resources.ic_back
 import com.studioham.icec.feature.gallery.resources.ic_chevron
 import com.studioham.icec.feature.gallery.resources.ic_gear
 import com.studioham.icec.feature.gallery.resources.ic_photo_large
-import com.studioham.icec.feature.gallery.resources.ic_refresh
 import com.studioham.icec.media.Photo
 import com.studioham.icec.media.PhotoAccess
 import kotlinx.coroutines.delay
@@ -114,6 +115,7 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import com.studioham.icec.designsystem.resources.Res as DesignRes
 
 private val TileBackground = Color(0xFF121212)
 private val SnackbarBackground = Color(0xFF1C1C1C)
@@ -198,7 +200,11 @@ private fun GalleryContent(
     modifier: Modifier = Modifier,
 ) {
     val allowed = access == PhotoAccess.Granted || access == PhotoAccess.Limited
-    val count = (photos as? PhotosState.Loaded)?.total?.takeIf { allowed }
+    val count =
+        (photos as? PhotosState.Loaded)
+            ?.takeIf { allowed && it.sections.isNotEmpty() }
+            ?.total
+            ?.takeIf { it > 0 }
     Column(modifier.fillMaxSize().background(Color.Black).windowInsetsPadding(WindowInsets.safeDrawing)) {
         TopBar(count, onBack)
         Box(Modifier.fillMaxWidth().weight(1f), Alignment.Center) {
@@ -211,13 +217,13 @@ private fun GalleryContent(
 
                 photos is PhotosState.LoadFailed -> {
                     Message(Res.drawable.ic_photo_large, Res.string.gallery_load_failed_title, Res.string.gallery_load_failed_body) {
-                        TextAction(Res.drawable.ic_refresh, Res.string.gallery_retry, chevron = false, onRetryClick)
+                        TextAction(DesignRes.drawable.ic_retry, Res.string.gallery_retry, chevron = false, onRetryClick)
                     }
                 }
 
                 photos is PhotosState.Loaded && photos.sections.isEmpty() && photos.appendFailed -> {
                     Message(Res.drawable.ic_photo_large, Res.string.gallery_load_failed_title, Res.string.gallery_load_failed_body) {
-                        TextAction(Res.drawable.ic_refresh, Res.string.gallery_retry, chevron = false, onLoadMore)
+                        TextAction(DesignRes.drawable.ic_retry, Res.string.gallery_retry, chevron = false, onLoadMore)
                     }
                 }
 
@@ -441,12 +447,12 @@ private fun TextAction(
         Arrangement.spacedBy(6.dp),
         Alignment.CenterVertically,
     ) {
-        Image(painterResource(icon), null)
+        Image(painterResource(icon), null, Modifier.size(16.dp), colorFilter = ColorFilter.tint(IcecColors.NeonLime))
         BasicText(
             stringResource(label),
             style = TextStyle(IcecColors.NeonLime, 14.sp, FontWeight.Medium, fontFamily = Pretendard(), lineHeight = 21.sp),
         )
-        if (chevron) Image(painterResource(Res.drawable.ic_chevron), null)
+        if (chevron) Image(painterResource(Res.drawable.ic_chevron), null, Modifier.size(16.dp))
     }
 }
 

@@ -86,7 +86,7 @@ final class IcecFlowUITests: XCTestCase {
             )
 
         Thread.sleep(forTimeInterval: 1)
-        XCTAssertTrue(element("Saved!").exists)
+        XCTAssertTrue(element("Saved to your photo library").exists)
         let editAgain = element("Edit again")
         XCTAssertTrue(editAgain.exists)
         snap("result-after-swipe-back")
@@ -117,7 +117,7 @@ final class IcecFlowUITests: XCTestCase {
     private func save(name: String = "06-result") {
         element("Save").tap()
         allowPhotos()
-        guard element("Saved!").waitForExistence(timeout: 30) else {
+        guard element("Saved to your photo library").waitForExistence(timeout: 30) else {
             XCTFail("Expected the photo to save successfully")
             return
         }

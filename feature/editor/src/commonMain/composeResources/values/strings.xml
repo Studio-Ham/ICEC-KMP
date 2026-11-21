@@ -3,9 +3,9 @@
     <string name="face_analysis_no_face_title">No faces found</string>
     <string name="face_analysis_no_face_body">No faces were recognized in this photo.\nPlease choose another photo.</string>
     <string name="face_analysis_failed_title">Something went wrong while analyzing faces</string>
-    <string name="face_analysis_failed_body">We couldn’t process this photo.\nTry again or choose another photo.</string>
+    <string name="face_analysis_failed_body">We couldn’t process this photo.</string>
     <string name="face_analysis_timeout_title">Face analysis timed out</string>
-    <string name="face_analysis_timeout_body">The photo may be too large, or processing was delayed.\nTry again or choose another photo.</string>
+    <string name="face_analysis_timeout_body">Analysis took too long and stopped.</string>
     <string name="face_analysis_retry">Analyze again</string>
     <string name="face_analysis_pick_another">Choose another photo</string>
     <string name="back">Back</string>
@@ -20,7 +20,6 @@
     <string name="editor_exit_leave">Leave</string>
     <string name="editor_exit_stay">Keep editing</string>
     <string name="editor_saving_title">Saving…</string>
-    <string name="editor_saving_body">Creating the mosaic image</string>
     <string name="editor_error_no_space">Not enough storage to save</string>
     <string name="editor_error_permission">Allow photo access to save</string>
     <string name="editor_error_failed">Couldn’t process the image.</string>
