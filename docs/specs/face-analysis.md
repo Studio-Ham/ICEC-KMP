@@ -3,8 +3,8 @@
 > 상태: Accepted
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki FaceAnalysis · Editor UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/editor.md) · [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md) · Figma `[승인] 화면 3` (`316:2600`, `316:2750`, `316:2774`, `340:397`)
-> 관련 결정: [UX-002](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-002), [UX-037~038](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-037), [UX-040](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-040), [ADR-0001](../adr/0001-face-analysis-route.md), [ADR-0003](../adr/0003-ios-mlkit-swiftpm-import.md)
-> 최종 검토일: 2026-11-20
+> 관련 결정: [UX-002](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-002), [UX-037~038](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-037), [UX-040](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-040), [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045), [ADR-0001](../adr/0001-face-analysis-route.md), [ADR-0003](../adr/0003-ios-mlkit-swiftpm-import.md)
+> 최종 검토일: 2026-11-21
 
 ## 목적
 
@@ -58,7 +58,7 @@ Gallery에서 고른 사진의 얼굴을 기기 안에서 찾습니다. 결과�
 - 분석 중 시스템 뒤로가기는 확인 없이 Gallery의 이전 위치로 돌아갑니다. Figma 디자인에는 상단 뒤로가기가 없습니다.
 - Background에서 분석이 끝나면 결과를 상태로 보관합니다. 화면 이동은 화면이 다시 보일 때 실행합니다. 분석을 다시 실행하지 않습니다(UX-040).
 - NoFaceDetected(Figma `316:2750`)는 상단 뒤로가기, 미검출 아이콘, 안내와 `다른 사진 선택` 버튼을 보여 줍니다.
-- AnalysisFailed(`340:397`)와 AnalysisTimeout(`316:2774`)은 아이콘과 안내만 다릅니다. 두 화면은 `다시 분석하기`와 `다른 사진 선택` 버튼을 보여 줍니다(UX-038).
+- AnalysisFailed(`340:397`)와 AnalysisTimeout(`316:2774`)은 아이콘과 안내만 다릅니다. 두 화면은 한 줄 본문과 `다시 분석하기`, `다른 사진 선택` 버튼을 보여 줍니다(UX-038, UX-045).
 - `다시 분석하기`는 같은 화면에서 같은 사진을 다시 분석합니다. `다른 사진 선택`과 뒤로가기는 Gallery의 이전 위치로 돌아갑니다.
 
 ## 실패와 복구

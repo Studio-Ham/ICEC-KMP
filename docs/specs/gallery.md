@@ -3,8 +3,8 @@
 > 상태: Accepted
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki Gallery UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/gallery.md) · Figma `[승인] 화면 2` (`316:2412`, `316:2477`, `316:2506`, `316:2532`, `340:294`, `340:326`)
-> 관련 결정: [UX-020~023](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-020), [UX-029~031](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-029), [UX-044](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-044)
-> 최종 검토일: 2026-11-19
+> 관련 결정: [UX-020~023](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-020), [UX-029~031](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-029), [UX-044](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-044), [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045)
+> 최종 검토일: 2026-11-21
 
 ## 목적
 
@@ -58,7 +58,8 @@
 - `GalleryViewModel`은 첫 페이지를 받으면 바로 표시합니다.
 - `GalleryScreen`은 남은 항목이 `30`개 이하이면 `GalleryViewModel.onLoadMore()`를 호출합니다.
 - `GalleryViewModel.onLoadMore()`는 진행 중인 읽기가 없고 `next`가 있으면 다음 페이지를 붙입니다. 이어 붙인 사진은 `id`로 중복을 제거한 뒤 날짜별로 묶습니다.
-- `GalleryScreen` 상단 사진 수는 `PhotoPage.total`을 표시합니다.
+- `GalleryScreen` 상단 사진 수는 `PhotoPage.total`을 표시합니다. `Empty` 상태에서는 상단 사진 수를 숨기고 보조 본문 없이 제목만 표시합니다([UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045)).
+- `LoadFailed` 상태는 한 줄 본문과 다시 시도 버튼을 표시합니다([UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045)).
 - `PhotoLibrary.thumbnail()`은 타일 크기 이상의 썸네일을 반환합니다. 읽을 수 없으면 null을 반환하고 타일은 빈 배경으로 둡니다.
 - 촬영일이 없으면 Android는 추가일, iOS는 생성일을 씁니다. 날짜 묶음은 기기 시간대 기준입니다.
 - `PhotoLibrary.isReadable()`은 사진 원본을 읽을 수 있는지 확인합니다. iOS는 iCloud 원본 다운로드를 허용합니다.
