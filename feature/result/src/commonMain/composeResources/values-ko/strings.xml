@@ -2,5 +2,5 @@
     <string name="result_title">사진 보관함에 저장했습니다</string>
     <string name="result_edit_again">다시 편집하기</string>
     <string name="result_other_photo">다른 사진 편집하기</string>
-    <string name="result_home">홈으로 이동</string>
+    <string name="result_home">홈으로</string>
 </resources>

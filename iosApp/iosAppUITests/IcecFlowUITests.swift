@@ -40,6 +40,10 @@ final class IcecFlowUITests: XCTestCase {
         snap("05-editor-selected")
         save()
         XCTAssertTrue(element("Edit again").exists)
+        let home = element("Home")
+        XCTAssertTrue(home.exists)
+        home.tap()
+        XCTAssertTrue(element("Load photo").waitForExistence(timeout: 5))
     }
 
     func testStoreScreenshots() {

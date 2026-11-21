@@ -325,7 +325,7 @@ private fun PhotoGrid(
         ) {
             sections.forEachIndexed { index, section ->
                 item(key = section.date.toString(), span = { GridItemSpan(maxLineSpan) }) {
-                    SectionHeader(section, today, Modifier.padding(top = if (index == 0) 0.dp else 22.dp))
+                    SectionHeader(section.date, today, Modifier.padding(top = if (index == 0) 0.dp else 22.dp))
                 }
                 items(section.photos, key = { it.id }) { PhotoTile(it, section.date, today, onPhotoClick, thumbnail) }
             }
@@ -347,32 +347,23 @@ private fun PhotoGrid(
 
 @Composable
 private fun SectionHeader(
-    section: PhotoSection,
+    date: LocalDate,
     today: LocalDate,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    BasicText(
+        dateLabel(date, today),
         modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-        Arrangement.SpaceBetween,
-        Alignment.CenterVertically,
-    ) {
-        BasicText(
-            dateLabel(section.date, today),
-            style =
-                TextStyle(
-                    Color.White,
-                    14.sp,
-                    FontWeight.Medium,
-                    fontFamily = Pretendard(),
-                    letterSpacing = (-0.35).sp,
-                    lineHeight = 21.sp,
-                ),
-        )
-        BasicText(
-            countText(section.photos.size),
-            style = TextStyle(IcecColors.MutedSlate, 13.sp, fontFamily = Pretendard(), lineHeight = 19.5.sp),
-        )
-    }
+        style =
+            TextStyle(
+                Color.White,
+                14.sp,
+                FontWeight.Medium,
+                fontFamily = Pretendard(),
+                letterSpacing = (-0.35).sp,
+                lineHeight = 21.sp,
+            ),
+    )
 }
 
 @Composable

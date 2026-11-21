@@ -204,7 +204,7 @@ private fun Actions(
             Res.drawable.ic_home,
             Res.string.result_home,
             HomeFill,
-            TextStyle(Color.White, 18.sp, FontWeight.Bold, letterSpacing = (-0.18).sp, lineHeight = 26.sp),
+            TextStyle(Color.White, 16.sp, FontWeight.Bold, lineHeight = 20.sp),
             onHome,
         )
     }
