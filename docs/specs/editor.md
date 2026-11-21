@@ -3,8 +3,8 @@
 > 상태: Accepted
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki FaceAnalysis · Editor UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/editor.md) · [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md) · Figma `[승인] 화면 4` (`316:3606`, `316:4197`, `316:4294`, `335:2`, Snackbar `316:4050`·`316:3747`·`316:3897`)
-> 관련 결정: [UX-039](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-039), [UX-041](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-041), [UX-014](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-014), [UX-016](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-016), [UX-042](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-042), [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045), [UX-046](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-046), [ADR-0001](../adr/0001-face-analysis-route.md), [ADR-0004](../adr/0004-common-mosaic-rendering.md)
-> 최종 검토일: 2026-11-21
+> 관련 결정: [UX-039](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-039), [UX-041](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-041), [UX-014](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-014), [UX-016](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-016), [UX-042](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-042), [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045), [UX-046](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-046), [UX-048](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-048), [ADR-0001](../adr/0001-face-analysis-route.md), [ADR-0004](../adr/0004-common-mosaic-rendering.md)
+> 최종 검토일: 2026-11-22
 
 ## 목적
 
@@ -39,7 +39,7 @@
 - 모자이크 블록 한 칸은 얼굴 폭의 1/8입니다(UX-042). 세로 칸 수는 얼굴 높이에 맞춥니다. 미리보기와 저장은 같은 규칙을 씁니다.
 - 선택이 0개이면 `전체 선택`, 1개 이상이면 `전체 해제` 텍스트 버튼을 보여 줍니다(UX-046). 버튼은 `IcecColors.NeonLime` 색상과 `48.dp` 최소 터치 영역을 사용합니다. 일부만 선택해도 `전체 해제`입니다.
 - 하단 목록은 각 얼굴을 원본 사진에서 정사각형으로 잘라 보여 줍니다. 얼굴 크기의 1.4배를 잘라 여백을 둡니다(UX-041).
-- 상단 카운터는 검출 수와 선택 수를 보여 줍니다.
+- 상단 카운터는 아이콘 없이 `editor_counter_label`(`얼굴 %1$d · 모자이크 %2$d` / `Faces %1$d · Mosaic %2$d`)을 표시하고, 화면 낭독기 설명에는 `editor_counter`를 유지합니다([UX-048](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-048)).
 
 ### Pinch Zoom과 Pan
 
