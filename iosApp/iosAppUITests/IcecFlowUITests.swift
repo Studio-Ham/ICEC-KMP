@@ -67,12 +67,21 @@ final class IcecFlowUITests: XCTestCase {
         photos.firstMatch.tap()
         let edit = element("Edit")
         XCTAssertTrue(edit.waitForExistence(timeout: 10))
+        snap("06-palette")
         edit.tap()
         let done = element("Done")
         XCTAssertTrue(done.waitForExistence(timeout: 10))
         XCTAssertTrue(done.isEnabled) // D2: always enabled
-        let crop = element("Crop area")
         snap("07-basic-edit")
+        // D2: saving with no change still makes a new photo.
+        done.tap()
+        allowPhotos()
+        XCTAssertTrue(element("Saved to your photo library").waitForExistence(timeout: 30))
+        Self.savedCount += 1
+        snap("07-basic-edit-unchanged-result")
+        element("Edit again").tap()
+        XCTAssertTrue(done.waitForExistence(timeout: 5))
+        let crop = element("Crop area")
         crop.pinch(withScale: 2.5, velocity: 2) // two fingers zoom like the mosaic editor
         snap("08-basic-edit-zoomed")
         crop.swipeLeft() // one finger pans the zoomed photo, like the mosaic editor
@@ -84,6 +93,7 @@ final class IcecFlowUITests: XCTestCase {
         let editAgain = element("Edit again")
         XCTAssertTrue(editAgain.waitForExistence(timeout: 30))
         Self.savedCount += 1
+        snap("10-basic-edit-result")
         editAgain.tap()
         XCTAssertTrue(element("Done").waitForExistence(timeout: 5))
     }
@@ -106,7 +116,9 @@ final class IcecFlowUITests: XCTestCase {
         XCTAssertEqual(app.state, .runningForeground)
         let photo = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label BEGINSWITH 'Photo, '")).firstMatch
-        XCTAssertTrue(photo.exists)
+        // With a full gallery, the extra taps can land on a photo and open its tool palette.
+        // Both mean the Editor closed without a crash (#43).
+        XCTAssertTrue(photo.exists || element("Edit photo").exists)
         snap("gallery-after-rapid-leave")
     }
 

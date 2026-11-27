@@ -19,6 +19,14 @@ class AdaptiveTest {
     }
 
     @Test
+    fun sideBySideNeedsRoomForTheSideColumn() {
+        assertTrue(isSideBySide(844.dp, 390.dp)) // landscape phone
+        assertTrue(isSideBySide(600.dp, 960.dp)) // portrait tablet / unfolded foldable
+        assertFalse(isSideBySide(411.dp, 400.dp)) // narrow split window stays one column
+        assertFalse(isSideBySide(390.dp, 844.dp)) // portrait phone
+    }
+
+    @Test
     fun hingeSplitsOnlyTheAreaItCrosses() {
         val area = Rect(0f, 100f, 1000f, 800f)
         // Book posture or dual screen: a 26px vertical hinge at x=480.

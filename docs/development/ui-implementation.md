@@ -43,10 +43,12 @@
 - `separatingHinges()`는 분리형 힌지의 창 좌표(px)를 반환합니다. Android는 `WindowInfoTracker`를 사용합니다. iOS는 빈 목록을 반환합니다.
 - 힌지가 본문을 가르는지는 `hingeSplit(area, hinges)`로 판정합니다. `area`는 본문의 `boundsInWindow()`입니다. (`AdaptiveTest.kt` 참조)
 - 분리형 힌지가 본문을 가르면 힌지 앞 영역에 사진을 둡니다. 힌지 뒤 영역에 팔레트를 둡니다. 이 규칙은 `isTwoPane()`보다 우선합니다.
-- 힌지가 없으면 `isTwoPane()`이 `true`이고 본문 폭이 `580.dp` 이상일 때만 팔레트를 사진 오른쪽에 둡니다.
+- 힌지가 없으면 `isSideBySide()`가 `true`일 때만 팔레트와 기본 편집 조절 열을 사진 오른쪽에 둡니다. `isSideBySide()`는 `isTwoPane()`이 `true`이고 창 폭이 `580.dp` 이상일 때 `true`입니다. (`AdaptiveTest.kt` 참조)
 - 폭 조건은 높이 `480.dp` 미만의 좁은 분할 창을 1단으로 유지합니다.
 - 팔레트 벡터(`palette_background.xml`)와 원형 버튼은 한 Composable(`ToolPalette`)로 배치합니다. 힌지가 팔레트와 버튼 사이를 지나가지 않습니다.
-- 팔레트 배율은 `0.75`~`1.25`로 제한합니다. 배율 `0.75`에서 버튼 지름은 `48.dp`입니다. (`PhotoPreviewScreen.kt`)
+- 팔레트 배율은 최대 `1.25`입니다. 배율 `0.75`에서 버튼 지름은 `48.dp`입니다. (`PhotoPreviewScreen.kt`)
+- 영역이 배율 `0.75`의 팔레트보다 작으면 팔레트 그래픽을 그리지 않습니다. 이때 `48.dp` 원형 버튼 두 개만 가로로 둡니다.
+- 비율 칩과 도구 버튼은 Figma 폭(`76.dp`, `104.dp`)을 최대 폭으로 사용합니다. 좁은 창에서는 같은 줄의 폭을 나눠 모두 표시합니다.
 - 자르기 영역의 좌우 여백은 `WindowInsets.systemGestures`와 `16.dp` 중 큰 값을 사용합니다. 자르기 모서리가 Android 가장자리 뒤로가기 제스처 영역에 들어가지 않습니다. (`BasicEditScreen.kt` `CropPhoto`)
 
 ## 4. 확대·이동

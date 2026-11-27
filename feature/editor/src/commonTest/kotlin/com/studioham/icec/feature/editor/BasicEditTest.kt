@@ -109,6 +109,18 @@ class BasicEditTest {
             assertFalse(viewModel.state.value.exitDialog)
         }
 
+    @Test
+    fun retryThatFailsAtOnceKeepsTheError() =
+        runTest {
+            val viewModel = BasicEditViewModel("1", Unreadable, NoPermission)
+            viewModel.onDoneClick() // D2: no change needed
+            assertEquals(SaveError.Failed, viewModel.state.value.saveError)
+
+            viewModel.onSaveErrorAction() // `다시 시도` fails again at once
+
+            assertEquals(SaveError.Failed, viewModel.state.value.saveError)
+        }
+
     private fun assertClose(
         expected: Rect,
         actual: Rect,

@@ -108,4 +108,16 @@ class EditorTest {
         val crop = faceCrop(IntRect(0, 0, 50, 50), 400, 200)
         assertEquals(IntRect(0, 0, 70, 70), crop)
     }
+
+    @Test
+    fun retryThatFailsAtOnceKeepsTheError() {
+        val viewModel = EditorViewModel("1", faces, NoLibrary, NoPermission) // original() fails at once
+        viewModel.onFaceClick(0)
+        viewModel.onSaveClick()
+        assertEquals(SaveError.Failed, viewModel.state.value.saveError)
+
+        viewModel.onSaveErrorAction() // `다시 시도` fails again at once
+
+        assertEquals(SaveError.Failed, viewModel.state.value.saveError) // UX-016: the Snackbar stays
+    }
 }

@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -77,7 +78,7 @@ import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
 import com.studioham.icec.designsystem.ZoomState
 import com.studioham.icec.designsystem.fitRect
-import com.studioham.icec.designsystem.isTwoPane
+import com.studioham.icec.designsystem.isSideBySide
 import com.studioham.icec.designsystem.rememberZoomState
 import com.studioham.icec.designsystem.zoomable
 import com.studioham.icec.feature.editor.resources.Res
@@ -170,7 +171,7 @@ internal fun BasicEditContent(
     actions: BasicEditActions,
     modifier: Modifier = Modifier,
 ) {
-    val twoPane = isTwoPane()
+    val twoPane = isSideBySide()
     // Hoisted so zoom survives switching between the one- and two-pane trees (rotation, window resize).
     val zoom = rememberZoomState()
     Box(modifier.fillMaxSize().background(Color.Black)) {
@@ -393,18 +394,22 @@ private fun RatioChips(
                     stringResource(Res.string.basic_edit_ratio, ratio.width, ratio.height)
                 }
             val shape = RoundedCornerShape(22.dp)
+            // Up to 76dp each (Figma 623:139); narrower windows share the row so all four chips fit.
             Box(
                 Modifier
-                    .sizeIn(minWidth = 76.dp, minHeight = 48.dp)
+                    .weight(1f)
+                    .widthIn(max = 76.dp)
+                    .heightIn(min = 48.dp)
                     .selectable(on, role = Role.RadioButton, onClick = { onClick(ratio) }),
                 contentAlignment = Alignment.Center,
             ) {
                 Box(
                     Modifier
-                        .sizeIn(minWidth = 76.dp, minHeight = 44.dp)
+                        .fillMaxWidth()
+                        .heightIn(min = 44.dp)
                         .clip(shape)
                         .then(if (on) Modifier.background(ChipFill).border(1.dp, IcecColors.NeonLime, shape) else Modifier)
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = 4.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     BasicText(
@@ -433,9 +438,11 @@ private fun Tools(
     onFlipClick: () -> Unit,
 ) {
     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)) {
-        Tool(Res.drawable.ic_crop, Res.string.basic_edit_crop, selected = true, onClick = null)
-        Tool(Res.drawable.ic_rotate, Res.string.basic_edit_rotate, selected = false, onClick = onRotateClick)
-        Tool(Res.drawable.ic_flip, Res.string.basic_edit_flip, selected = false, onClick = onFlipClick)
+        // Up to 104dp each (Figma 623:149); narrower windows share the row.
+        val each = Modifier.weight(1f).widthIn(max = 104.dp)
+        Tool(Res.drawable.ic_crop, Res.string.basic_edit_crop, selected = true, onClick = null, each)
+        Tool(Res.drawable.ic_rotate, Res.string.basic_edit_rotate, selected = false, onClick = onRotateClick, each)
+        Tool(Res.drawable.ic_flip, Res.string.basic_edit_flip, selected = false, onClick = onFlipClick, each)
     }
 }
 
@@ -445,10 +452,10 @@ private fun Tool(
     label: StringResource,
     selected: Boolean,
     onClick: (() -> Unit)?,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        Modifier
-            .width(104.dp)
+        modifier
             .heightIn(min = 68.dp)
             .clip(RoundedCornerShape(12.dp))
             .then(

@@ -20,6 +20,22 @@ fun isTwoPane(): Boolean {
     return with(LocalDensity.current) { isTwoPane(size.width.toDp(), size.height.toDp()) }
 }
 
+/**
+ * [isTwoPane] with room for a side column next to the photo: a narrow split window (under 580dp wide, under 480dp
+ * tall) stays in one column (Wiki 적응형 배치: 좁은 분할 창은 아래).
+ */
+fun isSideBySide(
+    width: Dp,
+    height: Dp,
+): Boolean = isTwoPane(width, height) && width >= 580.dp
+
+/** [isSideBySide] for the current window. */
+@Composable
+fun isSideBySide(): Boolean {
+    val size = LocalWindowInfo.current.containerSize
+    return with(LocalDensity.current) { isSideBySide(size.width.toDp(), size.height.toDp()) }
+}
+
 /** #34: buttons and guide paragraphs stay centered at this width or narrower. */
 val ContentMaxWidth = 480.dp
 

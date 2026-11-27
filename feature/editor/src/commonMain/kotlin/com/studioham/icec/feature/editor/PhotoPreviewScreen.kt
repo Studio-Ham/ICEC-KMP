@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -53,7 +54,7 @@ import androidx.compose.ui.unit.sp
 import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
 import com.studioham.icec.designsystem.hingeSplit
-import com.studioham.icec.designsystem.isTwoPane
+import com.studioham.icec.designsystem.isSideBySide
 import com.studioham.icec.designsystem.separatingHinges
 import com.studioham.icec.feature.editor.resources.Res
 import com.studioham.icec.feature.editor.resources.ic_mosaic
@@ -98,13 +99,12 @@ internal fun PhotoPreviewContent(
     onMosaic: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val twoPane = isTwoPane()
+    val beside = isSideBySide()
     var area by remember { mutableStateOf(Rect.Zero) }
     Column(modifier.fillMaxSize().background(Color.Black).windowInsetsPadding(WindowInsets.safeDrawing)) {
         BackTopBar(Res.string.photo_edit_title, onBack)
         BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().onGloballyPositioned { area = it.boundsInWindow() }) {
             val split = hingeSplit(area, hinges)
-            val beside = twoPane && maxWidth >= SideBySideMinWidth
             val paletteHeight = (maxHeight * 0.45f).coerceIn(PaletteMinHeight, PaletteMaxHeight)
             val px = LocalDensity.current
             when {
@@ -174,7 +174,16 @@ internal fun ToolPalette(
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
-        val s = minOf((maxWidth - 32.dp) / PaletteWidth, (maxHeight - 32.dp) / PaletteHeight).coerceIn(0.75f, 1.25f)
+        val fit = minOf((maxWidth - 32.dp) / PaletteWidth, (maxHeight - 32.dp) / PaletteHeight)
+        if (fit < MIN_SCALE) {
+            // Too small for the palette with 48dp buttons (a tiny hinge pane): keep just the two buttons.
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                ToolButton(Res.drawable.ic_tool_edit, Res.string.photo_edit_tool_edit, MIN_SCALE, onEdit)
+                ToolButton(Res.drawable.ic_mosaic, Res.string.photo_edit_tool_mosaic, MIN_SCALE, onMosaic)
+            }
+            return@BoxWithConstraints
+        }
+        val s = fit.coerceAtMost(1.25f)
         Box(Modifier.requiredSize(PaletteWidth * s, PaletteHeight * s)) {
             Image(painterResource(Res.drawable.palette_background), null, Modifier.fillMaxSize())
             ToolButton(Res.drawable.ic_tool_edit, Res.string.photo_edit_tool_edit, s, onEdit, Modifier.offset(42.dp * s, 61.dp * s))
@@ -216,7 +225,9 @@ private const val PREVIEW_PX = 2048
 private val PaletteWidth = 358.dp
 private val PaletteHeight = 222.dp
 private val PaletteColumn = 390.dp
-private val SideBySideMinWidth = 580.dp
+
+/** At this scale the buttons are 48dp and still apart. */
+private const val MIN_SCALE = 0.75f
 private val PaletteMinHeight: Dp = PaletteHeight * 0.75f + 32.dp
 private val PaletteMaxHeight: Dp = PaletteHeight + 32.dp
 private val ButtonFill = Color(0xFF2C2C2C)

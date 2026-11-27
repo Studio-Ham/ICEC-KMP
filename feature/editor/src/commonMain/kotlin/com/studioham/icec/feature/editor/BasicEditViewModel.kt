@@ -103,12 +103,14 @@ class BasicEditViewModel(
 
     /** The Snackbar action: open settings for a missing permission, otherwise try again. */
     fun onSaveErrorAction() {
-        when (_state.value.saveError) {
+        val error = _state.value.saveError
+        // Dismiss first, so a retry that fails at once keeps its new error.
+        onSaveErrorDismiss()
+        when (error) {
             SaveError.NoPermission -> permission.openSettings()
             SaveError.Failed -> onDoneClick()
             SaveError.NoSpace, null -> Unit
         }
-        onSaveErrorDismiss()
     }
 
     fun onSaveErrorDismiss() = _state.update { it.copy(saveError = null) }
