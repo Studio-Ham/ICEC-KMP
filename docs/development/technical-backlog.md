@@ -26,7 +26,8 @@
 
 ## 미디어와 렌더링
 
-- EXIF orientation과 Android/iOS 좌표계 차이
+- EXIF orientation과 Android/iOS 좌표계 차이: 원본·검출 정규화는 [ADR-0005](../adr/0005-basic-photo-edit.md)로 확정. Android API 28 이하 `MINI_KIND` 썸네일의 회전 반영 여부는 미검증
+- 48MP급·파노라마 사진의 기본 편집 저장 메모리와 시간
 - 고해상도 이미지의 decode, downsampling, memory pressure와 OOM 대응
 - 대용량 사진 저장의 메모리 상한. 현재는 원본 해상도 이미지 두 장을 메모리에 올립니다([ADR-0004](../adr/0004-common-mosaic-rendering.md))
 - MediaStore와 Photos 저장 결과의 공통 모델 및 오류 매핑

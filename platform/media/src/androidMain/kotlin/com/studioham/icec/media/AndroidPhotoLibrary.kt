@@ -6,6 +6,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.os.Build
 import android.provider.MediaStore.Images.Media
 import android.provider.MediaStore.Images.Thumbnails
@@ -79,8 +81,9 @@ class AndroidPhotoLibrary(
                     decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                 }
             } else {
-                // ponytail: API 24-27 ignore EXIF rotation, like face detection on those versions.
-                resolver.openInputStream(uri).use { BitmapFactory.decodeStream(it) } ?: error("Cannot decode photo $id")
+                // API 24-27: BitmapFactory ignores EXIF, so turn the pixels upright like ImageDecoder does (and face detection).
+                val bitmap = resolver.openInputStream(uri).use { BitmapFactory.decodeStream(it) } ?: error("Cannot decode photo $id")
+                bitmap.upright(resolver.openInputStream(uri)?.use { ExifInterface(it).orientation() } ?: ExifInterface.ORIENTATION_NORMAL)
             }.asImageBitmap()
         }
 
@@ -118,4 +121,25 @@ class AndroidPhotoLibrary(
     private companion object {
         const val JPEG_QUALITY = 95
     }
+}
+
+private fun ExifInterface.orientation() = getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+
+/**
+ * This bitmap turned upright for an EXIF [orientation] (1-8). ponytail: briefly holds two full bitmaps on API 24-27;
+ * decode with inSampleSize first if old devices run out of memory. Same matrix as AndroidFaceDetector.
+ */
+internal fun Bitmap.upright(orientation: Int): Bitmap {
+    val matrix = Matrix()
+    when (orientation) {
+        ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.setScale(-1f, 1f)
+        ExifInterface.ORIENTATION_ROTATE_180 -> matrix.setRotate(180f)
+        ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.setScale(1f, -1f)
+        ExifInterface.ORIENTATION_TRANSPOSE -> matrix.apply { setRotate(90f) }.postScale(-1f, 1f)
+        ExifInterface.ORIENTATION_ROTATE_90 -> matrix.setRotate(90f)
+        ExifInterface.ORIENTATION_TRANSVERSE -> matrix.apply { setRotate(-90f) }.postScale(-1f, 1f)
+        ExifInterface.ORIENTATION_ROTATE_270 -> matrix.setRotate(-90f)
+        else -> return this
+    }
+    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true).also { if (it !== this) recycle() }
 }

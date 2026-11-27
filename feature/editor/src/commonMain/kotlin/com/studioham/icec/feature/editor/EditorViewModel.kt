@@ -22,6 +22,21 @@ import kotlinx.coroutines.withContext
 /** Figma Editor Snackbar cases 2–4 (316:4050, 316:3747, 316:3897). */
 enum class SaveError { NoSpace, NoPermission, Failed }
 
+/** Runs [save] and maps a failure to its Snackbar case (UX-016); null when it worked. Mosaic and basic edit share it. */
+internal suspend fun saveOrError(save: suspend () -> Unit): SaveError? =
+    try {
+        save()
+        null
+    } catch (e: CancellationException) {
+        throw e
+    } catch (_: SaveException.NoSpace) {
+        SaveError.NoSpace
+    } catch (_: SaveException.NoPermission) {
+        SaveError.NoPermission
+    } catch (_: Exception) {
+        SaveError.Failed
+    }
+
 data class EditorState(
     val image: ImageBitmap? = null,
     val faces: List<FaceBounds>,
@@ -80,20 +95,11 @@ class EditorViewModel(
         _state.update { it.copy(saving = true, saveError = null) }
         viewModelScope.launch {
             val error =
-                try {
+                saveOrError {
                     val original = library.original(photoId)
                     val faces = current.selected.map { current.faces[it].toPixels(original.width, original.height) }
                     val result = withContext(Dispatchers.Default) { original.withMosaic(faces) }
                     _effects.send(EditorEffect.Saved(library.save(result)))
-                    null
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (_: SaveException.NoSpace) {
-                    SaveError.NoSpace
-                } catch (_: SaveException.NoPermission) {
-                    SaveError.NoPermission
-                } catch (_: Exception) {
-                    SaveError.Failed
                 }
             // UX-016: a failure keeps the selection and shows a Snackbar in the Editor.
             _state.update { it.copy(saving = false, saveError = error) }

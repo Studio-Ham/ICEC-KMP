@@ -37,6 +37,17 @@
 - 1단 트리와 2단 트리를 전환할 때는 UI 상태를 `if (twoPane)` 분기 바깥으로 끌어올립니다.
 - `rememberZoomState()`, `rememberLazyListState()`와 `rememberLazyGridState()`를 분기 바깥에 두어 회전 시 확대·이동과 스크롤 위치를 유지합니다. (`EditorContent`, `ResultContent`)
 
+### 도구 팔레트와 힌지
+
+- 힌지 위치는 `core/designsystem`의 `separatingHinges()`로 읽습니다.
+- `separatingHinges()`는 분리형 힌지의 창 좌표(px)를 반환합니다. Android는 `WindowInfoTracker`를 사용합니다. iOS는 빈 목록을 반환합니다.
+- 힌지가 본문을 가르는지는 `hingeSplit(area, hinges)`로 판정합니다. `area`는 본문의 `boundsInWindow()`입니다. (`AdaptiveTest.kt` 참조)
+- 분리형 힌지가 본문을 가르면 힌지 앞 영역에 사진을 둡니다. 힌지 뒤 영역에 팔레트를 둡니다. 이 규칙은 `isTwoPane()`보다 우선합니다.
+- 힌지가 없으면 `isTwoPane()`이 `true`이고 본문 폭이 `580.dp` 이상일 때만 팔레트를 사진 오른쪽에 둡니다.
+- 폭 조건은 높이 `480.dp` 미만의 좁은 분할 창을 1단으로 유지합니다.
+- 팔레트 벡터(`palette_background.xml`)와 원형 버튼은 한 Composable(`ToolPalette`)로 배치합니다. 힌지가 팔레트와 버튼 사이를 지나가지 않습니다.
+- 팔레트 배율은 `0.75`~`1.25`로 제한합니다. 배율 `0.75`에서 버튼 지름은 `48.dp`입니다. (`PhotoPreviewScreen.kt`)
+
 ## 4. 확대·이동
 
 - 확대·이동은 `core/designsystem`의 `Zoom.kt`에 있는 `ZoomState`, `fitRect()`, `rememberZoomState()`와 `Modifier.zoomable()`을 사용합니다.

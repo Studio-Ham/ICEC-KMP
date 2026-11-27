@@ -76,7 +76,7 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -destination 'generic
 
 ### iOS UI 테스트
 
-`iosAppUITests`는 Home → Gallery → Editor → Result 흐름을 XCUITest로 확인합니다. 테스트 전에 얼굴 3개가 있는 사진을 시뮬레이터에 넣고 사진 권한을 초기화합니다.
+`iosAppUITests`는 Home → Gallery → 도구 팔레트 → Editor 또는 기본 편집 → Result 흐름을 XCUITest로 확인합니다. 테스트 전에 얼굴 3개가 있는 사진을 시뮬레이터에 넣고 사진 권한을 초기화합니다.
 
 ```shell
 xcrun simctl addmedia <udid> <faces3.jpg>
@@ -92,7 +92,8 @@ xcrun xcresulttool export attachments --path build/ui.xcresult --output-path bui
 
 `IcecFlowUITests`는 다음 시나리오를 검증합니다.
 
-- `testFullFlow`: Home → Gallery → Editor → Result 전체 흐름과 얼굴 선택 저장, `Home` 버튼 복귀를 확인합니다.
+- `testFullFlow`: Home → Gallery → 팔레트 `Mosaic` → Editor → Result 전체 흐름과 얼굴 선택 저장, `Home` 버튼 복귀를 확인합니다.
+- `testBasicEditFlow`: 팔레트 `Edit` → 기본 편집(변경 전 `Done` 비활성, 회전·반전) → Result → `Edit again` 복귀를 확인합니다.
 - `testStoreScreenshots`: 스토어 스크린샷용 Editor·Result 화면을 캡처합니다.
 - `testRapidLeaveDoesNotCrash`: Editor 이탈 Dialog의 `Leave` 버튼을 연타해도 앱이 크래시하지 않고 Gallery로 복귀하는지 확인합니다.
 - `testResultBlocksSwipeBack`: Result 화면에서 왼쪽 스와이프 뒤로가기가 화면을 유지하는지 확인합니다.

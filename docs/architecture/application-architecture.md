@@ -39,8 +39,8 @@ sealed interface EditorEffect {
 - 뒤로가기(`pop`, `NavDisplay.onBack`)는 마지막 항목인 `Home`을 제거하지 않습니다.
 - 이 규칙은 비활성 route의 중복 콜백이나 `나가기` 연타로 back stack이 비는 문제를 막습니다. back stack이 비면 `NavDisplay`가 `backstack cannot be empty` 예외를 던집니다.
 - `BackStackTest`가 맨 위 route 검사, 중복 이동 무시와 `Home` 유지를 검증합니다.
-- MVP 정상 흐름은 `Home → Gallery → FaceAnalysis → Editor → Result`입니다.
-- 사진 선택 후 `FaceAnalysis`를 별도 Route로 열어 얼굴 검출을 수행합니다. 검출된 얼굴이 있으면 `Editor`로 이동합니다.
+- 정상 흐름은 `Home → Gallery → PhotoPreview(도구 팔레트)`입니다. 팔레트에서 `BasicEdit → Result` 또는 `FaceAnalysis → Editor → Result`로 갈라집니다([ADR-0005](../adr/0005-basic-photo-edit.md)).
+- 팔레트의 `모자이크`는 팔레트를 `FaceAnalysis`로 교체해 얼굴 검출을 수행합니다. 검출된 얼굴이 있으면 `Editor`로 이동합니다. `편집`은 팔레트 위에 `BasicEdit`를 쌓습니다.
 - 얼굴이 없거나 분석에 실패·시간 초과한 경우에는 각각 `NoFaceDetected`, `AnalysisFailed`, `AnalysisTimeout` 화면으로 이동합니다. 오류·시간 초과 화면은 같은 사진 재분석 또는 이전 Gallery 탐색 위치 복귀를 지원합니다.
 - 분석 중 뒤로가기는 Gallery의 이전 탐색 위치로 복귀합니다. 분석 동작은 Editor의 편집 상태와 구분합니다.
 - 기존 `feature/editor` 모듈에서 FaceAnalysis와 Editor Route를 함께 관리하되 화면·상태 책임을 분리합니다. 별도 feature 모듈 분리는 실제 필요가 확인되면 ADR로 결정합니다.

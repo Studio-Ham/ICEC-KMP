@@ -123,6 +123,7 @@ import com.studioham.icec.feature.editor.resources.ic_lock
 import com.studioham.icec.feature.editor.resources.ic_retry_small
 import com.studioham.icec.feature.editor.resources.ic_warning
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration.Companion.seconds
@@ -472,11 +473,12 @@ private fun CheckBadge(modifier: Modifier = Modifier) {
     }
 }
 
-/** UX-039: disabled with no selection. */
+/** UX-039: disabled with no selection. Basic edit reuses it with its own [label]. */
 @Composable
-private fun SaveButton(
+internal fun SaveButton(
     enabled: Boolean,
     onClick: () -> Unit,
+    label: StringResource = Res.string.editor_save,
 ) {
     Box(
         Modifier
@@ -490,17 +492,18 @@ private fun SaveButton(
         contentAlignment = Alignment.Center,
     ) {
         BasicText(
-            stringResource(Res.string.editor_save),
+            stringResource(label),
             style = TextStyle(Color.Black, 16.sp, FontWeight.Bold, fontFamily = Pretendard(), lineHeight = 24.sp),
         )
     }
 }
 
-/** Figma `[승인] 화면 4-Dialog: 편집 중 이탈 확인` (316:4294). */
+/** Figma `[승인] 화면 4-Dialog: 편집 중 이탈 확인` (316:4294). Basic edit passes its own [body]. */
 @Composable
-private fun BoxScope.ExitDialog(
+internal fun BoxScope.ExitDialog(
     onLeave: () -> Unit,
     onStay: () -> Unit,
+    body: StringResource = Res.string.editor_exit_body,
 ) {
     val shape = RoundedCornerShape(16.dp)
     Box(
@@ -539,7 +542,7 @@ private fun BoxScope.ExitDialog(
                     ),
             )
             BasicText(
-                stringResource(Res.string.editor_exit_body),
+                stringResource(body),
                 Modifier.padding(bottom = 24.dp),
                 style =
                     TextStyle(
@@ -597,7 +600,7 @@ private fun DialogButton(
 
 /** Figma `[승인] 화면 4-Dialog: 저장 중 로딩 다이얼로그` (335:2). Blocks every input while saving (UX-014). */
 @Composable
-private fun BoxScope.Saving() {
+internal fun BoxScope.Saving() {
     Column(
         Modifier
             .matchParentSize()
@@ -625,7 +628,7 @@ private fun BoxScope.Saving() {
 
 /** Figma Editor Snackbar cases 2–4 (316:4050, 316:3747, 316:3897). */
 @Composable
-private fun SaveErrorSnackbar(
+internal fun SaveErrorSnackbar(
     error: SaveError,
     onAction: () -> Unit,
     modifier: Modifier = Modifier,

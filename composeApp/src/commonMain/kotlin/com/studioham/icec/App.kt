@@ -10,10 +10,13 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.studioham.icec.face.FaceBounds
+import com.studioham.icec.feature.editor.BasicEditScreen
+import com.studioham.icec.feature.editor.BasicEditViewModel
 import com.studioham.icec.feature.editor.EditorScreen
 import com.studioham.icec.feature.editor.EditorViewModel
 import com.studioham.icec.feature.editor.FaceAnalysisScreen
 import com.studioham.icec.feature.editor.FaceAnalysisViewModel
+import com.studioham.icec.feature.editor.PhotoPreviewScreen
 import com.studioham.icec.feature.gallery.GalleryScreen
 import com.studioham.icec.feature.result.ResultScreen
 import com.studioham.icec.home.HomeScreen
@@ -24,6 +27,15 @@ sealed interface Route {
     /** A new [session] gives a fresh Gallery at the newest photos (Result `다른 사진 편집하기`). */
     data class Gallery(
         val session: Int = 0,
+    ) : Route
+
+    /** The chosen photo with the tool palette (Wiki 기본 사진 편집). */
+    data class PhotoPreview(
+        val photoId: String,
+    ) : Route
+
+    data class BasicEdit(
+        val photoId: String,
     ) : Route
 
     data class FaceAnalysis(
@@ -63,18 +75,33 @@ fun App(
                     GalleryScreen(
                         viewModel { graph.galleryViewModel },
                         onBack = { backStack.pop(route) },
-                        onPhotoSelected = { backStack.push(route, Route.FaceAnalysis(it.id)) },
+                        onPhotoSelected = { backStack.push(route, Route.PhotoPreview(it.id)) },
+                    )
+                }
+                entry<Route.PhotoPreview> { route ->
+                    PhotoPreviewScreen(
+                        route.photoId,
+                        graph.photoLibrary,
+                        onBack = { backStack.pop(route) },
+                        // Basic edit stacks on the palette, so its back returns here (D1).
+                        onEdit = { backStack.push(route, Route.BasicEdit(route.photoId)) },
+                        // Mosaic replaces the palette, so every analysis or editor exit returns to the Gallery (UX-017~019, UX-038).
+                        onMosaic = { backStack.replace(route, Route.FaceAnalysis(route.photoId)) },
+                    )
+                }
+                entry<Route.BasicEdit> { route ->
+                    BasicEditScreen(
+                        viewModel { BasicEditViewModel(route.photoId, graph.photoLibrary, graph.photoPermission) },
+                        onExit = { backStack.pop(route) },
+                        // Result sits on top, so `다시 편집하기` returns to the same edit.
+                        onSaved = { backStack.push(route, Route.Result(it)) },
                     )
                 }
                 entry<Route.FaceAnalysis> { route ->
                     FaceAnalysisScreen(
                         viewModel { FaceAnalysisViewModel(route.photoId, graph.faceDetector, graph.photoLibrary) },
                         // Replace FaceAnalysis so leaving the Editor returns to the Gallery (UX-037).
-                        onFacesDetected = { faces ->
-                            if (backStack.lastOrNull() == route) {
-                                backStack[backStack.lastIndex] = Route.Editor(route.photoId, faces)
-                            }
-                        },
+                        onFacesDetected = { faces -> backStack.replace(route, Route.Editor(route.photoId, faces)) },
                         onPickAnother = { backStack.pop(route) },
                     )
                 }
@@ -103,6 +130,13 @@ fun App(
 
 internal fun MutableList<Route>.pop(from: Route) {
     if (size > 1 && last() == from) removeAt(lastIndex)
+}
+
+internal fun MutableList<Route>.replace(
+    from: Route,
+    to: Route,
+) {
+    if (lastOrNull() == from) set(lastIndex, to)
 }
 
 internal fun MutableList<Route>.push(

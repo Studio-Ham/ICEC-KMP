@@ -68,9 +68,9 @@
 ### 사진 선택과 갱신
 
 - 타일을 누르면 `GalleryViewModel`이 원본을 확인합니다. 읽을 수 있으면 `GalleryEffect.OpenPhoto`를 보냅니다.
-- `composeApp`은 `OpenPhoto`를 받으면 `Route.FaceAnalysis(photoId)`를 back stack에 추가합니다. FaceAnalysis 구현 전까지는 임시 화면을 보여 줍니다.
+- `composeApp`은 `OpenPhoto`를 받으면 `Route.PhotoPreview(photoId)`(도구 팔레트)를 back stack에 추가합니다([기본 편집 Spec](basic-edit.md)).
 - 읽을 수 없으면 `GalleryEffect.PhotoUnavailable`을 보내고 `refresh()`로 목록을 다시 읽습니다. 화면은 Snackbar(`340:326`)를 3초 동안 보여 줍니다(UX-030).
-- FaceAnalysis에서 돌아오면 같은 스크롤 위치를 유지합니다. Navigation 3 entry의 saveable 상태가 `LazyGridState`를 보존합니다.
+- 팔레트·FaceAnalysis·Editor에서 돌아오면 같은 스크롤 위치를 유지합니다. Navigation 3 entry의 saveable 상태가 `LazyGridState`를 보존합니다.
 - 화면이 다시 활성화되면 `refresh()`가 권한과 목록을 다시 읽습니다(UX-031).
 - `refresh()`는 진행 중인 읽기를 취소하고 `offset = 0`부터 이미 읽은 범위(`maxOf(60, loadedRange)`)를 한 번에 다시 읽습니다. 이미 목록이 있으면 `Loading`으로 바꾸지 않고 결과만 교체합니다.
 
@@ -124,7 +124,7 @@
 
 ### ③ 사진 선택과 갱신
 
-- [x] 사진을 누르면 FaceAnalysis 경로로 이동한다(임시 화면)
+- [x] 사진을 누르면 도구 팔레트로 이동한다(2026-11-27부터. 이전에는 FaceAnalysis)
 - [x] 원본을 읽을 수 없으면 Snackbar를 보여 주고 삭제된 사진을 목록에서 뺀다
 - [x] FaceAnalysis에서 돌아오면 스크롤 위치를 유지한다
 - [x] Foreground 복귀 시 권한과 목록을 다시 읽는다

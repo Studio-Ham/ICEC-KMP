@@ -18,6 +18,8 @@
 - 공통 요청 모델은 얼굴 영역, 선택된 얼굴 집합과 블록 크기처럼 렌더링에 필요한 최소 정보만 가집니다.
 - 픽셀 처리는 공통 코드가 담당합니다. 미리보기와 저장은 같은 함수로 블록을 그립니다([ADR-0004](../adr/0004-common-mosaic-rendering.md)).
 - 플랫폼 코드는 원본을 방향을 적용한 원본 해상도 이미지로 읽고, 결과를 JPEG로 저장합니다. 네이티브 이미지 타입은 외부에 노출하지 않습니다.
+- Android API 24~27은 `BitmapFactory`가 EXIF 방향을 무시하므로 `ExifInterface` 방향 행렬을 원본 읽기와 얼굴 검출 디코딩에 함께 적용합니다([ADR-0005](../adr/0005-basic-photo-edit.md)).
+- 기본 편집의 회전·반전·자르기도 공통 코드(`Canvas.orient`, `edited`)가 처리합니다. 미리보기와 저장이 같은 변환을 씁니다.
 - 고해상도 이미지에서는 다운샘플링, 버퍼 재사용과 렌더링 범위 최소화를 검증합니다.
 
 MVP는 사용자에게 강도 조절 기능을 제공하지 않습니다. 블록 크기는 얼굴 폭의 1/8입니다([UX-042](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-042)). 최종 저장 해상도는 [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md)의 원본 해상도 요구사항을 따릅니다.

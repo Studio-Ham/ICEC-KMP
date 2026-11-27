@@ -1,6 +1,6 @@
 import XCTest
 
-/// Full flow on a simulator: Home → Gallery → Editor → Result.
+/// Full flow on a simulator: Home → Gallery → tool palette → Editor or basic edit → Result.
 /// Needs a 3-face photo as the newest library item (`xcrun simctl addmedia`).
 final class IcecFlowUITests: XCTestCase {
     private let app = XCUIApplication()
@@ -54,6 +54,32 @@ final class IcecFlowUITests: XCTestCase {
         XCTAssertTrue(element("2 of 3 faces selected").waitForExistence(timeout: 5))
         snap("store-03-editor")
         save(name: "store-04-result")
+    }
+
+    /// Wiki 기본 편집: palette → basic edit → Result → 다시 편집하기 keeps the edit.
+    func testBasicEditFlow() {
+        let load = element("Load photo")
+        XCTAssertTrue(load.waitForExistence(timeout: 20))
+        load.tap()
+        allowPhotos()
+        let photos = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Photo, '"))
+        XCTAssertTrue(photos.firstMatch.waitForExistence(timeout: 20))
+        photos.firstMatch.tap()
+        let edit = element("Edit")
+        XCTAssertTrue(edit.waitForExistence(timeout: 10))
+        edit.tap()
+        let done = element("Done")
+        XCTAssertTrue(done.waitForExistence(timeout: 10))
+        XCTAssertFalse(done.isEnabled) // D2: nothing changed yet
+        element("Rotate 90°").tap()
+        element("Flip").tap()
+        done.tap()
+        allowPhotos()
+        let editAgain = element("Edit again")
+        XCTAssertTrue(editAgain.waitForExistence(timeout: 30))
+        Self.savedCount += 1
+        editAgain.tap()
+        XCTAssertTrue(element("Done").waitForExistence(timeout: 5))
     }
 
     func testRapidLeaveDoesNotCrash() {
@@ -115,6 +141,10 @@ final class IcecFlowUITests: XCTestCase {
         }
         snap("02-gallery")
         galleryPhotos[Self.savedCount].tap()
+        let mosaic = element("Mosaic")
+        XCTAssertTrue(mosaic.waitForExistence(timeout: 10))
+        snap("03-palette")
+        mosaic.tap()
         snap("03-editor")
     }
 

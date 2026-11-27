@@ -80,7 +80,7 @@
 
 | 항목 | Android | iOS |
 | --- | --- | --- |
-| 원본 읽기 | API 28+: `ImageDecoder`(방향 적용). API 24~27: `BitmapFactory`, EXIF 회전 미반영 | `PHImageManagerMaximumSize`로 읽고 방향을 적용해 다시 그림 |
+| 원본 읽기 | API 28+: `ImageDecoder`(방향 적용). API 24~27: `BitmapFactory` + `ExifInterface` 방향 행렬([ADR-0005](../adr/0005-basic-photo-edit.md)) | `PHImageManagerMaximumSize`로 읽고 방향을 적용해 다시 그림 |
 | 저장 | `MediaStore` 새 항목, API 29+는 `IS_PENDING` 사용 | `PHAssetCreationRequest` |
 | 저장 권한 | API 29+: 필요 없음. API 28 이하: `WRITE_EXTERNAL_STORAGE`를 사진 권한과 함께 요청 | 사진 보관함 `readWrite` 권한 |
 | 오류 판별 | `SecurityException` → 권한, `ENOSPC` → 공간 | `PHPhotosError` 코드 |

@@ -23,3 +23,4 @@ Spec은 승인된 제품·UX 요구사항을 구현 가능한 계약으로 표�
 - [FaceAnalysis](face-analysis.md) — Accepted (2026-11-17)
 - [Editor](editor.md) — Accepted (2026-11-19)
 - [Result](result.md) — Accepted (2026-11-19)
+- [도구 팔레트와 기본 편집](basic-edit.md) — Accepted (2026-11-27)
