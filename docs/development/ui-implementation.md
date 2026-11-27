@@ -47,6 +47,7 @@
 - 폭 조건은 높이 `480.dp` 미만의 좁은 분할 창을 1단으로 유지합니다.
 - 팔레트 벡터(`palette_background.xml`)와 원형 버튼은 한 Composable(`ToolPalette`)로 배치합니다. 힌지가 팔레트와 버튼 사이를 지나가지 않습니다.
 - 팔레트 배율은 `0.75`~`1.25`로 제한합니다. 배율 `0.75`에서 버튼 지름은 `48.dp`입니다. (`PhotoPreviewScreen.kt`)
+- 자르기 영역의 좌우 여백은 `WindowInsets.systemGestures`와 `16.dp` 중 큰 값을 사용합니다. 자르기 모서리가 Android 가장자리 뒤로가기 제스처 영역에 들어가지 않습니다. (`BasicEditScreen.kt` `CropPhoto`)
 
 ## 4. 확대·이동
 

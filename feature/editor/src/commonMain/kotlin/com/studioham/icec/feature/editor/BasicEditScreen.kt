@@ -11,16 +11,20 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.systemGestures
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
@@ -169,11 +173,11 @@ internal fun BasicEditContent(
             if (twoPane) {
                 // Like the mosaic editor (#34): photo on the left, controls on the right.
                 Row(Modifier.weight(1f)) {
-                    CropPhoto(state, actions.onCropChange, Modifier.weight(1f).padding(16.dp))
+                    CropPhoto(state, actions.onCropChange, Modifier.weight(1f))
                     Column(Modifier.width(390.dp).fillMaxHeight(), Arrangement.Bottom) { Controls(state, actions) }
                 }
             } else {
-                CropPhoto(state, actions.onCropChange, Modifier.weight(1f).padding(16.dp))
+                CropPhoto(state, actions.onCropChange, Modifier.weight(1f))
                 Controls(state, actions)
             }
         }
@@ -238,7 +242,9 @@ private fun CropPhoto(
     modifier: Modifier = Modifier,
 ) {
     val image = state.image
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    // Corners at the screen side would start Android's edge back gesture; keep them out of that zone (at least 16dp).
+    val inset = WindowInsets.systemGestures.only(WindowInsetsSides.Horizontal).union(WindowInsets(16.dp, 16.dp, 16.dp, 16.dp))
+    Box(modifier.fillMaxSize().windowInsetsPadding(inset), contentAlignment = Alignment.Center) {
         if (image == null) return@Box
         val turned = turnedSize(image.width, image.height, state.edit.turns)
         val aspect = turned.width.toFloat() / turned.height
