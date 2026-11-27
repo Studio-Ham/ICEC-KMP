@@ -61,6 +61,7 @@
 - 사진 위 탭·드래그 판정도 같은 `zoom.photoRect(imageSize, viewport)`를 호출해 좌표를 계산합니다. (`EditorScreen.kt` `Photo`, `BasicEditScreen.kt` `CropPhoto`)
 - 한 손가락 드래그를 콘텐츠가 쓰는 화면은 `Modifier.zoomable(state, singleFingerPan = false)`를 사용합니다. 이때 두 손가락 이상만 확대·이동합니다.
 - `singleFingerPan = false`를 쓰면 콘텐츠의 `pointerInput` 뒤에 `zoomable`을 둡니다. 핀치가 시작되면 콘텐츠의 드래그가 취소됩니다. (`BasicEditScreen.kt` 자르기 상자)
+- 확대 상태의 한 손가락 이동은 콘텐츠의 드래그 처리에서 `ZoomState.onGesture(위치, 이동량, 1f, fit, viewport)`를 호출합니다. 기본 편집은 자르기 모서리가 아닌 드래그를 사진 이동으로 처리합니다.
 - 얼굴 박스가 겹치면 가장 작은 박스를 선택합니다.
 - `rememberZoomState()`는 `rememberSaveable`로 상태를 저장해 화면 이동과 구성 변경 뒤에도 배율과 위치를 유지합니다.
 

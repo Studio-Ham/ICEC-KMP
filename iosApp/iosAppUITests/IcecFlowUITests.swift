@@ -75,6 +75,8 @@ final class IcecFlowUITests: XCTestCase {
         snap("07-basic-edit")
         crop.pinch(withScale: 2.5, velocity: 2) // two fingers zoom like the mosaic editor
         snap("08-basic-edit-zoomed")
+        crop.swipeLeft() // one finger pans the zoomed photo, like the mosaic editor
+        snap("09-basic-edit-panned")
         element("Rotate 90°").tap()
         element("Flip").tap()
         done.tap()

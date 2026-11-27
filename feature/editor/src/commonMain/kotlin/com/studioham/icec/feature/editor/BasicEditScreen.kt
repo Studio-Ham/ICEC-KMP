@@ -242,7 +242,7 @@ private fun Controls(
 
 /**
  * The turned, mirrored photo with the crop box: dimmed outside, thirds inside, corners to resize, drag inside to move.
- * Two fingers pinch zoom and pan like the mosaic editor ([zoom]). Drawn through [orient], the same transform the save uses.
+ * Pinch zoom and pan follow the mosaic editor ([zoom]): when zoomed, one finger pans unless it grabs a crop corner. Drawn through [orient], the same transform the save uses.
  */
 @Composable
 private fun CropPhoto(
@@ -270,19 +270,29 @@ private fun CropPhoto(
                     detectDragGestures(
                         onDragStart = {
                             val shown = zoom.photoRect(photoSize, size.toSize())
-                            handle = edit.crop.handleAt(it - shown.topLeft, shown.size, 24.dp.toPx())
+                            // Like the mosaic editor, a zoomed photo pans with one finger; corners still resize the crop.
+                            handle =
+                                edit.crop
+                                    .handleAt(it - shown.topLeft, shown.size, 24.dp.toPx())
+                                    .takeUnless { grabbed -> zoom.scale > 1f && grabbed == CropHandle.Move }
                         },
                         onDragEnd = { handle = null },
                         onDragCancel = { handle = null },
                     ) { change, drag ->
-                        val grabbed = handle ?: return@detectDragGestures
                         change.consume()
-                        val shown = zoom.photoRect(photoSize, size.toSize())
+                        val viewport = size.toSize()
+                        val grabbed = handle
+                        if (grabbed == null) {
+                            // The mosaic editor's rules: no pan at 1x, and the photo keeps covering the viewport.
+                            zoom.onGesture(change.position, drag, 1f, fitRect(photoSize, viewport), viewport)
+                            return@detectDragGestures
+                        }
+                        val shown = zoom.photoRect(photoSize, viewport)
                         val moved = Offset(drag.x / shown.width, drag.y / shown.height)
                         onCropChange(edit.crop.dragged(grabbed, moved, edit.ratio, aspect, MinCrop.toPx() / shown.height))
                     }
                 }
-                // After the crop drag so a pinch cancels it; one finger stays with the crop box.
+                // After the crop drag so a pinch cancels it; one finger stays with the crop box or the pan above.
                 .zoomable(zoom, singleFingerPan = false) { fitRect(photoSize, it) },
         ) {
             val shown = zoom.photoRect(photoSize, size)
