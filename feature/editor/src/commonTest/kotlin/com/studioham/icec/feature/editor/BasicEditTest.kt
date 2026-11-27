@@ -51,7 +51,7 @@ class BasicEditTest {
         assertClose(edit.crop, edit.mirrored().mirrored().crop)
         assertTrue(BasicEdit().isIdentity)
         assertFalse(BasicEdit().mirrored().isIdentity)
-        assertTrue(BasicEdit().mirrored().mirrored().isIdentity) // D2: nothing changed, nothing to save
+        assertTrue(BasicEdit().mirrored().mirrored().isIdentity) // D1: back leaves without asking
     }
 
     @Test
@@ -103,8 +103,6 @@ class BasicEditTest {
     fun backWithoutChangesLeavesAtOnce() =
         runTest {
             val viewModel = BasicEditViewModel("1", Unreadable, NoPermission)
-            assertFalse(viewModel.state.value.canSave) // D2
-
             viewModel.onBack()
 
             assertEquals(BasicEditEffect.Exit, viewModel.effects.first()) // D1

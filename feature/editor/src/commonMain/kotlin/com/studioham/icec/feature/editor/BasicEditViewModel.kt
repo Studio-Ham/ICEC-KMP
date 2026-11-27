@@ -25,10 +25,7 @@ data class BasicEditState(
     val exitDialog: Boolean = false,
     val saving: Boolean = false,
     val saveError: SaveError? = null,
-) {
-    /** D2: nothing to save until the photo changed. */
-    val canSave get() = !edit.isIdentity
-}
+)
 
 sealed interface BasicEditEffect {
     /** Saved as a new photo with [photoId]; the original is unchanged. */
@@ -88,10 +85,10 @@ class BasicEditViewModel(
 
     fun onKeepEditing() = _state.update { it.copy(exitDialog = false) }
 
-    /** D4 (UX-014, UX-016): renders the edit on the original and saves a new photo; one save at a time. */
+    /** D2: always enabled, even with no change. D4 (UX-014, UX-016): renders on the original, one save at a time. */
     fun onDoneClick() {
         val current = _state.value
-        if (!current.canSave || current.saving) return
+        if (current.saving) return
         _state.update { it.copy(saving = true, saveError = null) }
         viewModelScope.launch {
             val error =

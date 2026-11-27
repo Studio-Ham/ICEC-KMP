@@ -249,7 +249,7 @@ private fun ZoomableImage(
             .border(1.dp, IcecColors.Hairline, shape)
             .zoomable(zoom) { fitRect(imageSize, it) },
     ) {
-        val shown = zoom.transform(fitRect(imageSize, size), size)
+        val shown = zoom.photoRect(imageSize, size)
         drawImage(
             image,
             dstOffset = IntOffset(shown.left.roundToInt(), shown.top.roundToInt()),

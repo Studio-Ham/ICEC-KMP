@@ -70,7 +70,11 @@ final class IcecFlowUITests: XCTestCase {
         edit.tap()
         let done = element("Done")
         XCTAssertTrue(done.waitForExistence(timeout: 10))
-        XCTAssertFalse(done.isEnabled) // D2: nothing changed yet
+        XCTAssertTrue(done.isEnabled) // D2: always enabled
+        let crop = element("Crop area")
+        snap("07-basic-edit")
+        crop.pinch(withScale: 2.5, velocity: 2) // two fingers zoom like the mosaic editor
+        snap("08-basic-edit-zoomed")
         element("Rotate 90°").tap()
         element("Flip").tap()
         done.tap()

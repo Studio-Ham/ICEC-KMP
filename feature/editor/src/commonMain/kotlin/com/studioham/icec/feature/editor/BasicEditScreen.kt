@@ -49,8 +49,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -66,13 +68,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.studioham.icec.designsystem.IcecColors
 import com.studioham.icec.designsystem.Pretendard
+import com.studioham.icec.designsystem.ZoomState
+import com.studioham.icec.designsystem.fitRect
 import com.studioham.icec.designsystem.isTwoPane
+import com.studioham.icec.designsystem.rememberZoomState
+import com.studioham.icec.designsystem.zoomable
 import com.studioham.icec.feature.editor.resources.Res
 import com.studioham.icec.feature.editor.resources.back
 import com.studioham.icec.feature.editor.resources.basic_edit_crop
@@ -164,6 +171,8 @@ internal fun BasicEditContent(
     modifier: Modifier = Modifier,
 ) {
     val twoPane = isTwoPane()
+    // Hoisted so zoom survives switching between the one- and two-pane trees (rotation, window resize).
+    val zoom = rememberZoomState()
     Box(modifier.fillMaxSize().background(Color.Black)) {
         // ponytail: Modifier.blur needs Android 12+; older Android shows the saving overlay without blur.
         Column(
@@ -173,11 +182,11 @@ internal fun BasicEditContent(
             if (twoPane) {
                 // Like the mosaic editor (#34): photo on the left, controls on the right.
                 Row(Modifier.weight(1f)) {
-                    CropPhoto(state, actions.onCropChange, Modifier.weight(1f))
+                    CropPhoto(state, zoom, actions.onCropChange, Modifier.weight(1f))
                     Column(Modifier.width(390.dp).fillMaxHeight(), Arrangement.Bottom) { Controls(state, actions) }
                 }
             } else {
-                CropPhoto(state, actions.onCropChange, Modifier.weight(1f))
+                CropPhoto(state, zoom, actions.onCropChange, Modifier.weight(1f))
                 Controls(state, actions)
             }
         }
@@ -228,16 +237,17 @@ private fun Controls(
             .background(Divider),
     )
     Tools(actions.onRotateClick, actions.onFlipClick)
-    SaveButton(enabled = state.canSave, actions.onDoneClick, Res.string.basic_edit_done)
+    SaveButton(enabled = true, actions.onDoneClick, Res.string.basic_edit_done)
 }
 
 /**
  * The turned, mirrored photo with the crop box: dimmed outside, thirds inside, corners to resize, drag inside to move.
- * Drawn through [orient], the same transform the save uses.
+ * Two fingers pinch zoom and pan like the mosaic editor ([zoom]). Drawn through [orient], the same transform the save uses.
  */
 @Composable
 private fun CropPhoto(
     state: BasicEditState,
+    zoom: ZoomState,
     onCropChange: (Rect) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -248,6 +258,7 @@ private fun CropPhoto(
         if (image == null) return@Box
         val turned = turnedSize(image.width, image.height, state.edit.turns)
         val aspect = turned.width.toFloat() / turned.height
+        val photoSize = Size(turned.width.toFloat(), turned.height.toFloat())
         val edit by rememberUpdatedState(state.edit)
         val label = stringResource(Res.string.basic_edit_crop_area)
         Canvas(
@@ -257,56 +268,81 @@ private fun CropPhoto(
                 .pointerInput(aspect) {
                     var handle: CropHandle? = null
                     detectDragGestures(
-                        onDragStart = { handle = edit.crop.handleAt(it, Size(size.width.toFloat(), size.height.toFloat()), 24.dp.toPx()) },
+                        onDragStart = {
+                            val shown = zoom.photoRect(photoSize, size.toSize())
+                            handle = edit.crop.handleAt(it - shown.topLeft, shown.size, 24.dp.toPx())
+                        },
                         onDragEnd = { handle = null },
                         onDragCancel = { handle = null },
                     ) { change, drag ->
                         val grabbed = handle ?: return@detectDragGestures
                         change.consume()
-                        val moved = Offset(drag.x / size.width, drag.y / size.height)
-                        onCropChange(edit.crop.dragged(grabbed, moved, edit.ratio, aspect, MinCrop.toPx() / size.height))
+                        val shown = zoom.photoRect(photoSize, size.toSize())
+                        val moved = Offset(drag.x / shown.width, drag.y / shown.height)
+                        onCropChange(edit.crop.dragged(grabbed, moved, edit.ratio, aspect, MinCrop.toPx() / shown.height))
                     }
-                },
+                }
+                // After the crop drag so a pinch cancels it; one finger stays with the crop box.
+                .zoomable(zoom, singleFingerPan = false) { fitRect(photoSize, it) },
         ) {
-            val photo = RoundRect(Rect(Offset.Zero, size), CornerRadius(12.dp.toPx()))
-            clipPath(Path().apply { addRoundRect(photo) }) {
-                drawIntoCanvas {
-                    it.save()
-                    it.scale(size.width / turned.width, size.height / turned.height)
-                    it.orient(image.width, image.height, edit)
-                    it.drawImage(image, Offset.Zero, Paint())
-                    it.restore()
+            val shown = zoom.photoRect(photoSize, size)
+            val margin = 3.dp.toPx() // room for the corner marks on the edge
+            clipRect(-margin, -margin, size.width + margin, size.height + margin) {
+                val photo = RoundRect(shown, CornerRadius(12.dp.toPx()))
+                clipPath(Path().apply { addRoundRect(photo) }) {
+                    drawIntoCanvas {
+                        it.save()
+                        it.translate(shown.left, shown.top)
+                        it.scale(shown.width / turned.width, shown.height / turned.height)
+                        it.orient(image.width, image.height, edit)
+                        it.drawImage(image, Offset.Zero, Paint())
+                        it.restore()
+                    }
                 }
-            }
-            val crop = edit.crop
-            val box = Rect(crop.left * size.width, crop.top * size.height, crop.right * size.width, crop.bottom * size.height)
-            val outside =
-                Path().apply {
-                    fillType = PathFillType.EvenOdd
-                    addRoundRect(photo)
-                    addRect(box)
-                }
-            drawPath(outside, Color.Black.copy(alpha = 0.6f))
-            val thin = 1.dp.toPx()
-            for (i in 1..2) {
-                val x = box.left + box.width * i / 3
-                val y = box.top + box.height * i / 3
-                drawLine(Guide, Offset(x, box.top), Offset(x, box.bottom), thin)
-                drawLine(Guide, Offset(box.left, y), Offset(box.right, y), thin)
-            }
-            drawRect(Color.White, box.topLeft, box.size, style = Stroke(1.5.dp.toPx()))
-            val arm = 18.dp.toPx()
-            val bold = 3.dp.toPx()
-            listOf(
-                box.topLeft to Offset(1f, 1f),
-                box.topRight to Offset(-1f, 1f),
-                box.bottomLeft to Offset(1f, -1f),
-                box.bottomRight to Offset(-1f, -1f),
-            ).forEach { (corner, inward) ->
-                drawLine(Color.White, corner, corner + Offset(arm * inward.x, 0f), bold)
-                drawLine(Color.White, corner, corner + Offset(0f, arm * inward.y), bold)
+                drawCropBox(edit.crop, shown, photo)
             }
         }
+    }
+}
+
+/** The crop box over the photo drawn at [shown]: dimmed outside, thirds inside, white frame and corner marks. */
+private fun DrawScope.drawCropBox(
+    crop: Rect,
+    shown: Rect,
+    photo: RoundRect,
+) {
+    val box =
+        Rect(
+            shown.left + crop.left * shown.width,
+            shown.top + crop.top * shown.height,
+            shown.left + crop.right * shown.width,
+            shown.top + crop.bottom * shown.height,
+        )
+    val outside =
+        Path().apply {
+            fillType = PathFillType.EvenOdd
+            addRoundRect(photo)
+            addRect(box)
+        }
+    drawPath(outside, Color.Black.copy(alpha = 0.6f))
+    val thin = 1.dp.toPx()
+    for (i in 1..2) {
+        val x = box.left + box.width * i / 3
+        val y = box.top + box.height * i / 3
+        drawLine(Guide, Offset(x, box.top), Offset(x, box.bottom), thin)
+        drawLine(Guide, Offset(box.left, y), Offset(box.right, y), thin)
+    }
+    drawRect(Color.White, box.topLeft, box.size, style = Stroke(1.5.dp.toPx()))
+    val arm = 18.dp.toPx()
+    val bold = 3.dp.toPx()
+    listOf(
+        box.topLeft to Offset(1f, 1f),
+        box.topRight to Offset(-1f, 1f),
+        box.bottomLeft to Offset(1f, -1f),
+        box.bottomRight to Offset(-1f, -1f),
+    ).forEach { (corner, inward) ->
+        drawLine(Color.White, corner, corner + Offset(arm * inward.x, 0f), bold)
+        drawLine(Color.White, corner, corner + Offset(0f, arm * inward.y), bold)
     }
 }
 

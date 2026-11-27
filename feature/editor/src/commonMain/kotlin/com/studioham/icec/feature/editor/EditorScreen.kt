@@ -312,7 +312,7 @@ private fun Photo(
                 .pointerInput(pixels, image) {
                     detectTapGestures { tap ->
                         val viewport = Size(size.width.toFloat(), size.height.toFloat())
-                        val fit = zoom.transform(fitRect(imageSize, viewport), viewport)
+                        val fit = zoom.photoRect(imageSize, viewport)
                         // Smallest box wins when boxes overlap, so a small face inside a big one stays reachable.
                         pixels.indices
                             .filter { fit.map(pixels[it], image.width).contains(tap) }
@@ -321,7 +321,7 @@ private fun Photo(
                     }
                 },
         ) {
-            val fit = zoom.transform(fitRect(imageSize, size), size)
+            val fit = zoom.photoRect(imageSize, size)
             drawImage(
                 image,
                 dstOffset = IntOffset(fit.left.toInt(), fit.top.toInt()),

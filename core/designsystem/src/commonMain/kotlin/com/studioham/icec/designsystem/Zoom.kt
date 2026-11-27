@@ -1,5 +1,10 @@
 package com.studioham.icec.designsystem
 
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -14,6 +19,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.unit.toSize
 
 /**
@@ -41,6 +47,12 @@ class ZoomState(
         val topLeft = center + (fit.topLeft - center) * scale + offset
         return Rect(topLeft, size)
     }
+
+    /** Where an [image]-sized photo is drawn now in a [viewport]: [transform] of its fitted rect. Screens draw and hit-test with it. */
+    fun photoRect(
+        image: Size,
+        viewport: Size,
+    ): Rect = transform(fitRect(image, viewport), viewport)
 
     /** Applies one gesture step: [zoom] around [centroid], then [pan], clamped to the photo. */
     fun onGesture(
@@ -95,14 +107,34 @@ fun clampOffset(
 @Composable
 fun rememberZoomState(): ZoomState = rememberSaveable(saver = ZoomState.Saver) { ZoomState() }
 
-/** Pinch and drag on this element drive [state]; [fit] gives the photo's 1x rect for the element size. */
+/**
+ * Pinch and drag on this element drive [state]; [fit] gives the photo's 1x rect for the element size. With
+ * [singleFingerPan] false only two or more fingers zoom and pan, and one-finger drags stay with the content (the basic
+ * edit crop box). Put it after the content's own pointerInput so a pinch cancels that drag.
+ */
 fun Modifier.zoomable(
     state: ZoomState,
+    singleFingerPan: Boolean = true,
     fit: (Size) -> Rect?,
 ): Modifier =
-    pointerInput(state) {
-        detectTransformGestures { centroid, pan, zoom, _ ->
-            val viewport = size.toSize()
-            fit(viewport)?.let { state.onGesture(centroid, pan, zoom, it, viewport) }
+    pointerInput(state, singleFingerPan) {
+        if (singleFingerPan) {
+            detectTransformGestures { centroid, pan, zoom, _ ->
+                val viewport = size.toSize()
+                fit(viewport)?.let { state.onGesture(centroid, pan, zoom, it, viewport) }
+            }
+        } else {
+            awaitEachGesture {
+                awaitFirstDown(requireUnconsumed = false)
+                do {
+                    val event = awaitPointerEvent()
+                    val viewport = size.toSize()
+                    val photo = fit(viewport)
+                    if (photo != null && event.changes.count { it.pressed } >= 2) {
+                        state.onGesture(event.calculateCentroid(), event.calculatePan(), event.calculateZoom(), photo, viewport)
+                        event.changes.forEach { if (it.positionChanged()) it.consume() }
+                    }
+                } while (event.changes.any { it.pressed })
+            }
         }
     }

@@ -55,10 +55,12 @@
 - 최대 배율은 `4f`(`ZoomState.MAX_SCALE`)입니다.
 - `1x` 배율에서는 한 손가락 이동을 무시합니다.
 - 확대 상태에서는 `clampOffset()`으로 사진 밖 빈 영역이 보이지 않게 이동 범위를 제한합니다.
-- 사진, 얼굴 가이드, 체크 배지와 모자이크 미리보기는 `Canvas` 안에서 `zoom.transform(fitRect(imageSize, size), size)` 한 번의 변환으로 그립니다. (`EditorScreen.kt` `Photo`, `ResultScreen.kt` `ZoomableImage`)
+- 사진, 얼굴 가이드, 체크 배지, 모자이크 미리보기와 자르기 상자는 `Canvas` 안에서 `zoom.photoRect(imageSize, size)` 한 번의 변환으로 그립니다. (`EditorScreen.kt` `Photo`, `ResultScreen.kt` `ZoomableImage`, `BasicEditScreen.kt` `CropPhoto`)
 - `Canvas` 전체를 `graphicsLayer`로 확대하지 않습니다.
 - 선 두께와 배지 반지름은 화면 `dp.toPx()`를 유지합니다.
-- 사진 위 탭 판정(`detectTapGestures`)도 같은 `zoom.transform(fitRect(imageSize, viewport), viewport)`를 호출해 좌표를 계산합니다. (`EditorScreen.kt` `Photo`)
+- 사진 위 탭·드래그 판정도 같은 `zoom.photoRect(imageSize, viewport)`를 호출해 좌표를 계산합니다. (`EditorScreen.kt` `Photo`, `BasicEditScreen.kt` `CropPhoto`)
+- 한 손가락 드래그를 콘텐츠가 쓰는 화면은 `Modifier.zoomable(state, singleFingerPan = false)`를 사용합니다. 이때 두 손가락 이상만 확대·이동합니다.
+- `singleFingerPan = false`를 쓰면 콘텐츠의 `pointerInput` 뒤에 `zoomable`을 둡니다. 핀치가 시작되면 콘텐츠의 드래그가 취소됩니다. (`BasicEditScreen.kt` 자르기 상자)
 - 얼굴 박스가 겹치면 가장 작은 박스를 선택합니다.
 - `rememberZoomState()`는 `rememberSaveable`로 상태를 저장해 화면 이동과 구성 변경 뒤에도 배율과 위치를 유지합니다.
 
