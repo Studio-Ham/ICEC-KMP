@@ -1,0 +1,17 @@
+ICEC (Mosaic Editor Creator) is a photo editor that detects faces on your device.
+
+Key Features
+- On-device face detection: Select a photo from your device. ICEC detects faces on your device.
+- Selective square mosaic: Select which faces to cover with square pixel mosaic.
+- Zoom and pan: Zoom and pan the photo to check and select each face.
+- Original preservation: ICEC saves a new photo at original resolution. ICEC keeps your original photo unchanged.
+- No metadata: The saved photo contains no metadata, including GPS data.
+
+Privacy
+- ICEC has no accounts, no login, no advertisements, no payments, no developer servers, and no developer analytics tools.
+- ICEC does not send your photos or face data to the developer or external servers.
+- ICEC runs Google ML Kit on your device for face detection.
+- Google ML Kit may send SDK usage statistics and performance metrics to Google. Google receives no photos or face data.
+
+Supported Languages
+- Korean, English
