@@ -26,4 +26,16 @@
     <string name="editor_error_failed">이미지 처리에 실패했습니다.</string>
     <string name="editor_action_settings">권한 설정</string>
     <string name="editor_action_retry">다시 시도</string>
+    <string name="photo_edit_title">사진 편집</string>
+    <string name="photo_edit_tool_edit">편집</string>
+    <string name="photo_edit_tool_mosaic">모자이크</string>
+    <string name="basic_edit_title">기본 편집</string>
+    <string name="basic_edit_crop">자르기</string>
+    <string name="basic_edit_rotate">90도 회전</string>
+    <string name="basic_edit_flip">좌우 반전</string>
+    <string name="basic_edit_ratio_free">자유</string>
+    <string name="basic_edit_ratio">%1$d:%2$d</string>
+    <string name="basic_edit_crop_area">자르기 영역</string>
+    <string name="basic_edit_done">편집 완료</string>
+    <string name="basic_edit_exit_body">현재 사진에서 작업 중인\n편집 내역이 모두 초기화됩니다.</string>
 </resources>

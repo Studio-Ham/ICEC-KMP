@@ -37,6 +37,10 @@ kotlin {
             implementation(libs.compose.components.resources)
             implementation(libs.compose.foundation)
         }
+        androidMain.dependencies {
+            // Already on the app classpath through Compose UI; declared for fold and hinge features.
+            implementation(libs.androidx.window)
+        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }

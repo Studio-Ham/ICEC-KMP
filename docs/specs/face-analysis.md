@@ -8,7 +8,7 @@
 
 ## 목적
 
-Gallery에서 고른 사진의 얼굴을 기기 안에서 찾습니다. 결과에 따라 Editor 또는 복구 화면으로 이동합니다.
+도구 팔레트에서 `모자이크`를 고른 사진의 얼굴을 기기 안에서 찾습니다([기본 편집 Spec](basic-edit.md)). 팔레트는 이 화면으로 교체됩니다. 결과에 따라 Editor 또는 복구 화면으로 이동합니다.
 
 ## 범위
 
@@ -74,7 +74,7 @@ Gallery에서 고른 사진의 얼굴을 기기 안에서 찾습니다. 결과�
 | 항목 | Android | iOS |
 | --- | --- | --- |
 | 검출기 | ML Kit `face-detection` 16.1.7(모델 포함) | ML Kit 9.0.0, 커뮤니티 SwiftPM 패키지 9.0.3([ADR-0003](../adr/0003-ios-mlkit-swiftpm-import.md)) |
-| 이미지 읽기 | API 28+: `ImageDecoder`가 회전을 반영해 축소. API 24~27: `BitmapFactory` `inSampleSize`, EXIF 회전 미반영 | `PHImageManager`(iCloud 다운로드 허용), `imageOrientation`을 ML Kit에 전달 |
+| 이미지 읽기 | API 28+: `ImageDecoder`가 회전을 반영해 축소. API 24~27: `BitmapFactory` `inSampleSize` + `ExifInterface` 방향 행렬([ADR-0005](../adr/0005-basic-photo-edit.md)) | `PHImageManager`(iCloud 다운로드 허용), `imageOrientation`을 ML Kit에 전달 |
 | 배경 블러 | Android 12+에서만 블러 적용. 이전 버전은 어둡게만 처리 | 블러 적용 |
 | 모델 파일 | 라이브러리에 포함 | `GoogleMVFaceDetectorResources.bundle`을 앱 번들에 복사. 없으면 오류 없이 0개 |
 | Background 실행 | 프로세스가 살아 있으면 ViewModel 코루틴이 계속 실행 | 분석 동안 `beginBackgroundTask`로 실행 시간을 요청. OS가 허용한 시간이 끝나면 일시 정지 |

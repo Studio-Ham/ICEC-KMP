@@ -4,7 +4,7 @@
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki Gallery UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/gallery.md) · Figma `[승인] 화면 2` (`316:2412`, `316:2477`, `316:2506`, `316:2532`, `340:294`, `340:326`)
 > 관련 결정: [UX-020~023](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-020), [UX-029~031](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-029), [UX-044](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-044), [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045), [UX-047](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-047)
-> 최종 검토일: 2026-11-22
+> 최종 검토일: 2026-11-28
 
 ## 목적
 
@@ -61,16 +61,17 @@
 - `GalleryScreen` 상단 사진 수는 `PhotoPage.total`을 표시합니다. `Empty` 상태에서는 상단 사진 수를 숨기고 제목(`사진이 없습니다`)과 한 줄 본문(`JPEG·HEIC·PNG 사진만 표시합니다`)을 표시합니다([UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045)).
 - 날짜 헤더(`SectionHeader`)는 날짜 라벨만 표시하고 날짜별 사진 수는 표시하지 않습니다([UX-047](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-047)).
 - `LoadFailed` 상태는 한 줄 본문과 다시 시도 버튼을 표시합니다([UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045)).
-- `PhotoLibrary.thumbnail()`은 타일 크기 이상의 썸네일을 반환합니다. 읽을 수 없으면 null을 반환하고 타일은 빈 배경으로 둡니다.
+- `PhotoLibrary.thumbnail()`은 짧은 변이 타일 크기 이상인 썸네일을 반환합니다. 타일은 가운데를 정사각형으로 잘라 표시합니다. iOS는 로컬 데이터만 사용하므로 기기에 없는 iCloud 사진은 빈 타일입니다. 읽을 수 없으면 null을 반환하고 타일은 빈 배경으로 둡니다.
+- 사진을 고른 뒤 전체 사진을 표시하는 화면은 `thumbnail()` 대신 `PhotoLibrary.preview()`를 씁니다([플랫폼 기능 경계](../architecture/platform-capabilities.md#이미지와-모자이크-렌더링)).
 - 촬영일이 없으면 Android는 추가일, iOS는 생성일을 씁니다. 날짜 묶음은 기기 시간대 기준입니다.
 - `PhotoLibrary.isReadable()`은 사진 원본을 읽을 수 있는지 확인합니다. iOS는 iCloud 원본 다운로드를 허용합니다.
 
 ### 사진 선택과 갱신
 
 - 타일을 누르면 `GalleryViewModel`이 원본을 확인합니다. 읽을 수 있으면 `GalleryEffect.OpenPhoto`를 보냅니다.
-- `composeApp`은 `OpenPhoto`를 받으면 `Route.FaceAnalysis(photoId)`를 back stack에 추가합니다. FaceAnalysis 구현 전까지는 임시 화면을 보여 줍니다.
+- `composeApp`은 `OpenPhoto`를 받으면 `Route.PhotoPreview(photoId)`(도구 팔레트)를 back stack에 추가합니다([기본 편집 Spec](basic-edit.md)).
 - 읽을 수 없으면 `GalleryEffect.PhotoUnavailable`을 보내고 `refresh()`로 목록을 다시 읽습니다. 화면은 Snackbar(`340:326`)를 3초 동안 보여 줍니다(UX-030).
-- FaceAnalysis에서 돌아오면 같은 스크롤 위치를 유지합니다. Navigation 3 entry의 saveable 상태가 `LazyGridState`를 보존합니다.
+- 팔레트·FaceAnalysis·Editor에서 돌아오면 같은 스크롤 위치를 유지합니다. Navigation 3 entry의 saveable 상태가 `LazyGridState`를 보존합니다.
 - 화면이 다시 활성화되면 `refresh()`가 권한과 목록을 다시 읽습니다(UX-031).
 - `refresh()`는 진행 중인 읽기를 취소하고 `offset = 0`부터 이미 읽은 범위(`maxOf(60, loadedRange)`)를 한 번에 다시 읽습니다. 이미 목록이 있으면 `Loading`으로 바꾸지 않고 결과만 교체합니다.
 
@@ -94,7 +95,7 @@
 | 재요청 판단 | 요청 이력(SharedPreferences)과 `shouldShowRequestPermissionRationale`로 `NotDetermined`·`Denied`·`Blocked` 구분 | 시스템 팝업은 한 번만 표시. 거부·제한은 `Blocked` |
 | 목록 정렬과 페이징 | MediaStore를 `DATE_TAKEN DESC, DATE_ADDED DESC, _ID DESC`로 정렬하고 cursor 위치로 페이지 읽기 | 페이지마다 `PHAsset.fetchAssetsWithMediaType`(`creationDate` 내림차순)를 호출해 해당 범위만 읽기 |
 | 미지원 미디어 제외 | MIME 타입(`image/jpeg`·`image/png`·`image/heic`·`image/heif`)으로 조회 | `playbackStyle`로 GIF를 먼저 거르고, 해당 페이지 자산만 `assetResourcesForAsset` 첫 리소스 UTI로 GIF·RAW 제외 |
-| 썸네일 | `loadThumbnail`(API 29+), 이하 `Thumbnails.getThumbnail` | `PHImageManager` 요청 후 JPEG로 변환해 Skia 이미지 생성 |
+| 썸네일 | `loadThumbnail`(API 29+). API 28은 `ImageDecoder` 목표 크기. API 24~27은 `BitmapFactory` 2의 거듭제곱 축소 + `ExifInterface` 방향 행렬. API 24~28 모두 짧은 변은 요청 크기 이상, 긴 변은 요청 크기의 4배 이하([ADR-0005](../adr/0005-basic-photo-edit.md)) | `PHImageManager`(`AspectFill`, `ResizeModeFast`, 로컬 데이터만, 취소 시 요청 취소). `AspectFill`은 잘림을 허용하는 계약이므로 전체 사진에는 쓰지 않습니다. 방향이 있으면 바로 세운 뒤 백그라운드에서 JPEG로 변환해 Skia 이미지 생성 |
 | OS 설정 이동 | `ACTION_APPLICATION_DETAILS_SETTINGS` | `UIApplicationOpenSettingsURLString` |
 | 권한 안내 문구 | 앱 화면 문구만 사용 | `NSPhotoLibraryUsageDescription`(현재 영어 1개) |
 
@@ -124,7 +125,7 @@
 
 ### ③ 사진 선택과 갱신
 
-- [x] 사진을 누르면 FaceAnalysis 경로로 이동한다(임시 화면)
+- [x] 사진을 누르면 도구 팔레트로 이동한다(2026-11-27부터. 이전에는 FaceAnalysis)
 - [x] 원본을 읽을 수 없으면 Snackbar를 보여 주고 삭제된 사진을 목록에서 뺀다
 - [x] FaceAnalysis에서 돌아오면 스크롤 위치를 유지한다
 - [x] Foreground 복귀 시 권한과 목록을 다시 읽는다

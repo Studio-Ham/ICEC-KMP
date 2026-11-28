@@ -3,6 +3,7 @@ package com.studioham.icec.media
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.readValue
@@ -15,9 +16,11 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
 import platform.CoreGraphics.CGRectMake
+import platform.CoreGraphics.CGSize
 import platform.CoreGraphics.CGSizeMake
 import platform.Foundation.NSData
 import platform.Foundation.NSError
+import platform.Foundation.NSNumber
 import platform.Foundation.NSSortDescriptor
 import platform.Foundation.create
 import platform.Foundation.timeIntervalSince1970
@@ -28,13 +31,17 @@ import platform.Photos.PHAssetPlaybackStyleImageAnimated
 import platform.Photos.PHAssetResource
 import platform.Photos.PHAssetResourceTypePhoto
 import platform.Photos.PHFetchOptions
+import platform.Photos.PHImageContentMode
 import platform.Photos.PHImageContentModeAspectFill
+import platform.Photos.PHImageContentModeAspectFit
 import platform.Photos.PHImageContentModeDefault
 import platform.Photos.PHImageManager
 import platform.Photos.PHImageManagerMaximumSize
 import platform.Photos.PHImageRequestOptions
 import platform.Photos.PHImageRequestOptionsDeliveryModeHighQualityFormat
+import platform.Photos.PHImageRequestOptionsResizeModeExact
 import platform.Photos.PHImageRequestOptionsResizeModeFast
+import platform.Photos.PHImageResultIsDegradedKey
 import platform.Photos.PHPhotoLibrary
 import platform.Photos.PHPhotosErrorAccessRestricted
 import platform.Photos.PHPhotosErrorAccessUserDenied
@@ -44,6 +51,7 @@ import platform.UIKit.UIGraphicsImageRenderer
 import platform.UIKit.UIGraphicsImageRendererFormat
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
+import platform.UIKit.UIImageOrientation
 import platform.posix.memcpy
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -84,43 +92,66 @@ class IosPhotoLibrary : PhotoLibrary {
         id: String,
         sizePx: Int,
     ): ImageBitmap? {
-        val asset = PHAsset.fetchAssetsWithLocalIdentifiers(listOf(id), null).firstObject as? PHAsset ?: return null
+        // Local only, as before PR #64: scrolling the Gallery must not download iCloud photos. A tile crops to a square anyway.
         val options =
             PHImageRequestOptions().apply {
                 deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat
                 resizeMode = PHImageRequestOptionsResizeModeFast
             }
-        val image =
-            suspendCancellableCoroutine { continuation ->
-                PHImageManager.defaultManager().requestImageForAsset(
-                    asset,
-                    CGSizeMake(sizePx.toDouble(), sizePx.toDouble()),
-                    PHImageContentModeAspectFill,
-                    options,
-                ) { image, _ -> continuation.resume(image) }
+        val image = requestImage(id, CGSizeMake(sizePx.toDouble(), sizePx.toDouble()), PHImageContentModeAspectFill, options) ?: return null
+        return withContext(Dispatchers.Default) { image.uprightIfNeeded().toImageBitmap() }
+    }
+
+    override suspend fun preview(
+        id: String,
+        maxSidePx: Int,
+    ): ImageBitmap? {
+        // AspectFit never crops; Exact makes the long side the asked size, so it never exceeds maxSidePx. The chosen photo may
+        // be iCloud-only, like isReadable() and original().
+        val options =
+            PHImageRequestOptions().apply {
+                deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat
+                resizeMode = PHImageRequestOptionsResizeModeExact
+                networkAccessAllowed = true
             }
-        return image?.toImageBitmap()
+        val size = CGSizeMake(maxSidePx.toDouble(), maxSidePx.toDouble())
+        val image = requestImage(id, size, PHImageContentModeAspectFit, options) ?: return null
+        return withContext(Dispatchers.Default) { image.uprightIfNeeded().toImageBitmap() }
     }
 
     override suspend fun original(id: String): ImageBitmap {
-        val asset = PHAsset.fetchAssetsWithLocalIdentifiers(listOf(id), null).firstObject as? PHAsset ?: error("No photo $id")
         val options =
             PHImageRequestOptions().apply {
                 deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat
                 networkAccessAllowed = true
             }
         val image =
-            suspendCancellableCoroutine<UIImage?> { continuation ->
-                PHImageManager.defaultManager().requestImageForAsset(
-                    asset,
-                    PHImageManagerMaximumSize.readValue(),
-                    PHImageContentModeDefault,
-                    options,
-                ) { image, _ ->
-                    continuation.resume(image)
-                }
-            } ?: error("Cannot load photo $id")
+            requestImage(id, PHImageManagerMaximumSize.readValue(), PHImageContentModeDefault, options) ?: error("Cannot load photo $id")
         return withContext(Dispatchers.Default) { image.upright().toImageBitmap(quality = 1.0) ?: error("Cannot decode photo $id") }
+    }
+
+    /**
+     * The final image of an asynchronous PhotoKit request, or null when the photo is missing or fails. PhotoKit may call
+     * back more than once: degraded images come before the final one, so they are skipped, and only the first final
+     * result resumes. Cancelling the coroutine cancels the request.
+     */
+    private suspend fun requestImage(
+        id: String,
+        size: CValue<CGSize>,
+        mode: PHImageContentMode,
+        options: PHImageRequestOptions,
+    ): UIImage? {
+        val asset = PHAsset.fetchAssetsWithLocalIdentifiers(listOf(id), null).firstObject as? PHAsset ?: return null
+        val manager = PHImageManager.defaultManager()
+        return suspendCancellableCoroutine { continuation ->
+            val request =
+                manager.requestImageForAsset(asset, size, mode, options) { image, info ->
+                    // Callbacks arrive on the main thread one at a time, so this check and resume do not race each other.
+                    val degraded = (info?.get(PHImageResultIsDegradedKey) as? NSNumber)?.boolValue == true
+                    if (!degraded && continuation.isActive) continuation.resume(image)
+                }
+            continuation.invokeOnCancellation { manager.cancelImageRequest(request) }
+        }
     }
 
     /** UX-014: asks iOS for background time so leaving the app does not stop a running save. */
@@ -166,6 +197,9 @@ private fun NSError?.toSaveException(): Exception =
         PHPhotosErrorAccessUserDenied, PHPhotosErrorAccessRestricted -> SaveException.NoPermission()
         else -> IllegalStateException(this?.localizedDescription ?: "Saving failed")
     }
+
+/** This image, or a copy drawn upright when PhotoKit hands it over with an orientation. */
+private fun UIImage.uprightIfNeeded(): UIImage = if (imageOrientation == UIImageOrientation.UIImageOrientationUp) this else upright()
 
 /** Draws the image with its orientation applied, one pixel per point, so pixels match the upright face boxes. */
 @OptIn(ExperimentalForeignApi::class)

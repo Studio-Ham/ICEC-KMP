@@ -4,7 +4,7 @@
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki FaceAnalysis · Editor UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/editor.md) · [Wiki PRD](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/prd.md) · Figma `[승인] 화면 4` (`316:3606`, `316:4197`, `316:4294`, `335:2`, Snackbar `316:4050`·`316:3747`·`316:3897`)
 > 관련 결정: [UX-039](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-039), [UX-041](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-041), [UX-014](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-014), [UX-016](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-016), [UX-042](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-042), [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045), [UX-046](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-046), [UX-048](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-048), [ADR-0001](../adr/0001-face-analysis-route.md), [ADR-0004](../adr/0004-common-mosaic-rendering.md)
-> 최종 검토일: 2026-11-22
+> 최종 검토일: 2026-11-28
 
 ## 목적
 
@@ -26,7 +26,7 @@
 
 - `feature/editor`가 `EditorViewModel`과 `EditorScreen`을 제공합니다. FaceAnalysis와 같은 모듈입니다([ADR-0001](../adr/0001-face-analysis-route.md)).
 - `Route.Editor(photoId, faces)`로 진입합니다. FaceAnalysis를 대체하므로 Editor를 나가면 Gallery로 돌아갑니다.
-- 화면 이미지는 `PhotoLibrary.thumbnail(photoId, 2048)`입니다. 저장 이미지는 ③에서 원본 해상도로 따로 렌더링합니다.
+- 화면 이미지는 `PhotoLibrary.preview(photoId, 2048)`입니다. 방향을 바로 세운 원본 비율 이미지이므로 정규화한 얼굴 좌표가 그대로 맞습니다. 저장 이미지는 ③에서 원본 해상도로 따로 렌더링합니다.
 - 사진 상자는 이미지 비율에 맞추고 12dp 둥근 모서리로 자릅니다. 1dp 테두리를 두르고 바깥 여백 배경은 채우지 않습니다.
 - 얼굴은 왼쪽부터 정렬합니다. 사진 위 가이드와 하단 목록이 같은 순서를 씁니다.
 - 모든 얼굴은 미선택으로 시작합니다(`Detected ≠ Selected`).
@@ -72,7 +72,7 @@
 | 저장 권한 없음 | Snackbar `사진 저장 권한 허용이 필요합니다`와 `권한 설정`(`316:3747`). 설정 화면을 엽니다 |
 | 원본 읽기·렌더링·인코딩·그 밖의 저장 실패 | Snackbar `이미지 처리에 실패했습니다.`와 `다시 시도`(`316:3897`) |
 
-저장에 실패하면 저장 중 화면을 닫고 선택을 유지합니다(UX-016). Snackbar는 4초 뒤 사라집니다.
+저장에 실패하면 저장 중 화면을 닫고 선택을 유지합니다(UX-016). Snackbar는 4초 뒤 사라집니다. 이탈 확인 Dialog가 열려 있으면 Snackbar를 숨기고 저장·Snackbar 동작을 무시합니다. 4초 타이머는 계속 진행합니다. 그래서 저장 중과 이탈 Dialog가 함께 열리지 않습니다.
 
 ## 플랫폼 차이
 
@@ -80,7 +80,7 @@
 
 | 항목 | Android | iOS |
 | --- | --- | --- |
-| 원본 읽기 | API 28+: `ImageDecoder`(방향 적용). API 24~27: `BitmapFactory`, EXIF 회전 미반영 | `PHImageManagerMaximumSize`로 읽고 방향을 적용해 다시 그림 |
+| 원본 읽기 | API 28+: `ImageDecoder`(방향 적용). API 24~27: `BitmapFactory` + `ExifInterface` 방향 행렬([ADR-0005](../adr/0005-basic-photo-edit.md)) | `PHImageManagerMaximumSize`로 읽고 방향을 적용해 다시 그림 |
 | 저장 | `MediaStore` 새 항목, API 29+는 `IS_PENDING` 사용 | `PHAssetCreationRequest` |
 | 저장 권한 | API 29+: 필요 없음. API 28 이하: `WRITE_EXTERNAL_STORAGE`를 사진 권한과 함께 요청 | 사진 보관함 `readWrite` 권한 |
 | 오류 판별 | `SecurityException` → 권한, `ENOSPC` → 공간 | `PHPhotosError` 코드 |
