@@ -82,7 +82,7 @@ fun ResultScreen(
     onHome: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val image by produceState<ImageBitmap?>(null, savedPhotoId) { value = library.thumbnail(savedPhotoId, IMAGE_PX) }
+    val image by produceState<ImageBitmap?>(null, savedPhotoId) { value = library.preview(savedPhotoId, IMAGE_PX) }
     NavigationBackHandler(rememberNavigationEventState(NavigationEventInfo.None), onBackCompleted = {})
     ResultContent(image, onEditAgain, onOtherPhoto, onHome, modifier)
 }
@@ -249,7 +249,7 @@ private fun ZoomableImage(
             .border(1.dp, IcecColors.Hairline, shape)
             .zoomable(zoom) { fitRect(imageSize, it) },
     ) {
-        val shown = zoom.transform(fitRect(imageSize, size), size)
+        val shown = zoom.photoRect(imageSize, size)
         drawImage(
             image,
             dstOffset = IntOffset(shown.left.roundToInt(), shown.top.roundToInt()),

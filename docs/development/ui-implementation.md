@@ -37,16 +37,33 @@
 - 1단 트리와 2단 트리를 전환할 때는 UI 상태를 `if (twoPane)` 분기 바깥으로 끌어올립니다.
 - `rememberZoomState()`, `rememberLazyListState()`와 `rememberLazyGridState()`를 분기 바깥에 두어 회전 시 확대·이동과 스크롤 위치를 유지합니다. (`EditorContent`, `ResultContent`)
 
+### 도구 팔레트와 힌지
+
+- 힌지 위치는 `core/designsystem`의 `separatingHinges()`로 읽습니다.
+- `separatingHinges()`는 분리형 힌지의 창 좌표(px)를 반환합니다. Android는 `WindowInfoTracker`를 사용합니다. iOS는 빈 목록을 반환합니다.
+- 힌지가 본문을 가르는지는 `hingeSplit(area, hinges)`로 판정합니다. `area`는 본문의 `boundsInWindow()`입니다. (`AdaptiveTest.kt` 참조)
+- 분리형 힌지가 본문을 가르면 힌지 앞 영역에 사진을 둡니다. 힌지 뒤 영역에 팔레트를 둡니다. 이 규칙은 `isTwoPane()`보다 우선합니다.
+- 힌지가 없으면 `isSideBySide()`가 `true`일 때만 팔레트와 기본 편집 조절 열을 사진 오른쪽에 둡니다. `isSideBySide()`는 `isTwoPane()`이 `true`이고 창 폭이 `580.dp` 이상일 때 `true`입니다. (`AdaptiveTest.kt` 참조)
+- 폭 조건은 높이 `480.dp` 미만의 좁은 분할 창을 1단으로 유지합니다.
+- 팔레트 벡터(`palette_background.xml`)와 원형 버튼은 한 Composable(`ToolPalette`)로 배치합니다. 힌지가 팔레트와 버튼 사이를 지나가지 않습니다.
+- 팔레트 배율은 최대 `1.25`입니다. 배율 `0.75`에서 버튼 지름은 `48.dp`입니다. (`PhotoPreviewScreen.kt`)
+- 영역이 배율 `0.75`의 팔레트보다 작으면 팔레트 그래픽을 그리지 않습니다. 이때 `48.dp` 원형 버튼 두 개만 가로로 둡니다.
+- 비율 칩과 도구 버튼은 Figma 폭(`76.dp`, `104.dp`)을 최대 폭으로 사용합니다. 좁은 창에서는 같은 줄의 폭을 나눠 모두 표시합니다.
+- 자르기 영역의 좌우 여백은 `WindowInsets.systemGestures`와 `16.dp` 중 큰 값을 사용합니다. 자르기 모서리가 Android 가장자리 뒤로가기 제스처 영역에 들어가지 않습니다. (`BasicEditScreen.kt` `CropPhoto`)
+
 ## 4. 확대·이동
 
 - 확대·이동은 `core/designsystem`의 `Zoom.kt`에 있는 `ZoomState`, `fitRect()`, `rememberZoomState()`와 `Modifier.zoomable()`을 사용합니다.
 - 최대 배율은 `4f`(`ZoomState.MAX_SCALE`)입니다.
 - `1x` 배율에서는 한 손가락 이동을 무시합니다.
 - 확대 상태에서는 `clampOffset()`으로 사진 밖 빈 영역이 보이지 않게 이동 범위를 제한합니다.
-- 사진, 얼굴 가이드, 체크 배지와 모자이크 미리보기는 `Canvas` 안에서 `zoom.transform(fitRect(imageSize, size), size)` 한 번의 변환으로 그립니다. (`EditorScreen.kt` `Photo`, `ResultScreen.kt` `ZoomableImage`)
+- 사진, 얼굴 가이드, 체크 배지, 모자이크 미리보기와 자르기 상자는 `Canvas` 안에서 `zoom.photoRect(imageSize, size)` 한 번의 변환으로 그립니다. (`EditorScreen.kt` `Photo`, `ResultScreen.kt` `ZoomableImage`, `BasicEditScreen.kt` `CropPhoto`)
 - `Canvas` 전체를 `graphicsLayer`로 확대하지 않습니다.
 - 선 두께와 배지 반지름은 화면 `dp.toPx()`를 유지합니다.
-- 사진 위 탭 판정(`detectTapGestures`)도 같은 `zoom.transform(fitRect(imageSize, viewport), viewport)`를 호출해 좌표를 계산합니다. (`EditorScreen.kt` `Photo`)
+- 사진 위 탭·드래그 판정도 같은 `zoom.photoRect(imageSize, viewport)`를 호출해 좌표를 계산합니다. (`EditorScreen.kt` `Photo`, `BasicEditScreen.kt` `CropPhoto`)
+- 한 손가락 드래그를 콘텐츠가 쓰는 화면은 `Modifier.zoomable(state, singleFingerPan = false)`를 사용합니다. 이때 두 손가락 이상만 확대·이동합니다.
+- `singleFingerPan = false`를 쓰면 콘텐츠의 `pointerInput` 뒤에 `zoomable`을 둡니다. 핀치가 시작되면 콘텐츠의 드래그가 취소됩니다. (`BasicEditScreen.kt` 자르기 상자)
+- 확대 상태의 한 손가락 이동은 콘텐츠의 드래그 처리에서 `ZoomState.onGesture(위치, 이동량, 1f, fit, viewport)`를 호출합니다. 기본 편집은 자르기 모서리가 아닌 드래그를 사진 이동으로 처리합니다.
 - 얼굴 박스가 겹치면 가장 작은 박스를 선택합니다.
 - `rememberZoomState()`는 `rememberSaveable`로 상태를 저장해 화면 이동과 구성 변경 뒤에도 배율과 위치를 유지합니다.
 

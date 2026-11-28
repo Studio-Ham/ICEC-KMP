@@ -22,6 +22,7 @@ kotlin {
         compilerOptions {
             jvmTarget = JvmTarget.JVM_11
         }
+        withHostTest {}
     }
 
     sourceSets {
@@ -31,6 +32,9 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
         }
     }
 }

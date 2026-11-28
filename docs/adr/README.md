@@ -22,3 +22,4 @@ ADR은 Architecture v1 이후 아키텍처 경계, 핵심 기술, 테스트·CI 
 - [ADR-0002: Android 진입점을 androidApp 모듈로 분리](0002-android-app-module.md) — Accepted (2026-11-17)
 - [ADR-0003: iOS ML Kit을 Kotlin SwiftPM import로 연결](0003-ios-mlkit-swiftpm-import.md) — Accepted (2026-11-17)
 - [ADR-0004: 모자이크 픽셀 처리를 공통 코드로 구현](0004-common-mosaic-rendering.md) — Accepted (2026-11-18)
+- [ADR-0005: 도구 팔레트와 기본 편집을 feature/editor에 추가](0005-basic-photo-edit.md) — Accepted (2026-11-27)

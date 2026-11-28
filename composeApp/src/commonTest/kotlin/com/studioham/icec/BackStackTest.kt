@@ -45,4 +45,32 @@ class BackStackTest {
 
         assertEquals(listOf<Route>(Route.Home, gallery, editor), backStack)
     }
+
+    @Test
+    fun mosaicReplacesThePaletteSoLeavingReturnsToTheGallery() {
+        val palette = Route.PhotoPreview("photo")
+        val analysis = Route.FaceAnalysis("photo")
+        val backStack = mutableListOf(Route.Home, gallery, palette)
+
+        backStack.replace(palette, analysis)
+        backStack.replace(palette, Route.FaceAnalysis("other")) // a second tap from the gone palette
+        assertEquals(listOf(Route.Home, gallery, analysis), backStack)
+
+        backStack.pop(analysis) // back, no face, failed, timeout or `다른 사진 선택`
+        assertEquals(listOf<Route>(Route.Home, gallery), backStack)
+    }
+
+    @Test
+    fun basicEditStacksOnThePalette() {
+        val palette = Route.PhotoPreview("photo")
+        val edit = Route.BasicEdit("photo")
+        val backStack = mutableListOf(Route.Home, gallery, palette)
+
+        backStack.push(palette, edit)
+        backStack.push(edit, Route.Result("saved"))
+        backStack.pop(Route.Result("saved")) // `다시 편집하기`
+        backStack.pop(edit)
+
+        assertEquals(listOf(Route.Home, gallery, palette), backStack)
+    }
 }

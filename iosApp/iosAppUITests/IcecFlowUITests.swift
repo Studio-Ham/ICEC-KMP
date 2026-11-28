@@ -1,6 +1,6 @@
 import XCTest
 
-/// Full flow on a simulator: Home → Gallery → Editor → Result.
+/// Full flow on a simulator: Home → Gallery → tool palette → Editor or basic edit → Result.
 /// Needs a 3-face photo as the newest library item (`xcrun simctl addmedia`).
 final class IcecFlowUITests: XCTestCase {
     private let app = XCUIApplication()
@@ -56,6 +56,50 @@ final class IcecFlowUITests: XCTestCase {
         save(name: "store-04-result")
     }
 
+    /// Wiki 기본 편집: palette → basic edit → Result → 다시 편집하기 keeps the edit.
+    func testBasicEditFlow() {
+        let load = element("Load photo")
+        XCTAssertTrue(load.waitForExistence(timeout: 20))
+        load.tap()
+        allowPhotos()
+        let photos = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Photo, '"))
+        XCTAssertTrue(photos.firstMatch.waitForExistence(timeout: 20))
+        photos.firstMatch.tap()
+        let edit = element("Edit")
+        XCTAssertTrue(edit.waitForExistence(timeout: 10))
+        snap("06-palette")
+        edit.tap()
+        let done = element("Done")
+        XCTAssertTrue(done.waitForExistence(timeout: 10))
+        XCTAssertTrue(done.isEnabled) // D2: always enabled
+        // `Done` waits for the photo (spec: input before it loads is ignored); the crop area appears with it.
+        XCTAssertTrue(element("Crop area").waitForExistence(timeout: 30))
+        snap("07-basic-edit")
+        // D2: saving with no change still makes a new photo.
+        done.tap()
+        allowPhotos()
+        XCTAssertTrue(element("Saved to your photo library").waitForExistence(timeout: 30))
+        Self.savedCount += 1
+        snap("07-basic-edit-unchanged-result")
+        element("Edit again").tap()
+        XCTAssertTrue(done.waitForExistence(timeout: 5))
+        let crop = element("Crop area")
+        crop.pinch(withScale: 2.5, velocity: 2) // two fingers zoom like the mosaic editor
+        snap("08-basic-edit-zoomed")
+        crop.swipeLeft() // one finger pans the zoomed photo, like the mosaic editor
+        snap("09-basic-edit-panned")
+        element("Rotate 90°").tap()
+        element("Flip").tap()
+        done.tap()
+        allowPhotos()
+        let editAgain = element("Edit again")
+        XCTAssertTrue(editAgain.waitForExistence(timeout: 30))
+        Self.savedCount += 1
+        snap("10-basic-edit-result")
+        editAgain.tap()
+        XCTAssertTrue(element("Done").waitForExistence(timeout: 5))
+    }
+
     func testRapidLeaveDoesNotCrash() {
         openEditor()
         XCTAssertTrue(element("0 of 3 faces selected").waitForExistence(timeout: 30))
@@ -74,7 +118,9 @@ final class IcecFlowUITests: XCTestCase {
         XCTAssertEqual(app.state, .runningForeground)
         let photo = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label BEGINSWITH 'Photo, '")).firstMatch
-        XCTAssertTrue(photo.exists)
+        // With a full gallery, the extra taps can land on a photo and open its tool palette.
+        // Both mean the Editor closed without a crash (#43).
+        XCTAssertTrue(photo.exists || element("Edit photo").exists)
         snap("gallery-after-rapid-leave")
     }
 
@@ -115,6 +161,10 @@ final class IcecFlowUITests: XCTestCase {
         }
         snap("02-gallery")
         galleryPhotos[Self.savedCount].tap()
+        let mosaic = element("Mosaic")
+        XCTAssertTrue(mosaic.waitForExistence(timeout: 10))
+        snap("03-palette")
+        mosaic.tap()
         snap("03-editor")
     }
 

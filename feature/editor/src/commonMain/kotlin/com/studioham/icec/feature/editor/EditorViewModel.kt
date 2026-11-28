@@ -22,6 +22,21 @@ import kotlinx.coroutines.withContext
 /** Figma Editor Snackbar cases 2–4 (316:4050, 316:3747, 316:3897). */
 enum class SaveError { NoSpace, NoPermission, Failed }
 
+/** Runs [save] and maps a failure to its Snackbar case (UX-016); null when it worked. Mosaic and basic edit share it. */
+internal suspend fun saveOrError(save: suspend () -> Unit): SaveError? =
+    try {
+        save()
+        null
+    } catch (e: CancellationException) {
+        throw e
+    } catch (_: SaveException.NoSpace) {
+        SaveError.NoSpace
+    } catch (_: SaveException.NoPermission) {
+        SaveError.NoPermission
+    } catch (_: Exception) {
+        SaveError.Failed
+    }
+
 data class EditorState(
     val image: ImageBitmap? = null,
     val faces: List<FaceBounds>,
@@ -29,6 +44,8 @@ data class EditorState(
     val exitDialog: Boolean = false,
     val saving: Boolean = false,
     val saveError: SaveError? = null,
+    /** Counts failed saves, so the screen restarts the Snackbar timer even when the same error comes back at once. */
+    val saveFailures: Int = 0,
 ) {
     /** UX-039: save needs at least one selected face. */
     val canSave get() = selected.isNotEmpty()
@@ -58,7 +75,7 @@ class EditorViewModel(
     init {
         // The screen shows a 2048px image; saving renders the original at full resolution.
         viewModelScope.launch {
-            val image = library.thumbnail(photoId, IMAGE_PX)
+            val image = library.preview(photoId, IMAGE_PX)
             _state.update { it.copy(image = image) }
         }
     }
@@ -76,38 +93,34 @@ class EditorViewModel(
     /** UX-014: renders the selected faces on the original and saves a new photo; one save at a time. */
     fun onSaveClick() {
         val current = _state.value
-        if (!current.canSave || current.saving) return
+        // Saving and the exit dialog never show together.
+        if (!current.canSave || current.saving || current.exitDialog) return
         _state.update { it.copy(saving = true, saveError = null) }
         viewModelScope.launch {
             val error =
-                try {
+                saveOrError {
                     val original = library.original(photoId)
                     val faces = current.selected.map { current.faces[it].toPixels(original.width, original.height) }
                     val result = withContext(Dispatchers.Default) { original.withMosaic(faces) }
                     _effects.send(EditorEffect.Saved(library.save(result)))
-                    null
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (_: SaveException.NoSpace) {
-                    SaveError.NoSpace
-                } catch (_: SaveException.NoPermission) {
-                    SaveError.NoPermission
-                } catch (_: Exception) {
-                    SaveError.Failed
                 }
             // UX-016: a failure keeps the selection and shows a Snackbar in the Editor.
-            _state.update { it.copy(saving = false, saveError = error) }
+            _state.update { it.copy(saving = false, saveError = error, saveFailures = it.saveFailures + if (error != null) 1 else 0) }
         }
     }
 
     /** The Snackbar action: open settings for a missing permission, otherwise try again. */
     fun onSaveErrorAction() {
-        when (_state.value.saveError) {
+        // The Snackbar is hidden behind the exit dialog; keep its error for when the dialog closes.
+        if (_state.value.exitDialog) return
+        val error = _state.value.saveError
+        // Dismiss first, so a retry that fails at once keeps its new error.
+        onSaveErrorDismiss()
+        when (error) {
             SaveError.NoPermission -> permission.openSettings()
             SaveError.Failed -> onSaveClick()
             SaveError.NoSpace, null -> Unit
         }
-        onSaveErrorDismiss()
     }
 
     fun onSaveErrorDismiss() = _state.update { it.copy(saveError = null) }

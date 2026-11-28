@@ -28,10 +28,22 @@ interface PhotoLibrary {
     /** True when the original can be read now; false when it was deleted or cannot be opened. */
     suspend fun isReadable(id: String): Boolean
 
-    /** A square-ish thumbnail at least [sizePx] wide, or null when the photo cannot be read. */
+    /**
+     * A Gallery tile: upright, short side about [sizePx] or more (the tile may crop it), from local data only on iOS.
+     * Null when the photo cannot be read.
+     */
     suspend fun thumbnail(
         id: String,
         sizePx: Int,
+    ): ImageBitmap?
+
+    /**
+     * The whole photo for a screen that shows the chosen photo: upright, original aspect ratio, long side at most
+     * [maxSidePx]. iOS may download it from iCloud. Null when the photo cannot be read.
+     */
+    suspend fun preview(
+        id: String,
+        maxSidePx: Int,
     ): ImageBitmap?
 
     /** The photo upright at its original pixel size. Throws when it cannot be read. */
