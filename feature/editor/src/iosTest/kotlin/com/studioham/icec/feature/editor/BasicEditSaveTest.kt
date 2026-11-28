@@ -57,6 +57,11 @@ class BasicEditSaveTest {
             sizePx: Int,
         ) = null
 
+        override suspend fun preview(
+            id: String,
+            maxSidePx: Int,
+        ) = null
+
         override suspend fun original(id: String) = original
 
         override suspend fun save(image: ImageBitmap): String {
@@ -132,6 +137,30 @@ class BasicEditSaveTest {
             viewModel.onSaveErrorAction()
             assertEquals(BasicEditEffect.Saved("new"), viewModel.effects.first())
             assertEquals(16, library.saved?.width) // unchanged original size
+        }
+
+    @Test
+    fun theExitDialogBlocksSavingAndKeepsTheSaveError() =
+        runTest {
+            val library = FakeLibrary(gradient(16, 8), failure = IllegalStateException("encoder"))
+            val viewModel = BasicEditViewModel("1", library, NoPermission)
+            viewModel.state.first { it.image != null }
+            viewModel.onRotateClick()
+            viewModel.onDoneClick()
+            viewModel.state.first { it.saveError != null }
+
+            viewModel.onBack() // changed, so D1 asks first
+            library.failure = null
+            viewModel.onSaveErrorAction() // the hidden Snackbar's `다시 시도`
+            viewModel.onDoneClick()
+            val state = viewModel.state.value
+            assertEquals(true, state.exitDialog)
+            assertEquals(false, state.saving) // never both at once
+            assertEquals(SaveError.Failed, state.saveError)
+
+            viewModel.onKeepEditing()
+            viewModel.onSaveErrorAction()
+            assertEquals(BasicEditEffect.Saved("new"), viewModel.effects.first())
         }
 
     @Test

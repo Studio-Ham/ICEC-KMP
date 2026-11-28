@@ -68,6 +68,11 @@ class GalleryViewModelTest {
             sizePx: Int,
         ) = null
 
+        override suspend fun preview(
+            id: String,
+            maxSidePx: Int,
+        ) = null
+
         override suspend fun original(id: String): ImageBitmap = error("not used")
 
         override suspend fun save(image: ImageBitmap): String = error("not used")

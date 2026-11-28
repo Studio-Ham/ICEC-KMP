@@ -67,43 +67,50 @@ class AndroidPhotoLibrary(
                 if (Build.VERSION.SDK_INT >= 29) {
                     resolver.loadThumbnail(uri, Size(sizePx, sizePx), null)
                 } else {
-                    // API 24-28: MINI_KIND ignores sizePx (512 x 384) and may not apply EXIF; decode sampled down and upright.
-                    decodeUpright(uri, sizePx)
+                    // API 24-28: MINI_KIND ignores sizePx (512 x 384) and may not apply EXIF. The tile crops past 4x its size.
+                    decodeUpright(uri, minShort = sizePx, maxLong = sizePx * 4)
                 }
+            }.getOrNull()?.asImageBitmap()
+        }
+
+    // loadThumbnail is not used here: it may return up to about twice the asked size, and the cap must hold.
+    override suspend fun preview(
+        id: String,
+        maxSidePx: Int,
+    ): ImageBitmap? =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                decodeUpright(ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id.toLong()), maxSidePx, maxSidePx)
             }.getOrNull()?.asImageBitmap()
         }
 
     override suspend fun original(id: String): ImageBitmap =
         withContext(Dispatchers.IO) {
-            val uri = ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id.toLong())
             // ponytail: full-resolution ARGB in memory (about 48 MB for 12 MP); tile the render if large photos run out of memory.
-            if (Build.VERSION.SDK_INT >= 28) {
-                ImageDecoder.decodeBitmap(ImageDecoder.createSource(resolver, uri)) { decoder, _, _ ->
-                    decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                }
-            } else {
-                decodeUpright(uri)
-            }.asImageBitmap()
+            decodeUpright(ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id.toLong())).asImageBitmap()
         }
 
     /**
-     * API 24-27 originals and API 24-28 thumbnails: BitmapFactory ignores EXIF, so turn the pixels upright like ImageDecoder
-     * does (and face detection). [minSide] above 0 samples down by powers of two while the short side stays at least that.
-     * ponytail: a 2048px thumbnail of a 12 MP photo still decodes at full size; use ImageDecoder.setTargetSize on API 28 if
-     * old devices run out of memory.
+     * The photo upright with its long side at most [maxLong], scaled down no further than keeps the short side at least
+     * [minShort]. API 28+: ImageDecoder applies EXIF and scales exactly (like face detection). API 24-27: BitmapFactory
+     * ignores EXIF, so it samples down by [sampleSize] before decoding and then turns the smaller pixels upright.
      */
     private fun decodeUpright(
         uri: Uri,
-        minSide: Int = 0,
+        minShort: Int = Int.MAX_VALUE,
+        maxLong: Int = Int.MAX_VALUE,
     ): Bitmap {
-        var sample = 1
-        if (minSide > 0) {
-            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            resolver.openInputStream(uri).use { BitmapFactory.decodeStream(it, null, bounds) }
-            val short = minOf(bounds.outWidth, bounds.outHeight)
-            while (short / (sample * 2) >= minSide) sample *= 2
+        if (Build.VERSION.SDK_INT >= 28) {
+            return ImageDecoder.decodeBitmap(ImageDecoder.createSource(resolver, uri)) { decoder, info, _ ->
+                val (width, height) = info.size.width to info.size.height
+                val scale = targetScale(width, height, minShort, maxLong)
+                if (scale < 1) decoder.setTargetSize((width * scale).toInt().coerceAtLeast(1), (height * scale).toInt().coerceAtLeast(1))
+                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            }
         }
-        val options = BitmapFactory.Options().apply { inSampleSize = sample }
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        resolver.openInputStream(uri).use { BitmapFactory.decodeStream(it, null, bounds) }
+        val options = BitmapFactory.Options().apply { inSampleSize = sampleSize(bounds.outWidth, bounds.outHeight, minShort, maxLong) }
         val bitmap = resolver.openInputStream(uri).use { BitmapFactory.decodeStream(it, null, options) } ?: error("Cannot decode $uri")
         // A broken or unsupported EXIF block must not lose a photo that decoded; a missing permission already failed above.
         val orientation = runCatching { resolver.openInputStream(uri)?.use { ExifInterface(it).orientation() } }.getOrNull()
@@ -154,8 +161,35 @@ class AndroidPhotoLibrary(
 private fun ExifInterface.orientation() = getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
 
 /**
- * This bitmap turned upright for an EXIF [orientation] (1-8). ponytail: briefly holds two full bitmaps on API 24-27;
- * decode with inSampleSize first if old devices run out of memory. Same matrix as AndroidFaceDetector.
+ * ImageDecoder scale (at most 1) for a [width] x [height] photo: the long side fits [maxLong], and the short side stays at
+ * least [minShort] when the cap allows. Both sides scale alike, so it holds before or after EXIF rotation.
+ */
+internal fun targetScale(
+    width: Int,
+    height: Int,
+    minShort: Int,
+    maxLong: Int,
+): Float = minOf(1f, minShort.toFloat() / minOf(width, height), maxLong.toFloat() / maxOf(width, height))
+
+/**
+ * BitmapFactory power-of-two inSampleSize: the coarsest that keeps the short side at least [minShort], made coarser
+ * until the long side (rounded up, as JPEG sampling does) is at most [maxLong].
+ */
+internal fun sampleSize(
+    width: Int,
+    height: Int,
+    minShort: Int,
+    maxLong: Int,
+): Int {
+    var sample = 1
+    while (minOf(width, height) / (sample * 2) >= minShort) sample *= 2
+    while ((maxOf(width, height) + sample - 1) / sample > maxLong) sample *= 2
+    return sample
+}
+
+/**
+ * This bitmap turned upright for an EXIF [orientation] (1-8). On API 24-27 it briefly holds two bitmaps of the sampled
+ * size (two originals only for original()). Same matrix as AndroidFaceDetector.
  */
 internal fun Bitmap.upright(orientation: Int): Bitmap {
     val matrix = Matrix()

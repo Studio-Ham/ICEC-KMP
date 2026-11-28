@@ -93,7 +93,8 @@ class BasicEditViewModel(
      */
     fun onDoneClick() {
         val current = _state.value
-        if (current.saving || current.image == null) return
+        // Saving and the exit dialog never show together.
+        if (current.saving || current.exitDialog || current.image == null) return
         _state.update { it.copy(saving = true, saveError = null) }
         viewModelScope.launch {
             val error =
@@ -108,6 +109,8 @@ class BasicEditViewModel(
 
     /** The Snackbar action: open settings for a missing permission, otherwise try again. */
     fun onSaveErrorAction() {
+        // The Snackbar is hidden behind the exit dialog; keep its error for when the dialog closes.
+        if (_state.value.exitDialog) return
         val error = _state.value.saveError
         // Dismiss first, so a retry that fails at once keeps its new error.
         onSaveErrorDismiss()

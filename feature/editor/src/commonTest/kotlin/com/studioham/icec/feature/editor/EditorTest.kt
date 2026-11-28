@@ -37,6 +37,11 @@ class EditorTest {
             sizePx: Int,
         ) = null
 
+        override suspend fun preview(
+            id: String,
+            maxSidePx: Int,
+        ) = null
+
         override suspend fun original(id: String): ImageBitmap = error("not used")
 
         override suspend fun save(image: ImageBitmap): String = error("not used")
@@ -55,6 +60,19 @@ class EditorTest {
     @BeforeTest fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
 
     @AfterTest fun tearDown() = Dispatchers.resetMain()
+
+    @Test
+    fun theExitDialogBlocksSaving() {
+        val viewModel = EditorViewModel("1", faces, NoLibrary, NoPermission)
+        viewModel.onFaceClick(0)
+        viewModel.onBack()
+
+        viewModel.onSaveClick() // a started save would fail on NoLibrary and set saveError
+        viewModel.onSaveErrorAction()
+        assertTrue(viewModel.state.value.exitDialog)
+        assertFalse(viewModel.state.value.saving)
+        assertEquals(null, viewModel.state.value.saveError)
+    }
 
     @Test
     fun selectionDrivesSelectAllAndSave() {

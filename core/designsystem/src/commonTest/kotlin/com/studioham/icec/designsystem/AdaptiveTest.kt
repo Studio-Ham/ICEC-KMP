@@ -36,7 +36,22 @@ class AdaptiveTest {
         // A hinge outside the area (for example under the top bar) does not split it.
         assertNull(hingeSplit(area, listOf(Rect(0f, 40f, 1000f, 60f))))
         assertNull(hingeSplit(area, emptyList()))
-        // A hinge across the area's right edge takes only its part inside the area.
-        assertEquals(HingeSplit(vertical = true, first = 990f, gap = 10f), hingeSplit(area, listOf(Rect(990f, 0f, 1016f, 900f))))
+    }
+
+    @Test
+    fun hingeOnAnEdgeOrCornerKeepsTheNormalLayout() {
+        val area = Rect(0f, 100f, 1000f, 800f)
+        // Across the right edge: the palette side would get 0px (PR #64 re-review 3.3).
+        assertNull(hingeSplit(area, listOf(Rect(990f, 0f, 1016f, 900f))))
+        // Across the top edge: the photo side would get 0px.
+        assertNull(hingeSplit(area, listOf(Rect(0f, 80f, 1000f, 106f))))
+        // A vertical hinge that only reaches 10px into the area stays vertical and does not cut the area in two.
+        assertNull(hingeSplit(area, listOf(Rect(480f, 0f, 506f, 110f))))
+        // A pane smaller than minPane is not usable.
+        assertNull(hingeSplit(area, listOf(Rect(100f, 0f, 126f, 900f)), minPane = 200f))
+        assertEquals(
+            HingeSplit(vertical = true, first = 480f, gap = 26f),
+            hingeSplit(area, listOf(Rect(480f, 0f, 506f, 900f)), minPane = 200f),
+        )
     }
 }

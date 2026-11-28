@@ -26,7 +26,7 @@
 
 ## 미디어와 렌더링
 
-- EXIF orientation과 Android/iOS 좌표계 차이: 원본·검출 정규화는 [ADR-0005](../adr/0005-basic-photo-edit.md)로 확정. Android API 24~28 썸네일은 `MINI_KIND` 대신 축소 디코딩과 같은 방향 행렬을 사용(2026-11-28). 구형 에뮬레이터 실측은 미실행
+- EXIF orientation과 Android/iOS 좌표계 차이: 원본·검출 정규화는 [ADR-0005](../adr/0005-basic-photo-edit.md)로 확정. Android API 24~28 썸네일과 `preview()`는 디코딩 전에 긴 변을 제한하고 같은 방향 행렬을 사용(2026-11-28, `DecodeSizeTest` 계산 검증). 구형 에뮬레이터 실측은 미실행
 - 48MP급·파노라마 사진의 기본 편집 저장 메모리와 시간
 - 고해상도 이미지의 decode, downsampling, memory pressure와 OOM 대응
 - 대용량 사진 저장의 메모리 상한. 현재는 원본 해상도 이미지 두 장을 메모리에 올립니다([ADR-0004](../adr/0004-common-mosaic-rendering.md))

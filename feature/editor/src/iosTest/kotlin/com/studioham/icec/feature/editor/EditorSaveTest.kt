@@ -55,6 +55,11 @@ class EditorSaveTest {
             sizePx: Int,
         ) = null
 
+        override suspend fun preview(
+            id: String,
+            maxSidePx: Int,
+        ) = null
+
         override suspend fun original(id: String) = ImageBitmap(32, 32)
 
         override suspend fun save(image: ImageBitmap): String {

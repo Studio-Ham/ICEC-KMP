@@ -24,9 +24,11 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,7 +83,7 @@ fun PhotoPreviewScreen(
     onMosaic: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val image by produceState<ImageBitmap?>(null, photoId) { value = library.thumbnail(photoId, PREVIEW_PX) }
+    val image by produceState<ImageBitmap?>(null, photoId) { value = library.preview(photoId, PREVIEW_PX) }
     PhotoPreviewContent(image, separatingHinges(), onBack, onEdit, onMosaic, modifier)
 }
 
@@ -103,10 +105,11 @@ internal fun PhotoPreviewContent(
     Column(modifier.fillMaxSize().background(Color.Black).windowInsetsPadding(WindowInsets.safeDrawing)) {
         BackTopBar(Res.string.photo_edit_title, onBack)
         BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().onGloballyPositioned { area = it.boundsInWindow() }) {
-            val split = hingeSplit(area, hinges)
+            val px = LocalDensity.current
+            val width = maxWidth
+            val split = hingeSplit(area, hinges, with(px) { MinHingePane.toPx() })
             // A short window (under about 330dp) keeps 40% for the photo; the palette then falls back to its two buttons.
             val paletteHeight = (maxHeight * 0.45f).coerceIn(PaletteMinHeight, PaletteMaxHeight).coerceAtMost(maxHeight * 0.6f)
-            val px = LocalDensity.current
             when {
                 split?.vertical == true -> {
                     Row {
@@ -128,7 +131,8 @@ internal fun PhotoPreviewContent(
                 beside -> {
                     Row {
                         PreviewPhoto(image, Modifier.weight(1f).fillMaxHeight())
-                        ToolPalette(onEdit, onMosaic, Modifier.width(PaletteColumn).fillMaxHeight())
+                        // Like basic edit: at most half the width, so a window near 580dp keeps room for the photo.
+                        ToolPalette(onEdit, onMosaic, Modifier.width(minOf(PaletteColumn, width / 2)).fillMaxHeight())
                     }
                 }
 
@@ -176,8 +180,8 @@ internal fun ToolPalette(
     BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
         val fit = minOf((maxWidth - 32.dp) / PaletteWidth, (maxHeight - 32.dp) / PaletteHeight)
         if (fit < MIN_SCALE) {
-            // Too small for the palette with 48dp buttons (a tiny hinge pane): keep just the two buttons.
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            // Too small for the palette with 48dp buttons (a short window): keep just the two buttons, scrolling with large fonts.
+            Row(Modifier.verticalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 ToolButton(Res.drawable.ic_tool_edit, Res.string.photo_edit_tool_edit, MIN_SCALE, onEdit)
                 ToolButton(Res.drawable.ic_mosaic, Res.string.photo_edit_tool_mosaic, MIN_SCALE, onMosaic)
             }
@@ -227,6 +231,9 @@ private const val PREVIEW_PX = 2048
 private val PaletteWidth = 358.dp
 private val PaletteHeight = 222.dp
 private val PaletteColumn = 390.dp
+
+/** A hinge pane must fit the two-button palette (2 x 63dp + 16dp at scale 0.75) or the photo with its 16dp padding. */
+private val MinHingePane = 160.dp
 
 /** At this scale the buttons are 48dp and still apart. */
 private const val MIN_SCALE = 0.75f

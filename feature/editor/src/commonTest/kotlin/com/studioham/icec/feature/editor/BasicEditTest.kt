@@ -169,6 +169,11 @@ class BasicEditTest {
             sizePx: Int,
         ) = null
 
+        override suspend fun preview(
+            id: String,
+            maxSidePx: Int,
+        ) = null
+
         override suspend fun original(id: String): ImageBitmap = error("unreadable")
 
         override suspend fun save(image: ImageBitmap): String = error("not used")

@@ -228,7 +228,11 @@ internal fun EditorContent(
                 SaveButton(enabled = state.canSave, actions.onSaveClick)
             }
         }
-        state.saveError?.let { SaveErrorSnackbar(it, actions.onSaveErrorAction, Modifier.align(Alignment.BottomCenter)) }
+        // Hidden behind the exit dialog, so neither touch nor a screen reader can retry from under it; its 4 seconds still run.
+        state.saveError
+            ?.takeUnless {
+                state.exitDialog
+            }?.let { SaveErrorSnackbar(it, actions.onSaveErrorAction, Modifier.align(Alignment.BottomCenter)) }
         if (state.exitDialog) ExitDialog(actions.onExit, actions.onKeepEditing)
         if (state.saving) Saving()
     }

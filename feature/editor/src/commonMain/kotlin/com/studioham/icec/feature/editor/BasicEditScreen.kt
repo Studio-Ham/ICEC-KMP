@@ -211,7 +211,11 @@ internal fun BasicEditContent(
                 }
             }
         }
-        state.saveError?.let { SaveErrorSnackbar(it, actions.onSaveErrorAction, Modifier.align(Alignment.BottomCenter)) }
+        // Hidden behind the exit dialog, so neither touch nor a screen reader can retry from under it; its 4 seconds still run.
+        state.saveError
+            ?.takeUnless {
+                state.exitDialog
+            }?.let { SaveErrorSnackbar(it, actions.onSaveErrorAction, Modifier.align(Alignment.BottomCenter)) }
         if (state.exitDialog) ExitDialog(actions.onExit, actions.onKeepEditing, Res.string.basic_edit_exit_body)
         if (state.saving) Saving()
     }

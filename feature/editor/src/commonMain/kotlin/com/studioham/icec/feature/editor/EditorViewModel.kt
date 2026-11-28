@@ -75,7 +75,7 @@ class EditorViewModel(
     init {
         // The screen shows a 2048px image; saving renders the original at full resolution.
         viewModelScope.launch {
-            val image = library.thumbnail(photoId, IMAGE_PX)
+            val image = library.preview(photoId, IMAGE_PX)
             _state.update { it.copy(image = image) }
         }
     }
@@ -93,7 +93,8 @@ class EditorViewModel(
     /** UX-014: renders the selected faces on the original and saves a new photo; one save at a time. */
     fun onSaveClick() {
         val current = _state.value
-        if (!current.canSave || current.saving) return
+        // Saving and the exit dialog never show together.
+        if (!current.canSave || current.saving || current.exitDialog) return
         _state.update { it.copy(saving = true, saveError = null) }
         viewModelScope.launch {
             val error =
@@ -110,6 +111,8 @@ class EditorViewModel(
 
     /** The Snackbar action: open settings for a missing permission, otherwise try again. */
     fun onSaveErrorAction() {
+        // The Snackbar is hidden behind the exit dialog; keep its error for when the dialog closes.
+        if (_state.value.exitDialog) return
         val error = _state.value.saveError
         // Dismiss first, so a retry that fails at once keeps its new error.
         onSaveErrorDismiss()

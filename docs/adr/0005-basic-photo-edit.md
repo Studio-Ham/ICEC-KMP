@@ -39,7 +39,8 @@
 - Gradle 모듈 수는 그대로입니다. `feature/editor`는 Route 4개를 소유합니다.
 - Android API 24~27의 모자이크 저장 결과가 원본 방향으로 바뀝니다. 이전에는 EXIF 회전이 있는 사진이 누운 채 저장되었습니다.
 - 기본 편집 화면은 열 때 원본을 디코딩합니다. 저장 시 원본을 다시 디코딩하므로 원본 해상도 이미지가 편집 중 메모리에 남지 않습니다.
-- 팔레트 미리보기와 모자이크 Editor는 `thumbnail(photoId, 2048)`을 함께 씁니다. 그래서 방향은 플랫폼 `thumbnail()`에서 맞춥니다(2026-11-28 PR #64 리뷰). Android API 24~28은 `MINI_KIND` 대신 축소 디코딩과 같은 방향 행렬을 쓰고, iOS는 iCloud 다운로드 허용·방향 정규화·백그라운드 변환을 적용합니다. `PhotoLibrary` 인터페이스는 바뀌지 않습니다.
+- 팔레트 미리보기, 모자이크 Editor와 Result는 `PhotoLibrary.preview(photoId, 2048)`을 함께 씁니다(2026-11-28 PR #64 재검증). Gallery 타일(`thumbnail`)과 요구가 다르기 때문입니다. 타일은 잘림을 허용하고 iOS에서 로컬 데이터만 씁니다. `preview`는 원본 비율·방향 정규화·긴 변 상한을 보장하고 iOS에서 iCloud 다운로드를 허용합니다. 크기 숫자로 화면 목적을 추측하지 않도록 메서드를 나눕니다. 기본 편집 화면은 계속 4번(`original()` 축소)을 씁니다. 얼굴 분석 로딩 배경은 흐리게 잘라 그리므로 `thumbnail`을 유지합니다.
+- Android `preview`는 API 28+에서 `ImageDecoder` 목표 크기, API 24~27에서 디코딩 전 `inSampleSize`로 긴 변을 제한합니다. 계산은 `DecodeSizeTest`가 검증합니다. API 24~28 기기 실측은 아직 없습니다.
 - 48MP급·파노라마 사진의 메모리와 저장 시간은 실기기에서 측정해야 합니다([기술 백로그](../development/technical-backlog.md)).
 - 정책 반영은 1.0.0 출시 후 Wiki 정책 변경 제안 승인 절차를 따릅니다.
 
@@ -49,5 +50,6 @@
 - `BasicEditSaveTest`(iOS 시뮬레이터): 회전 4종 × 반전 2종의 픽셀 이동, 자르기, 저장 실패 시 편집 유지
 - `BackStackTest`(Android host·iOS 시뮬레이터): 모자이크 교체 후 Gallery 복귀, 기본 편집 쌓기와 `다시 편집하기`
 - `ZoomTest`: 회전·창 축소 뒤 확대 이동량 재제한
-- `AdaptiveTest`: 세로·가로 힌지 분할
+- `AdaptiveTest`: 세로·가로 힌지 분할, 가장자리·모서리 힌지와 작은 영역의 분할 제외
+- `DecodeSizeTest`(Android host): 12MP·48MP·파노라마의 미리보기·타일 디코딩 크기
 - `IcecFlowUITests`: 팔레트를 거친 모자이크 흐름과 `testBasicEditFlow`
