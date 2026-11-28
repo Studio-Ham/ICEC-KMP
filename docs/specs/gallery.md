@@ -4,7 +4,7 @@
 > SSOT: Git Repository
 > 관련 요구사항: [Wiki Gallery UX](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/gallery.md) · Figma `[승인] 화면 2` (`316:2412`, `316:2477`, `316:2506`, `316:2532`, `340:294`, `340:326`)
 > 관련 결정: [UX-020~023](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-020), [UX-029~031](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-029), [UX-044](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-044), [UX-045](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-045), [UX-047](https://github.com/Studio-Ham/ICEC-LLM-WiKi/blob/main/docs/policies/ux-decisions.md#ux-047)
-> 최종 검토일: 2026-11-22
+> 최종 검토일: 2026-11-28
 
 ## 목적
 
@@ -94,7 +94,7 @@
 | 재요청 판단 | 요청 이력(SharedPreferences)과 `shouldShowRequestPermissionRationale`로 `NotDetermined`·`Denied`·`Blocked` 구분 | 시스템 팝업은 한 번만 표시. 거부·제한은 `Blocked` |
 | 목록 정렬과 페이징 | MediaStore를 `DATE_TAKEN DESC, DATE_ADDED DESC, _ID DESC`로 정렬하고 cursor 위치로 페이지 읽기 | 페이지마다 `PHAsset.fetchAssetsWithMediaType`(`creationDate` 내림차순)를 호출해 해당 범위만 읽기 |
 | 미지원 미디어 제외 | MIME 타입(`image/jpeg`·`image/png`·`image/heic`·`image/heif`)으로 조회 | `playbackStyle`로 GIF를 먼저 거르고, 해당 페이지 자산만 `assetResourcesForAsset` 첫 리소스 UTI로 GIF·RAW 제외 |
-| 썸네일 | `loadThumbnail`(API 29+), 이하 `Thumbnails.getThumbnail` | `PHImageManager` 요청 후 JPEG로 변환해 Skia 이미지 생성 |
+| 썸네일 | `loadThumbnail`(API 29+). API 24~28은 `BitmapFactory` 2의 거듭제곱 축소(짧은 변이 요청 크기 이상) + `ExifInterface` 방향 행렬([ADR-0005](../adr/0005-basic-photo-edit.md)) | `PHImageManager`(`AspectFill`, `ResizeModeFast`라 잘리지 않음, iCloud 다운로드 허용, 취소 시 요청 취소). 방향이 있으면 바로 세운 뒤 백그라운드에서 JPEG로 변환해 Skia 이미지 생성 |
 | OS 설정 이동 | `ACTION_APPLICATION_DETAILS_SETTINGS` | `UIApplicationOpenSettingsURLString` |
 | 권한 안내 문구 | 앱 화면 문구만 사용 | `NSPhotoLibraryUsageDescription`(현재 영어 1개) |
 

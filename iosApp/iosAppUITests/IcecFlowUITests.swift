@@ -72,6 +72,8 @@ final class IcecFlowUITests: XCTestCase {
         let done = element("Done")
         XCTAssertTrue(done.waitForExistence(timeout: 10))
         XCTAssertTrue(done.isEnabled) // D2: always enabled
+        // `Done` waits for the photo (spec: input before it loads is ignored); the crop area appears with it.
+        XCTAssertTrue(element("Crop area").waitForExistence(timeout: 30))
         snap("07-basic-edit")
         // D2: saving with no change still makes a new photo.
         done.tap()

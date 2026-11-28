@@ -8,9 +8,9 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.media.ExifInterface
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore.Images.Media
-import android.provider.MediaStore.Images.Thumbnails
 import android.util.Size
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
@@ -63,11 +63,12 @@ class AndroidPhotoLibrary(
     ): ImageBitmap? =
         withContext(Dispatchers.IO) {
             runCatching {
+                val uri = ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id.toLong())
                 if (Build.VERSION.SDK_INT >= 29) {
-                    resolver.loadThumbnail(ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id.toLong()), Size(sizePx, sizePx), null)
+                    resolver.loadThumbnail(uri, Size(sizePx, sizePx), null)
                 } else {
-                    @Suppress("DEPRECATION")
-                    Thumbnails.getThumbnail(resolver, id.toLong(), Thumbnails.MINI_KIND, null)
+                    // API 24-28: MINI_KIND ignores sizePx (512 x 384) and may not apply EXIF; decode sampled down and upright.
+                    decodeUpright(uri, sizePx)
                 }
             }.getOrNull()?.asImageBitmap()
         }
@@ -81,11 +82,33 @@ class AndroidPhotoLibrary(
                     decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                 }
             } else {
-                // API 24-27: BitmapFactory ignores EXIF, so turn the pixels upright like ImageDecoder does (and face detection).
-                val bitmap = resolver.openInputStream(uri).use { BitmapFactory.decodeStream(it) } ?: error("Cannot decode photo $id")
-                bitmap.upright(resolver.openInputStream(uri)?.use { ExifInterface(it).orientation() } ?: ExifInterface.ORIENTATION_NORMAL)
+                decodeUpright(uri)
             }.asImageBitmap()
         }
+
+    /**
+     * API 24-27 originals and API 24-28 thumbnails: BitmapFactory ignores EXIF, so turn the pixels upright like ImageDecoder
+     * does (and face detection). [minSide] above 0 samples down by powers of two while the short side stays at least that.
+     * ponytail: a 2048px thumbnail of a 12 MP photo still decodes at full size; use ImageDecoder.setTargetSize on API 28 if
+     * old devices run out of memory.
+     */
+    private fun decodeUpright(
+        uri: Uri,
+        minSide: Int = 0,
+    ): Bitmap {
+        var sample = 1
+        if (minSide > 0) {
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            resolver.openInputStream(uri).use { BitmapFactory.decodeStream(it, null, bounds) }
+            val short = minOf(bounds.outWidth, bounds.outHeight)
+            while (short / (sample * 2) >= minSide) sample *= 2
+        }
+        val options = BitmapFactory.Options().apply { inSampleSize = sample }
+        val bitmap = resolver.openInputStream(uri).use { BitmapFactory.decodeStream(it, null, options) } ?: error("Cannot decode $uri")
+        // A broken or unsupported EXIF block must not lose a photo that decoded; a missing permission already failed above.
+        val orientation = runCatching { resolver.openInputStream(uri)?.use { ExifInterface(it).orientation() } }.getOrNull()
+        return bitmap.upright(orientation ?: ExifInterface.ORIENTATION_NORMAL)
+    }
 
     override suspend fun save(image: ImageBitmap): String =
         withContext(Dispatchers.IO) {
@@ -113,8 +136,13 @@ class AndroidPhotoLibrary(
                 if (Build.VERSION.SDK_INT >= 29) resolver.update(uri, ContentValues().apply { put(Media.IS_PENDING, 0) }, null, null)
                 ContentUris.parseId(uri).toString()
             } catch (e: Exception) {
-                resolver.delete(uri, null, null)
-                throw if (e is IOException && e.message.orEmpty().contains("ENOSPC")) SaveException.NoSpace(e) else e
+                // Clean up the pending entry without hiding the real cause.
+                runCatching { resolver.delete(uri, null, null) }
+                throw when {
+                    e is IOException && e.message.orEmpty().contains("ENOSPC") -> SaveException.NoSpace(e)
+                    e is SecurityException -> SaveException.NoPermission(e)
+                    else -> e
+                }
             }
         }
 

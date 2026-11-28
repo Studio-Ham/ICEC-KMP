@@ -45,6 +45,38 @@ class BasicEditTest {
     }
 
     @Test
+    fun rotationAfterMirroringStillTurnsTheScreenCounterClockwise() {
+        // Screen = mirror after turns (D6). Turning that counter-clockwise once is mirror after one turn fewer (D3).
+        val mirrored = BasicEdit().mirrored()
+        assertEquals(3, mirrored.rotated(400, 300).turns)
+        assertEquals(
+            0,
+            mirrored
+                .rotated(400, 300)
+                .rotated(400, 300)
+                .rotated(400, 300)
+                .rotated(400, 300)
+                .turns,
+        )
+        assertEquals(1, BasicEdit().rotated(400, 300).turns)
+    }
+
+    @Test
+    fun ratioBoxPulledBackToTheEdgeStillMoves() {
+        // 720 x 1560 passes the 2048px preview unscaled; 4:3 width rounds 1 ULP past 1 at the photo edge.
+        val aspect = 720f / 1560
+        val start = ratioCrop(CropRatio.Ratio4x3, IntSize(720, 1560))
+        val edge =
+            start
+                .dragged(CropHandle.TopLeft, Offset(0.2f, 0.2f), CropRatio.Ratio4x3, aspect, 0.05f)
+                .dragged(CropHandle.TopLeft, Offset(-1f, -1f), CropRatio.Ratio4x3, aspect, 0.05f)
+        assertTrue(edge.left >= 0f && edge.top >= 0f && edge.right <= 1f && edge.bottom <= 1f, "$edge")
+
+        val moved = edge.dragged(CropHandle.Move, Offset(0.1f, 0.1f), CropRatio.Ratio4x3, aspect, 0.05f)
+        assertTrue(moved.right <= 1f && moved.bottom <= 1f, "$moved")
+    }
+
+    @Test
     fun mirroringKeepsTheCroppedContentAndUndoesItself() {
         val edit = BasicEdit(crop = Rect(0.1f, 0.2f, 0.5f, 0.7f))
         assertClose(Rect(0.5f, 0.2f, 0.9f, 0.7f), edit.mirrored().crop)
@@ -110,16 +142,13 @@ class BasicEditTest {
         }
 
     @Test
-    fun retryThatFailsAtOnceKeepsTheError() =
-        runTest {
-            val viewModel = BasicEditViewModel("1", Unreadable, NoPermission)
-            viewModel.onDoneClick() // D2: no change needed
-            assertEquals(SaveError.Failed, viewModel.state.value.saveError)
+    fun doneDoesNothingUntilThePhotoIsLoaded() {
+        val viewModel = BasicEditViewModel("1", Unreadable, NoPermission)
+        viewModel.onDoneClick() // the photo could not be read: no second original() and no failure Snackbar
 
-            viewModel.onSaveErrorAction() // `다시 시도` fails again at once
-
-            assertEquals(SaveError.Failed, viewModel.state.value.saveError)
-        }
+        assertFalse(viewModel.state.value.saving)
+        assertNull(viewModel.state.value.saveError)
+    }
 
     private fun assertClose(
         expected: Rect,

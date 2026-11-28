@@ -25,6 +25,8 @@ data class BasicEditState(
     val exitDialog: Boolean = false,
     val saving: Boolean = false,
     val saveError: SaveError? = null,
+    /** Counts failed saves, so the screen restarts the Snackbar timer even when the same error comes back at once. */
+    val saveFailures: Int = 0,
 )
 
 sealed interface BasicEditEffect {
@@ -85,10 +87,13 @@ class BasicEditViewModel(
 
     fun onKeepEditing() = _state.update { it.copy(exitDialog = false) }
 
-    /** D2: always enabled, even with no change. D4 (UX-014, UX-016): renders on the original, one save at a time. */
+    /**
+     * D2: always enabled, even with no change, once the photo is loaded. Before that (or when it cannot be read) it does
+     * nothing, so the original is not decoded twice at once. D4 (UX-014, UX-016): renders on the original, one save at a time.
+     */
     fun onDoneClick() {
         val current = _state.value
-        if (current.saving) return
+        if (current.saving || current.image == null) return
         _state.update { it.copy(saving = true, saveError = null) }
         viewModelScope.launch {
             val error =
@@ -97,7 +102,7 @@ class BasicEditViewModel(
                     val result = withContext(Dispatchers.Default) { original.edited(current.edit) }
                     _effects.send(BasicEditEffect.Saved(library.save(result)))
                 }
-            _state.update { it.copy(saving = false, saveError = error) }
+            _state.update { it.copy(saving = false, saveError = error, saveFailures = it.saveFailures + if (error != null) 1 else 0) }
         }
     }
 

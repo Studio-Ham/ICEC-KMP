@@ -37,14 +37,17 @@ class ZoomState(
     var offset by mutableStateOf(offset)
         private set
 
-    /** Where [fit] (the photo at 1x, inside a [viewport]-sized box) is drawn now. */
+    /**
+     * Where [fit] (the photo at 1x, inside a [viewport]-sized box) is drawn now. The offset is clamped to this [fit] and
+     * [viewport], so a turned photo or a smaller window never uncovers empty space.
+     */
     fun transform(
         fit: Rect,
         viewport: Size,
     ): Rect {
         val center = Offset(viewport.width / 2, viewport.height / 2)
         val size = fit.size * scale
-        val topLeft = center + (fit.topLeft - center) * scale + offset
+        val topLeft = center + (fit.topLeft - center) * scale + clampOffset(offset, scale, fit.size, viewport)
         return Rect(topLeft, size)
     }
 
@@ -65,8 +68,9 @@ class ZoomState(
         val newScale = (scale * zoom).coerceIn(1f, MAX_SCALE)
         val center = Offset(viewport.width / 2, viewport.height / 2)
         val anchor = centroid - center
-        // Keep the point under the fingers still while scaling.
-        val zoomed = anchor - (anchor - offset) * (newScale / scale)
+        // Start from where the photo is drawn now (see transform), then keep the point under the fingers still while scaling.
+        val current = clampOffset(offset, scale, fit.size, viewport)
+        val zoomed = anchor - (anchor - current) * (newScale / scale)
         scale = newScale
         // At 1x one finger is for selecting faces, so ignore pan (Wiki Editor UX).
         offset = clampOffset(if (newScale > 1f) zoomed + pan else Offset.Zero, newScale, fit.size, viewport)
@@ -108,16 +112,18 @@ fun clampOffset(
 fun rememberZoomState(): ZoomState = rememberSaveable(saver = ZoomState.Saver) { ZoomState() }
 
 /**
- * Pinch and drag on this element drive [state]; [fit] gives the photo's 1x rect for the element size. With
+ * Pinch and drag on this element drive [state]; [fit] gives the photo's 1x rect for the element size. Pass the photo
+ * size as [key] when it can change (a turned photo), so [fit] is not the first composition's. With
  * [singleFingerPan] false only two or more fingers zoom and pan, and one-finger drags stay with the content (the basic
  * edit crop box). Put it after the content's own pointerInput so a pinch cancels that drag.
  */
 fun Modifier.zoomable(
     state: ZoomState,
     singleFingerPan: Boolean = true,
+    key: Any? = null,
     fit: (Size) -> Rect?,
 ): Modifier =
-    pointerInput(state, singleFingerPan) {
+    pointerInput(state, singleFingerPan, key) {
         if (singleFingerPan) {
             detectTransformGestures { centroid, pan, zoom, _ ->
                 val viewport = size.toSize()

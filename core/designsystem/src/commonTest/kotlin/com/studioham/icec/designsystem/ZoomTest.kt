@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ZoomTest {
     private val viewport = Size(200f, 200f)
@@ -44,5 +45,22 @@ class ZoomTest {
         zoom.onGesture(finger, Offset.Zero, zoom = 2f, fit, viewport)
         val after = zoom.transform(fit, viewport)
         assertEquals(finger.x, after.left + fraction * after.width, 0.01f)
+    }
+
+    @Test
+    fun aSmallerViewportOrTurnedPhotoNeverUncoversEmptySpace() {
+        val zoom = ZoomState()
+        zoom.onGesture(Offset(100f, 100f), Offset.Zero, zoom = 4f, fit, viewport)
+        zoom.onGesture(Offset(100f, 100f), pan = Offset(1000f, 1000f), zoom = 1f, fit, viewport) // pan to the corner
+
+        // The photo turns (1:2) in a narrower viewport: the old offset no longer fits.
+        val narrow = Size(100f, 200f)
+        val turned = fitRect(Size(1f, 2f), narrow)
+        val shown = zoom.transform(turned, narrow)
+        assertTrue(shown.left <= 0f && shown.top <= 0f && shown.right >= narrow.width && shown.bottom >= narrow.height, "$shown")
+
+        // The next gesture starts from that clamped place instead of jumping.
+        zoom.onGesture(Offset(50f, 100f), pan = Offset(-1f, 0f), zoom = 1f, turned, narrow)
+        assertEquals(shown.left - 1f, zoom.transform(turned, narrow).left, 0.01f)
     }
 }

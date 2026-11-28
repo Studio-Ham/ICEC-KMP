@@ -43,7 +43,6 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -105,7 +104,8 @@ internal fun PhotoPreviewContent(
         BackTopBar(Res.string.photo_edit_title, onBack)
         BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().onGloballyPositioned { area = it.boundsInWindow() }) {
             val split = hingeSplit(area, hinges)
-            val paletteHeight = (maxHeight * 0.45f).coerceIn(PaletteMinHeight, PaletteMaxHeight)
+            // A short window (under about 330dp) keeps 40% for the photo; the palette then falls back to its two buttons.
+            val paletteHeight = (maxHeight * 0.45f).coerceIn(PaletteMinHeight, PaletteMaxHeight).coerceAtMost(maxHeight * 0.6f)
             val px = LocalDensity.current
             when {
                 split?.vertical == true -> {
@@ -192,7 +192,7 @@ internal fun ToolPalette(
     }
 }
 
-/** Figma 623:103 / 623:109: a 64dp circle and its name, scaled with the palette. */
+/** Figma 623:103 / 623:109: a 64dp circle and its name, scaled with the palette. Both are one named button. */
 @Composable
 private fun ToolButton(
     icon: DrawableResource,
@@ -201,14 +201,16 @@ private fun ToolButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier.requiredWidth(84.dp * s).semantics(mergeDescendants = true) {}, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier.requiredWidth(84.dp * s).clip(RoundedCornerShape(12.dp * s)).clickable(role = Role.Button, onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         Box(
             Modifier
                 .requiredSize(64.dp * s)
                 .clip(CircleShape)
                 .background(ButtonFill)
-                .border((1.2f * s).dp, ButtonStroke, CircleShape)
-                .clickable(role = Role.Button, onClick = onClick),
+                .border((1.2f * s).dp, ButtonStroke, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Image(painterResource(icon), null, Modifier.size(24.dp * s))

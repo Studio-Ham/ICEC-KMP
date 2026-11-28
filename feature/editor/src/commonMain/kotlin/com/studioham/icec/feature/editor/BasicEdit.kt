@@ -40,12 +40,15 @@ data class BasicEdit(
 ) {
     val isIdentity get() = turns == 0 && !flipped && crop == FullCrop
 
-    /** D6: a quarter turn resets the crop to the largest [ratio] box of the turned [width] x [height] photo. */
+    /**
+     * D3: turns what the screen shows a quarter counter-clockwise, mirrored or not. The screen is the mirror after [turns],
+     * so on a mirrored photo that is one turn fewer. D6: resets the crop to the largest [ratio] box of the turned photo.
+     */
     fun rotated(
         width: Int,
         height: Int,
     ): BasicEdit {
-        val next = (turns + 1) % 4
+        val next = (turns + if (flipped) 3 else 1) % 4
         return copy(turns = next, crop = ratioCrop(ratio, turnedSize(width, height, next)))
     }
 
@@ -96,7 +99,12 @@ internal fun Rect.dragged(
     aspect: Float,
     min: Float,
 ): Rect {
-    if (handle == CropHandle.Move) return translate(drag.x.coerceIn(-left, 1 - right), drag.y.coerceIn(-top, 1 - bottom))
+    if (handle == CropHandle.Move) {
+        // A box edge on the photo edge may sit 1 ULP outside after Float math; never let the range turn empty.
+        val dx = drag.x.coerceIn(minOf(-left, 0f), maxOf(1 - right, 0f))
+        val dy = drag.y.coerceIn(minOf(-top, 0f), maxOf(1 - bottom, 0f))
+        return translate(dx, dy).inPhoto()
+    }
     // Work in photo-shaped units (x times aspect) so a locked ratio keeps its on-screen shape.
     val fromLeft = handle == CropHandle.TopLeft || handle == CropHandle.BottomLeft
     val fromTop = handle == CropHandle.TopLeft || handle == CropHandle.TopRight
@@ -121,8 +129,11 @@ internal fun Rect.dragged(
     }
     val x = if (fromLeft) anchorX - w else anchorX
     val y = if (fromTop) anchorY - h else anchorY
-    return Rect(x / aspect, y, (x + w) / aspect, y + h)
+    return Rect(x / aspect, y, (x + w) / aspect, y + h).inPhoto()
 }
+
+/** Float rounding (x times aspect, then divided back) can put an edge 1 ULP past the photo; snap it back. */
+private fun Rect.inPhoto() = Rect(left.coerceIn(0f, 1f), top.coerceIn(0f, 1f), right.coerceIn(0f, 1f), bottom.coerceIn(0f, 1f))
 
 /**
  * Moves this canvas so that drawing a [width] x [height] upright image lands turned and mirrored like [edit]. The preview

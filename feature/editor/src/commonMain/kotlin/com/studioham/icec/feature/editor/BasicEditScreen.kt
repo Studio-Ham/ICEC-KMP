@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -28,11 +29,13 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,6 +62,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.selected
@@ -130,7 +134,8 @@ fun BasicEditScreen(
         }
     }
     if (state.saveError != null) {
-        LaunchedEffect(state.saveError) {
+        // Keyed by the failure count too, so a retry that fails again at once gets its own 4 seconds.
+        LaunchedEffect(state.saveError, state.saveFailures) {
             delay(4.seconds)
             viewModel.onSaveErrorDismiss()
         }
@@ -177,18 +182,33 @@ internal fun BasicEditContent(
     Box(modifier.fillMaxSize().background(Color.Black)) {
         // ponytail: Modifier.blur needs Android 12+; older Android shows the saving overlay without blur.
         Column(
-            Modifier.fillMaxSize().then(if (state.saving) Modifier.blur(4.dp) else Modifier).windowInsetsPadding(WindowInsets.safeDrawing),
+            Modifier
+                .fillMaxSize()
+                .then(if (state.saving) Modifier.blur(4.dp) else Modifier)
+                // The dialogs cover the screen; screen readers must not reach the controls behind them.
+                .then(if (state.saving || state.exitDialog) Modifier.clearAndSetSemantics {} else Modifier)
+                .windowInsetsPadding(WindowInsets.safeDrawing),
         ) {
             BackTopBar(Res.string.basic_edit_title, actions.onBack)
-            if (twoPane) {
-                // Like the mosaic editor (#34): photo on the left, controls on the right.
-                Row(Modifier.weight(1f)) {
-                    CropPhoto(state, zoom, actions.onCropChange, Modifier.weight(1f))
-                    Column(Modifier.width(390.dp).fillMaxHeight(), Arrangement.Bottom) { Controls(state, actions) }
+            BoxWithConstraints(Modifier.weight(1f)) {
+                val width = maxWidth
+                val height = maxHeight
+                // Short windows and large fonts scroll the controls instead of cutting them or the photo.
+                if (twoPane) {
+                    // Like the mosaic editor (#34): photo on the left, controls on the right (390dp, at most half the width).
+                    Row {
+                        CropPhoto(state, zoom, actions.onCropChange, Modifier.weight(1f))
+                        Box(Modifier.width(minOf(390.dp, width / 2)).fillMaxHeight(), contentAlignment = Alignment.BottomCenter) {
+                            Controls(state, actions)
+                        }
+                    }
+                } else {
+                    // The photo keeps at least 40% of the height.
+                    Column {
+                        CropPhoto(state, zoom, actions.onCropChange, Modifier.weight(1f))
+                        Controls(state, actions, Modifier.heightIn(max = height * 0.6f))
+                    }
                 }
-            } else {
-                CropPhoto(state, zoom, actions.onCropChange, Modifier.weight(1f))
-                Controls(state, actions)
             }
         }
         state.saveError?.let { SaveErrorSnackbar(it, actions.onSaveErrorAction, Modifier.align(Alignment.BottomCenter)) }
@@ -228,17 +248,21 @@ internal fun BackTopBar(
 private fun Controls(
     state: BasicEditState,
     actions: BasicEditActions,
+    modifier: Modifier = Modifier,
 ) {
-    RatioChips(state.edit.ratio, actions.onRatioClick)
-    Box(
-        Modifier
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(Divider),
-    )
-    Tools(actions.onRotateClick, actions.onFlipClick)
-    SaveButton(enabled = true, actions.onDoneClick, Res.string.basic_edit_done)
+    Column(modifier.verticalScroll(rememberScrollState())) {
+        RatioChips(state.edit.ratio, actions.onRatioClick)
+        Box(
+            Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Divider),
+        )
+        Tools(actions.onRotateClick, actions.onFlipClick)
+        // D2: enabled even with no change; the view model ignores it until the photo is loaded.
+        SaveButton(enabled = true, actions.onDoneClick, Res.string.basic_edit_done)
+    }
 }
 
 /**
@@ -294,7 +318,7 @@ private fun CropPhoto(
                     }
                 }
                 // After the crop drag so a pinch cancels it; one finger stays with the crop box or the pan above.
-                .zoomable(zoom, singleFingerPan = false) { fitRect(photoSize, it) },
+                .zoomable(zoom, singleFingerPan = false, key = photoSize) { fitRect(photoSize, it) },
         ) {
             val shown = zoom.photoRect(photoSize, size)
             val margin = 3.dp.toPx() // room for the corner marks on the edge
@@ -464,7 +488,7 @@ private fun Tool(
                 ) {
                     Modifier.clickable(role = Role.Button, onClick = onClick)
                 } else {
-                    Modifier.semantics { this.selected = selected }
+                    Modifier.semantics(mergeDescendants = true) { this.selected = selected }
                 },
             ).padding(vertical = 8.dp),
         Arrangement.spacedBy(8.dp),

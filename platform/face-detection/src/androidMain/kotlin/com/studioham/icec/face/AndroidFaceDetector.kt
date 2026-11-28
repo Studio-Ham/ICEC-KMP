@@ -63,10 +63,13 @@ class AndroidFaceDetector(
         val bitmap =
             resolver.openInputStream(uri).use { BitmapFactory.decodeStream(it, null, options) }
                 ?: error("Cannot decode photo $photoId")
+        // A broken or unsupported EXIF block must not lose a photo that decoded; a missing permission already failed above.
         val orientation =
-            resolver.openInputStream(uri)?.use {
-                ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-            } ?: ExifInterface.ORIENTATION_NORMAL
+            runCatching {
+                resolver.openInputStream(uri)?.use {
+                    ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+                }
+            }.getOrNull() ?: ExifInterface.ORIENTATION_NORMAL
         return bitmap.upright(orientation)
     }
 

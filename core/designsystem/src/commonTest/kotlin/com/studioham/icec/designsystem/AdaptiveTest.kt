@@ -36,5 +36,7 @@ class AdaptiveTest {
         // A hinge outside the area (for example under the top bar) does not split it.
         assertNull(hingeSplit(area, listOf(Rect(0f, 40f, 1000f, 60f))))
         assertNull(hingeSplit(area, emptyList()))
+        // A hinge across the area's right edge takes only its part inside the area.
+        assertEquals(HingeSplit(vertical = true, first = 990f, gap = 10f), hingeSplit(area, listOf(Rect(990f, 0f, 1016f, 900f))))
     }
 }

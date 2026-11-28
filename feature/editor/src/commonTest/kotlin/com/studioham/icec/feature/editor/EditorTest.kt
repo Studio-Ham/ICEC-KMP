@@ -119,5 +119,6 @@ class EditorTest {
         viewModel.onSaveErrorAction() // `다시 시도` fails again at once
 
         assertEquals(SaveError.Failed, viewModel.state.value.saveError) // UX-016: the Snackbar stays
+        assertEquals(2, viewModel.state.value.saveFailures) // a new failure, so the Snackbar gets its own 4 seconds
     }
 }

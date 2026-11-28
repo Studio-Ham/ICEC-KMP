@@ -44,6 +44,7 @@ import platform.UIKit.UIGraphicsImageRenderer
 import platform.UIKit.UIGraphicsImageRendererFormat
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
+import platform.UIKit.UIImageOrientation
 import platform.posix.memcpy
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -85,21 +86,30 @@ class IosPhotoLibrary : PhotoLibrary {
         sizePx: Int,
     ): ImageBitmap? {
         val asset = PHAsset.fetchAssetsWithLocalIdentifiers(listOf(id), null).firstObject as? PHAsset ?: return null
+        // Fast resize never crops: AspectFill only makes the short side at least sizePx (Gallery tiles), so the photo keeps its
+        // shape. Network access, like isReadable() and original(), lets an iCloud-only photo show; small tiles stay local.
         val options =
             PHImageRequestOptions().apply {
                 deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat
                 resizeMode = PHImageRequestOptionsResizeModeFast
+                networkAccessAllowed = true
             }
+        val manager = PHImageManager.defaultManager()
         val image =
-            suspendCancellableCoroutine { continuation ->
-                PHImageManager.defaultManager().requestImageForAsset(
-                    asset,
-                    CGSizeMake(sizePx.toDouble(), sizePx.toDouble()),
-                    PHImageContentModeAspectFill,
-                    options,
-                ) { image, _ -> continuation.resume(image) }
-            }
-        return image?.toImageBitmap()
+            suspendCancellableCoroutine<UIImage?> { continuation ->
+                val request =
+                    manager.requestImageForAsset(
+                        asset,
+                        CGSizeMake(sizePx.toDouble(), sizePx.toDouble()),
+                        PHImageContentModeAspectFill,
+                        options,
+                    ) { image, _ -> continuation.resume(image) }
+                continuation.invokeOnCancellation { manager.cancelImageRequest(request) }
+            } ?: return null
+        // Off the main thread; turn it upright like original() when PhotoKit hands it over with an orientation.
+        return withContext(Dispatchers.Default) {
+            (if (image.imageOrientation == UIImageOrientation.UIImageOrientationUp) image else image.upright()).toImageBitmap()
+        }
     }
 
     override suspend fun original(id: String): ImageBitmap {

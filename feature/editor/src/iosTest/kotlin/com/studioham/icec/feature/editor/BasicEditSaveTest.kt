@@ -116,6 +116,25 @@ class BasicEditSaveTest {
     }
 
     @Test
+    fun unchangedSaveWorksAndARetryThatFailsAtOnceIsANewFailure() =
+        runTest {
+            val library = FakeLibrary(gradient(16, 8), failure = IllegalStateException("encoder"))
+            val viewModel = BasicEditViewModel("1", library, NoPermission)
+            viewModel.state.first { it.image != null }
+
+            viewModel.onDoneClick() // D2: no change needed once loaded
+            assertEquals(SaveError.Failed, viewModel.state.first { it.saveError != null }.saveError)
+            viewModel.onSaveErrorAction() // `다시 시도` fails again
+            // The same error again is a new failure, so the Snackbar gets its own 4 seconds.
+            assertEquals(SaveError.Failed, viewModel.state.first { it.saveFailures == 2 }.saveError)
+
+            library.failure = null
+            viewModel.onSaveErrorAction()
+            assertEquals(BasicEditEffect.Saved("new"), viewModel.effects.first())
+            assertEquals(16, library.saved?.width) // unchanged original size
+        }
+
+    @Test
     fun saveRendersTheEditOnTheOriginalAndFailureKeepsIt() =
         runTest {
             val library = FakeLibrary(gradient(16, 8), failure = SaveException.NoSpace())

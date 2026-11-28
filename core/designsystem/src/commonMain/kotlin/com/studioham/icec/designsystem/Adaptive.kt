@@ -46,16 +46,19 @@ data class HingeSplit(
     val gap: Float,
 )
 
-/** How the first of [hinges] (window px) that crosses [area] (window px) splits it, or null when none does. */
+/**
+ * How the first of [hinges] (window px) that crosses [area] (window px) splits it, or null when none does. Only the part
+ * of the hinge inside [area] counts, so a hinge on the area's edge never takes more than the area.
+ */
 fun hingeSplit(
     area: Rect,
     hinges: List<Rect>,
 ): HingeSplit? {
-    val hinge = hinges.firstOrNull { it.overlaps(area) } ?: return null
+    val hinge = hinges.firstOrNull { it.overlaps(area) }?.intersect(area) ?: return null
     return if (hinge.height >= hinge.width) {
-        HingeSplit(true, (hinge.left - area.left).coerceIn(0f, area.width), hinge.width)
+        HingeSplit(true, hinge.left - area.left, hinge.width)
     } else {
-        HingeSplit(false, (hinge.top - area.top).coerceIn(0f, area.height), hinge.height)
+        HingeSplit(false, hinge.top - area.top, hinge.height)
     }
 }
 

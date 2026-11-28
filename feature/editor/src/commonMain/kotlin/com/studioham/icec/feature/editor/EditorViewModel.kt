@@ -44,6 +44,8 @@ data class EditorState(
     val exitDialog: Boolean = false,
     val saving: Boolean = false,
     val saveError: SaveError? = null,
+    /** Counts failed saves, so the screen restarts the Snackbar timer even when the same error comes back at once. */
+    val saveFailures: Int = 0,
 ) {
     /** UX-039: save needs at least one selected face. */
     val canSave get() = selected.isNotEmpty()
@@ -102,7 +104,7 @@ class EditorViewModel(
                     _effects.send(EditorEffect.Saved(library.save(result)))
                 }
             // UX-016: a failure keeps the selection and shows a Snackbar in the Editor.
-            _state.update { it.copy(saving = false, saveError = error) }
+            _state.update { it.copy(saving = false, saveError = error, saveFailures = it.saveFailures + if (error != null) 1 else 0) }
         }
     }
 

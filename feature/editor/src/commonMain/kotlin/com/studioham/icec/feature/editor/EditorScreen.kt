@@ -148,7 +148,8 @@ fun EditorScreen(
         }
     }
     if (state.saveError != null) {
-        LaunchedEffect(state.saveError) {
+        // Keyed by the failure count too, so a retry that fails again at once gets its own 4 seconds.
+        LaunchedEffect(state.saveError, state.saveFailures) {
             delay(4.seconds)
             viewModel.onSaveErrorDismiss()
         }
@@ -196,7 +197,12 @@ internal fun EditorContent(
     Box(modifier.fillMaxSize().background(Color.Black)) {
         // ponytail: Modifier.blur needs Android 12+; older Android shows the saving overlay without blur.
         Column(
-            Modifier.fillMaxSize().then(if (state.saving) Modifier.blur(4.dp) else Modifier).windowInsetsPadding(WindowInsets.safeDrawing),
+            Modifier
+                .fillMaxSize()
+                .then(if (state.saving) Modifier.blur(4.dp) else Modifier)
+                // The dialogs cover the screen; screen readers must not reach the controls behind them.
+                .then(if (state.saving || state.exitDialog) Modifier.clearAndSetSemantics {} else Modifier)
+                .windowInsetsPadding(WindowInsets.safeDrawing),
         ) {
             TopBar(state.faces.size, state.selected.size, actions.onBack)
             if (twoPane) {
